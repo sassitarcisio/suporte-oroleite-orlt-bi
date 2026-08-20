@@ -1183,6 +1183,7 @@ img,svg,canvas{max-width:100%}
 /* VALORES OFICIAIS BLOQUEADOS */
 .close-toolbar input[readonly],.goal-card .goal-input[readonly],.ppp-table input[readonly]{background:#f1f5f9!important;color:#334155!important;cursor:not-allowed;border-color:#dbe5f1!important}
 .close-toolbar input[readonly]:focus,.goal-card .goal-input[readonly]:focus{box-shadow:none!important;border-color:#dbe5f1!important}
+.close-toolbar button:disabled{opacity:.7;cursor:not-allowed;transform:none;box-shadow:none}
 </style>
 </head>
 <body>
@@ -2927,6 +2928,12 @@ function pct(v){return (Number(v)||0).toLocaleString('pt-BR',{minimumFractionDig
 function closingStorageKey(){return 'biPowerClosing:'+document.getElementById('closeSeller').value+':'+document.getElementById('closeMonth').value}
 function applyValueMetasConfig(){
   if(!valueMetasConfig)return;
+  const saveButton=document.getElementById('saveClosingBtn');
+  if(saveButton){
+    saveButton.disabled=true;
+    saveButton.textContent='Valores oficiais carregados';
+    saveButton.title='Os valores são definidos em VALOR_METAS.csv';
+  }
   if(valueMetasConfig.baseSalary!=null){
     document.getElementById('baseSalary').value=valueMetasConfig.baseSalary;
     document.getElementById('baseSalary').readOnly=true;
@@ -2983,10 +2990,7 @@ function renderGoalRows(){
   });
   body.innerHTML=h;
   document.querySelectorAll('.goal-input').forEach(inp=>{
-    const goal=closeGoals[Number(inp.dataset.i)];
-    const sourced=valueMetasConfig?.brands[String(goal?.brand||'').trim().toUpperCase()];
-    const sourcedFields=['posPrize','fatPrize','trocaPrize','trocaGoal'];
-    if(sourced&&sourcedFields.includes(inp.dataset.field)&&sourced[inp.dataset.field]!=null){inp.readOnly=true;inp.title='Valor definido em VALOR_METAS.csv'}
+    if(valueMetasConfig){inp.readOnly=true;inp.title='Valor definido em VALOR_METAS.csv'}
     inp.addEventListener('input',()=>{
       closeGoals[Number(inp.dataset.i)][inp.dataset.field]=Number(inp.value)||0;renderClosing();
     });
@@ -3002,6 +3006,8 @@ function loadClosingConfig(){
     document.getElementById(id).readOnly=false;
     document.getElementById(id).removeAttribute('title');
   });
+  const saveButton=document.getElementById('saveClosingBtn');
+  if(saveButton){saveButton.disabled=false;saveButton.textContent='Salvar configuração';saveButton.removeAttribute('title')}
   try{
     const saved=JSON.parse(localStorage.getItem(closingStorageKey())||'null');
     if(saved){
