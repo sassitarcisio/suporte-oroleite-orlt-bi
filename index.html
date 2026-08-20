@@ -1156,6 +1156,24 @@ img,svg,canvas{max-width:100%}
 .ppp-table tbody tr:active td{background:#dbeafe!important;color:#0f172a!important}
 .ppp-table input:focus{border-color:#2563eb!important;background:#fff!important;box-shadow:0 0 0 3px rgba(37,99,235,.16)!important;color:#0f172a!important}
 .ppp-table input::selection{background:#bfdbfe;color:#0f172a}.ppp-table input::-moz-selection{background:#bfdbfe;color:#0f172a}
+
+/* RESUMO FINANCEIRO NO FLUXO PRINCIPAL */
+.closing-top{grid-template-columns:minmax(0,1fr)}
+.closing-financial-summary{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:-4px 0 18px}
+.financial-summary-card{position:relative;overflow:hidden;border:1px solid #dbe5f1;border-radius:16px;background:#fff;box-shadow:0 10px 24px rgba(15,23,42,.06)}
+.financial-summary-card:after{content:"";position:absolute;width:140px;height:140px;right:-52px;top:-82px;border-radius:50%;background:rgba(255,255,255,.13)}
+.financial-summary-head{position:relative;z-index:1;display:flex;flex-direction:column;gap:4px;padding:13px 16px;color:#fff;background:linear-gradient(135deg,#0f766e,#059669)}
+.prize-summary .financial-summary-head{background:linear-gradient(135deg,#1d4ed8,#2563eb)}
+.financial-summary-head span{font-size:9px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.75)}
+.financial-summary-head b{font-size:16px}
+.financial-summary-values{display:grid;grid-template-columns:repeat(3,1fr)}
+.financial-summary-values>div{min-width:0;padding:13px 16px;border-right:1px solid #e8eef6}.financial-summary-values>div:last-child{border-right:0}
+.financial-summary-values span{display:block;font-size:9px;font-weight:900;letter-spacing:.35px;text-transform:uppercase;color:#64748b}
+.financial-summary-values strong{display:block;overflow:hidden;margin-top:5px;color:#0f172a;font-size:15px;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}
+.financial-summary-values .financial-total{background:#f0fdf4}.prize-summary .financial-total{background:#eff6ff}
+.financial-summary-values .financial-total strong{color:#047857}.prize-summary .financial-total strong{color:#1d4ed8}
+@media(max-width:760px){.closing-financial-summary{grid-template-columns:1fr;margin-bottom:14px}.financial-summary-values>div{padding:11px 12px}.financial-summary-values strong{font-size:13px}}
+@media(max-width:430px){.financial-summary-values{grid-template-columns:1fr}.financial-summary-values>div{border-right:0;border-bottom:1px solid #e8eef6}.financial-summary-values>div:last-child{border-bottom:0}}
 </style>
 </head>
 <body>
@@ -1603,6 +1621,25 @@ img,svg,canvas{max-width:100%}
               </div>
             </div>
 
+            <section class="closing-financial-summary" aria-label="Resumo financeiro do vendedor">
+              <div class="financial-summary-card salary-summary">
+                <div class="financial-summary-head"><span>Remuneração</span><b>Salário do mês</b></div>
+                <div class="financial-summary-values">
+                  <div><span>Salário base</span><strong id="summarySalary">R$ 0,00</strong></div>
+                  <div><span>Comissão Oroleite</span><strong id="summaryCommission">R$ 0,00</strong></div>
+                  <div class="financial-total"><span>Total líquido</span><strong id="summarySalaryTotal">R$ 0,00</strong></div>
+                </div>
+              </div>
+              <div class="financial-summary-card prize-summary">
+                <div class="financial-summary-head"><span>Incentivos</span><b>Prêmio Oroleite</b></div>
+                <div class="financial-summary-values">
+                  <div><span>Prêmio possível</span><strong id="summaryPrizePossible">R$ 0,00</strong></div>
+                  <div><span>Prêmio conquistado</span><strong id="summaryPrizeEarned">R$ 0,00</strong></div>
+                  <div class="financial-total"><span><span id="summaryPrizePct">0,00%</span> do prêmio</span><strong id="summaryPrizeTotal">R$ 0,00</strong></div>
+                </div>
+              </div>
+            </section>
+
             <div class="close-mid">
               <div class="exec-panel">
                 <div class="exec-head">
@@ -1745,26 +1782,6 @@ img,svg,canvas{max-width:100%}
             </div>
           </div>
 
-          <aside class="close-side">
-            <div class="close-card">
-              <div class="close-card-title">RESUMO SALÁRIO</div>
-              <table>
-                <tr><td>SALÁRIO</td><td class="right" id="summarySalary">R$ 0,00</td></tr>
-                <tr><td>COMISSÃO OROLEITE</td><td class="right" id="summaryCommission">R$ 0,00</td></tr>
-                <tr><td class="em">TOTAL</td><td class="em right" id="summarySalaryTotal">R$ 0,00</td></tr>
-              </table>
-            </div>
-
-            <div class="close-card">
-              <div class="close-card-title">PRÊMIO OROLEITE</div>
-              <table>
-                <tr><td>PRÊMIO POSSÍVEL</td><td class="right" id="summaryPrizePossible">R$ 0,00</td></tr>
-                <tr><td>OROLEITE</td><td class="right" id="summaryPrizeEarned">R$ 0,00</td></tr>
-                <tr><td>% PRÊMIO</td><td class="right" id="summaryPrizePct">0,00%</td></tr>
-                <tr><td class="em">TOTAL PRÊMIO</td><td class="em right" id="summaryPrizeTotal">R$ 0,00</td></tr>
-              </table>
-            </div>
-          </aside>
         </div>
       </div>
     </section>
