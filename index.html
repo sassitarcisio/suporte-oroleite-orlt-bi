@@ -1042,6 +1042,46 @@ img,svg,canvas{max-width:100%}
   .header h1{font-size:19px}
 }
 
+/* FECHAMENTO VENDEDOR — VISUAL DINÂMICO */
+.closing-page{
+  background:
+    radial-gradient(circle at 92% 4%,rgba(56,189,248,.18),transparent 27%),
+    linear-gradient(180deg,#f8fbff 0%,#eef4fb 100%);
+}
+.closing-hero{
+  position:relative;display:flex;align-items:center;justify-content:space-between;gap:20px;
+  overflow:hidden;padding:23px 24px;color:#fff;border-radius:16px 16px 0 0;
+  background:linear-gradient(115deg,#0f172a 0%,#172554 50%,#0369a1 100%);
+}
+.closing-hero:before,.closing-hero:after{content:"";position:absolute;border-radius:999px;pointer-events:none}
+.closing-hero:before{width:230px;height:230px;right:15%;top:-150px;background:rgba(125,211,252,.16)}
+.closing-hero:after{width:130px;height:130px;right:-35px;bottom:-65px;border:24px solid rgba(255,255,255,.08)}
+.hero-copy,.hero-score{position:relative;z-index:1}
+.hero-kicker{font-size:10px;font-weight:900;letter-spacing:1.25px;text-transform:uppercase;color:#7dd3fc}
+.hero-name{margin-top:5px;font-size:25px;line-height:1.12;font-weight:900;letter-spacing:.15px;text-transform:uppercase}
+.hero-meta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:9px;font-size:11px;font-weight:700;color:#cbd5e1}
+.hero-dot{width:4px;height:4px;border-radius:50%;background:#7dd3fc}
+.hero-score{min-width:142px;padding:13px 16px;text-align:right;border:1px solid rgba(186,230,253,.35);border-radius:14px;background:rgba(15,23,42,.28);backdrop-filter:blur(8px)}
+.hero-score span{display:block;font-size:10px;font-weight:900;letter-spacing:.7px;text-transform:uppercase;color:#bae6fd}
+.hero-score strong{display:block;margin-top:5px;font-size:25px;line-height:1;font-variant-numeric:tabular-nums}
+.closing-sources{background:rgba(255,255,255,.85);border-color:#dbe3ef}
+.source-chip{border-color:#dbe3ef;border-radius:10px;transition:transform .18s ease,box-shadow .18s ease}
+.source-chip:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(15,23,42,.1)}
+.close-toolbar{border-radius:0;border-bottom:1px solid #dbe3ef;box-shadow:none}
+.close-kpi{position:relative;overflow:hidden;transition:transform .18s ease,box-shadow .18s ease}
+.close-kpi:before{content:"";position:absolute;top:0;left:0;width:100%;height:4px;background:#94a3b8}
+.close-kpi.blue:before{background:#2563eb}.close-kpi.gold:before{background:#f59e0b}.close-kpi.green:before{background:#16a34a}.close-kpi.red:before{background:#dc2626}.close-kpi.purple:before{background:#7c3aed}
+.close-kpi:hover{transform:translateY(-3px);box-shadow:0 14px 28px rgba(15,23,42,.12)}
+.exec-panel,.close-progress,.xbox,.close-card,.goal-wrap,.ppp-wrap{transition:box-shadow .2s ease,transform .2s ease}
+.exec-panel:hover,.close-progress:hover{box-shadow:0 14px 32px rgba(15,23,42,.1)}
+.bar>span{transition:width .55s cubic-bezier(.2,.8,.2,1)}
+.exec-status{box-shadow:inset 0 0 0 1px rgba(15,23,42,.05)}
+@media(max-width:760px){
+  .closing-hero{padding:18px;align-items:flex-start;flex-direction:column;gap:15px}
+  .hero-name{font-size:20px}.hero-score{width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .hero-score strong{margin:0}
+}
+@media(prefers-reduced-motion:reduce){.source-chip,.close-kpi,.exec-panel,.close-progress,.bar>span{transition:none}}
 </style>
 </head>
 <body>
@@ -1417,7 +1457,21 @@ img,svg,canvas{max-width:100%}
               <div class="source-chip"><b>PPP NESTLÉ</b><span id="closePPPStatus">não carregado</span><input type="file" id="closePPPInput" accept=".csv"></div>
               <div class="source-chip"><b>PRÊMIO METAS</b><span id="closeMetasStatus">não carregado</span><input type="file" id="closeMetasInput" accept=".csv"></div>
             </div>
-            <div class="close-title" id="closeSellerTitle">VENDEDOR:</div>
+            <div class="closing-hero">
+              <div class="hero-copy">
+                <div class="hero-kicker">Fechamento comercial</div>
+                <div class="hero-name" id="closeSellerTitle">Vendedor</div>
+                <div class="hero-meta">
+                  <span id="heroMonth">Selecione o período</span>
+                  <span class="hero-dot"></span>
+                  <span>Resumo atualizado em tempo real</span>
+                </div>
+              </div>
+              <div class="hero-score">
+                <span>Resultado do mês</span>
+                <strong id="heroScore">0,00%</strong>
+              </div>
+            </div>
 
             <div class="close-toolbar">
               <div class="field">
@@ -2899,7 +2953,7 @@ function renderClosing(){
         salaryTotal=base+commission,
         tradePct=salesOnly?totalTradeValue/salesOnly*100:0;
 
-  document.getElementById('closeSellerTitle').textContent='VENDEDOR: '+seller;
+  document.getElementById('closeSellerTitle').textContent=seller;
   document.getElementById('closeRefMonth').textContent=monthLabel(month);
   document.getElementById('closeBaseSalary').textContent=money(base);
   document.getElementById('closeRevenue').textContent=money(revenue);
@@ -2977,6 +3031,8 @@ function renderClosing(){
   document.getElementById('execSellerName').textContent=seller;
   document.getElementById('execMonthRef').textContent=monthText;
   document.getElementById('execScore').textContent=pct(execScore);
+  document.getElementById('heroMonth').textContent=monthText;
+  document.getElementById('heroScore').textContent=pct(execScore);
   document.getElementById('execPrizeTotal').textContent=money(prizeEarned);
   document.getElementById('execPrizePossible').textContent=money(prizePossible);
   document.getElementById('execPPPValue').textContent=money(ppp.value);
