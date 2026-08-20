@@ -1174,6 +1174,15 @@ img,svg,canvas{max-width:100%}
 .financial-summary-values .financial-total strong{color:#047857}.prize-summary .financial-total strong{color:#1d4ed8}
 @media(max-width:760px){.closing-financial-summary{grid-template-columns:1fr;margin-bottom:14px}.financial-summary-values>div{padding:11px 12px}.financial-summary-values strong{font-size:13px}}
 @media(max-width:430px){.financial-summary-values{grid-template-columns:1fr}.financial-summary-values>div{border-right:0;border-bottom:1px solid #e8eef6}.financial-summary-values>div:last-child{border-bottom:0}}
+
+/* QUATRO FONTES DO FECHAMENTO */
+.file-pickers,.closing-sources{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:1100px){.file-pickers,.closing-sources{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:900px){.file-pickers,.closing-sources{grid-template-columns:1fr}}
+
+/* VALORES OFICIAIS BLOQUEADOS */
+.close-toolbar input[readonly],.goal-card .goal-input[readonly],.ppp-table input[readonly]{background:#f1f5f9!important;color:#334155!important;cursor:not-allowed;border-color:#dbe5f1!important}
+.close-toolbar input[readonly]:focus,.goal-card .goal-input[readonly]:focus{box-shadow:none!important;border-color:#dbe5f1!important}
 </style>
 </head>
 <body>
@@ -1213,7 +1222,7 @@ img,svg,canvas{max-width:100%}
       </div>
 
       <div class="login-info">
-        Após entrar, o sistema carrega automaticamente POWER.csv, ppp.csv e metas.csv.
+        Após entrar, o sistema carrega automaticamente POWER.csv, ppp.csv, metas.csv e VALOR_METAS.csv.
       </div>
     </div>
   </section>
@@ -1221,7 +1230,7 @@ img,svg,canvas{max-width:100%}
   <section id="uploadScreen" class="panel upload-home hidden">
     <div class="multi-upload">
       <h2>Carregando BI Oroleite</h2>
-      <p>O sistema procura automaticamente os três arquivos na mesma pasta do <b>index.html</b>.</p>
+      <p>O sistema procura automaticamente os quatro arquivos na mesma pasta do <b>index.html</b>.</p>
       <div class="file-pickers">
         <div class="file-picker">
           <div class="fp-title">POWER.csv</div>
@@ -1237,6 +1246,11 @@ img,svg,canvas{max-width:100%}
           <div class="fp-title">metas.csv</div>
           <div class="fp-sub">Prêmio Metas</div>
           <div class="fp-status" id="metasFileStatus">⏳ Carregando...</div>
+        </div>
+        <div class="file-picker">
+          <div class="fp-title">VALOR_METAS.csv</div>
+          <div class="fp-sub">Salário, PPP e valores dos prêmios</div>
+          <div class="fp-status" id="valueMetasFileStatus">⏳ Carregando...</div>
         </div>
       </div>
 
@@ -1258,6 +1272,10 @@ img,svg,canvas{max-width:100%}
           <div class="file-picker">
             <input type="file" id="metasInitialFileInput" accept=".csv">
             <div class="fp-title">Selecionar metas.csv</div>
+          </div>
+          <div class="file-picker">
+            <input type="file" id="valuesInitialFileInput" accept=".csv">
+            <div class="fp-title">Selecionar VALOR_METAS.csv</div>
           </div>
         </div>
         <button class="open-bi" id="openBiBtn" disabled>ABRIR BI COM OS ARQUIVOS CARREGADOS</button>
@@ -1548,6 +1566,7 @@ img,svg,canvas{max-width:100%}
               <div class="source-chip"><b>POWER</b><span id="closePowerStatus">carregado</span><input type="file" id="closePowerInput" accept=".csv"></div>
               <div class="source-chip"><b>PPP NESTLÉ</b><span id="closePPPStatus">não carregado</span><input type="file" id="closePPPInput" accept=".csv"></div>
               <div class="source-chip"><b>PRÊMIO METAS</b><span id="closeMetasStatus">não carregado</span><input type="file" id="closeMetasInput" accept=".csv"></div>
+              <div class="source-chip"><b>VALORES</b><span id="closeValuesStatus">não carregado</span><input type="file" id="closeValuesInput" accept=".csv"></div>
             </div>
             <div class="closing-hero">
               <div class="hero-copy">
@@ -1797,8 +1816,8 @@ const INT = new Intl.NumberFormat('pt-BR',{maximumFractionDigits:0});
 let headers=[], rows=[], filtered=[], col={};
 let allMovementTypes=[], selectedMovementTypes=new Set();
 let lossBaseRows=[];
-let pppRows=[], pppCol={}, metasRows=[], metasCol={};
-let powerFileName="", pppFileName="", metasFileName="";
+let pppRows=[], pppCol={}, metasRows=[], metasCol={}, valueMetasConfig=null;
+let powerFileName="", pppFileName="", metasFileName="", valueMetasFileName="";
 let dashboardOpened=false;
 
 function parseCSV(text){
@@ -2313,6 +2332,41 @@ function validateDataset(c,required,label){
   const missing=required.filter(x=>c[x]==null);
   if(missing.length)throw new Error(`${label}: faltam as colunas ${missing.join(', ')}`);
 }
+function valueConfigNum(v){return brNum(String(v||'').replace(/[^\d,.-]/g,''));}
+function parseValueMetasConfig(text){
+  const rows=parseCSV(text);
+  const config={baseSalary:null,commissionPct:null,pppMax:null,brands:{}};
+  const headerIndex=rows.findIndex(r=>String(r[0]||'').trim().toUpperCase()==='MARCA');
+  if(headerIndex<0)throw new Error('VALOR_METAS: coluna MARCA não encontrada.');
+  const columns={};
+  rows[headerIndex].forEach((name,index)=>{
+    const key=String(name||'').trim().toUpperCase();
+    if(key)columns[key]=index;
+  });
+
+  for(let i=0;i<headerIndex;i++){
+    for(let c=0;c<rows[i].length-1;c++){
+      const key=String(rows[i][c]||'').trim().toUpperCase();
+      const value=valueConfigNum(rows[i][c+1]);
+      if(key==='PPP')config.pppMax=value;
+      if(key==='SALARIO' || key==='SALÁRIO')config.baseSalary=value;
+      if(key==='COMISSAO' || key==='COMISSÃO')config.commissionPct=value;
+    }
+  }
+
+  for(const row of rows.slice(headerIndex+1)){
+    const brand=String(row[0]||'').trim().toUpperCase();
+    if(!brand)continue;
+    const valueAt=name=>columns[name]==null?null:valueConfigNum(row[columns[name]]);
+    config.brands[brand]={
+      fatPrize:valueAt('FATURAMENTO'),
+      posPrize:valueAt('POSITIVACAO'),
+      trocaPrize:valueAt('TROCA'),
+      trocaGoal:valueAt('TROCA_PERCENTUAL')
+    };
+  }
+  return config;
+}
 function setFileStatuses(){
   const p=document.getElementById('powerFileStatus');
   const pp=document.getElementById('pppFileStatus');
@@ -2320,12 +2374,15 @@ function setFileStatuses(){
   if(p)p.textContent=powerFileName?`✓ ${powerFileName}`:'⚠ não carregado';
   if(pp)pp.textContent=pppFileName?`✓ ${pppFileName}`:'⚠ não carregado';
   if(m)m.textContent=metasFileName?`✓ ${metasFileName}`:'⚠ não carregado';
+  const v=document.getElementById('valueMetasFileStatus');
+  if(v)v.textContent=valueMetasFileName?`✓ ${valueMetasFileName}`:'⚠ não carregado';
   const open=document.getElementById('openBiBtn');
   if(open)open.disabled=!rows.length;
-  const cp=document.getElementById('closePowerStatus'), cpp=document.getElementById('closePPPStatus'), cm=document.getElementById('closeMetasStatus');
+  const cp=document.getElementById('closePowerStatus'), cpp=document.getElementById('closePPPStatus'), cm=document.getElementById('closeMetasStatus'), cv=document.getElementById('closeValuesStatus');
   if(cp)cp.textContent=powerFileName||'não carregado';
   if(cpp)cpp.textContent=pppFileName||'não carregado';
   if(cm)cm.textContent=metasFileName||'não carregado';
+  if(cv)cv.textContent=valueMetasFileName||'não carregado';
 }
 function afterAuxLoad(){
   setFileStatuses();
@@ -2351,6 +2408,8 @@ function loadCSVText(txt,kind,filename){
     const d=parseDataset(txt);
     validateDataset(d.col,['VENDEDOR','MES','ANO','TIPOMETA','DESCRICAO','META','ALCANCADO'],'Prêmio Metas');
     metasRows=d.rows;metasCol=d.col;metasFileName=filename;
+  }else if(kind==='values'){
+    valueMetasConfig=parseValueMetasConfig(txt);valueMetasFileName=filename;
   }
   setFileStatuses();
 }
@@ -2360,8 +2419,8 @@ async function autoLoadAllFiles(){
   const fallback=document.getElementById('manualFallback');
   const refresh=document.getElementById('refreshDataBtn');
 
-  rows=[];filtered=[];pppRows=[];metasRows=[];
-  powerFileName='';pppFileName='';metasFileName='';
+  rows=[];filtered=[];pppRows=[];metasRows=[];valueMetasConfig=null;
+  powerFileName='';pppFileName='';metasFileName='';valueMetasFileName='';
   dashboardOpened=false;
 
   if(refresh)refresh.disabled=true;
@@ -2371,7 +2430,8 @@ async function autoLoadAllFiles(){
   const specs=[
     {file:'POWER.csv',kind:'power'},
     {file:'ppp.csv',kind:'ppp'},
-    {file:'metas.csv',kind:'metas'}
+    {file:'metas.csv',kind:'metas'},
+    {file:'VALOR_METAS.csv',kind:'values'}
   ];
 
   const errors=[];
@@ -2383,7 +2443,7 @@ async function autoLoadAllFiles(){
     }catch(err){
       console.error(err);
       errors.push(`${s.file}: ${err.message}`);
-      const id=s.kind==='power'?'powerFileStatus':s.kind==='ppp'?'pppFileStatus':'metasFileStatus';
+      const id=s.kind==='power'?'powerFileStatus':s.kind==='ppp'?'pppFileStatus':s.kind==='metas'?'metasFileStatus':'valueMetasFileStatus';
       const el=document.getElementById(id);
       if(el)el.textContent='✗ arquivo não encontrado';
     }
@@ -2397,8 +2457,8 @@ async function autoLoadAllFiles(){
     renderAll();
     renderClosing();
 
-    const loaded=[powerFileName,pppFileName,metasFileName].filter(Boolean).length;
-    if(message)message.innerHTML=`✓ ${loaded}/3 arquivos carregados.`;
+    const loaded=[powerFileName,pppFileName,metasFileName,valueMetasFileName].filter(Boolean).length;
+    if(message)message.innerHTML=`✓ ${loaded}/4 arquivos carregados.`;
     if(refresh){refresh.style.display='inline-block';refresh.disabled=false;}
 
     if(errors.length && fallback)fallback.classList.remove('hidden');
@@ -2580,8 +2640,8 @@ async function doLogin(){
 
 function logoutBI(){
   sessionStorage.removeItem('bi_oroleite_auth');
-  rows=[];filtered=[];pppRows=[];metasRows=[];
-  powerFileName='';pppFileName='';metasFileName='';
+  rows=[];filtered=[];pppRows=[];metasRows=[];valueMetasConfig=null;
+  powerFileName='';pppFileName='';metasFileName='';valueMetasFileName='';
   dashboardOpened=false;
 
   const refresh=document.getElementById('refreshDataBtn');
@@ -2596,6 +2656,7 @@ function logoutBI(){
 document.getElementById('initialFileInput').addEventListener('change',e=>loadCSVKind(e.target.files[0],'power'));
 document.getElementById('pppInitialFileInput').addEventListener('change',e=>loadCSVKind(e.target.files[0],'ppp'));
 document.getElementById('metasInitialFileInput').addEventListener('change',e=>loadCSVKind(e.target.files[0],'metas'));
+document.getElementById('valuesInitialFileInput').addEventListener('change',e=>loadCSVKind(e.target.files[0],'values'));
 document.getElementById('fileInput').addEventListener('change',e=>loadCSVKind(e.target.files[0],'power'));
 document.getElementById('openBiBtn').addEventListener('click',openBI);
 document.getElementById('refreshDataBtn').addEventListener('click',refreshServerData);
@@ -2864,6 +2925,32 @@ function monthLabel(k){
 function money(v){return MONEY.format(Number(v)||0)}
 function pct(v){return (Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%'}
 function closingStorageKey(){return 'biPowerClosing:'+document.getElementById('closeSeller').value+':'+document.getElementById('closeMonth').value}
+function applyValueMetasConfig(){
+  if(!valueMetasConfig)return;
+  if(valueMetasConfig.baseSalary!=null){
+    document.getElementById('baseSalary').value=valueMetasConfig.baseSalary;
+    document.getElementById('baseSalary').readOnly=true;
+    document.getElementById('baseSalary').title='Valor definido em VALOR_METAS.csv';
+  }
+  if(valueMetasConfig.commissionPct!=null){
+    document.getElementById('commissionPct').value=valueMetasConfig.commissionPct;
+    document.getElementById('commissionPct').readOnly=true;
+    document.getElementById('commissionPct').title='Valor definido em VALOR_METAS.csv';
+  }
+  if(valueMetasConfig.pppMax!=null){
+    document.getElementById('pppMax').value=valueMetasConfig.pppMax;
+    document.getElementById('pppMax').readOnly=true;
+    document.getElementById('pppMax').title='Valor definido em VALOR_METAS.csv';
+  }
+  closeGoals.forEach(goal=>{
+    const values=valueMetasConfig.brands[String(goal.brand||'').trim().toUpperCase()];
+    if(!values)return;
+    if(values.fatPrize!=null)goal.fatPrize=values.fatPrize;
+    if(values.posPrize!=null)goal.posPrize=values.posPrize;
+    if(values.trocaPrize!=null)goal.trocaPrize=values.trocaPrize;
+    if(values.trocaGoal!=null)goal.trocaGoal=values.trocaGoal;
+  });
+}
 
 function initClosingControls(){
   if(!rows.length)return;
@@ -2895,9 +2982,15 @@ function renderGoalRows(){
     </article>`;
   });
   body.innerHTML=h;
-  document.querySelectorAll('.goal-input').forEach(inp=>inp.addEventListener('input',()=>{
-    closeGoals[Number(inp.dataset.i)][inp.dataset.field]=Number(inp.value)||0;renderClosing();
-  }));
+  document.querySelectorAll('.goal-input').forEach(inp=>{
+    const goal=closeGoals[Number(inp.dataset.i)];
+    const sourced=valueMetasConfig?.brands[String(goal?.brand||'').trim().toUpperCase()];
+    const sourcedFields=['posPrize','fatPrize','trocaPrize','trocaGoal'];
+    if(sourced&&sourcedFields.includes(inp.dataset.field)&&sourced[inp.dataset.field]!=null){inp.readOnly=true;inp.title='Valor definido em VALOR_METAS.csv'}
+    inp.addEventListener('input',()=>{
+      closeGoals[Number(inp.dataset.i)][inp.dataset.field]=Number(inp.value)||0;renderClosing();
+    });
+  });
 }
 
 function loadClosingConfig(){
@@ -2905,6 +2998,10 @@ function loadClosingConfig(){
   document.getElementById('baseSalary').value=1951;
   document.getElementById('commissionPct').value=1;
   document.getElementById('pppMax').value=1200;
+  ['baseSalary','commissionPct','pppMax'].forEach(id=>{
+    document.getElementById(id).readOnly=false;
+    document.getElementById(id).removeAttribute('title');
+  });
   try{
     const saved=JSON.parse(localStorage.getItem(closingStorageKey())||'null');
     if(saved){
@@ -2914,6 +3011,7 @@ function loadClosingConfig(){
       if(Array.isArray(saved.goals)&&saved.goals.length)closeGoals=saved.goals;
     }
   }catch(e){console.warn(e)}
+  applyValueMetasConfig();
   renderGoalRows();renderClosing();
 }
 function saveClosingConfig(){
@@ -2970,15 +3068,16 @@ function syncGoalsWithOfficialMetas(seller,month){
     if(configured){
       nextGoals.push(configured);
     }else{
+      const values=valueMetasConfig?.brands[brand]||{};
       nextGoals.push({
       name:brand,
       brand,
       posGoal:0,
       fatGoal:0,
-      trocaGoal:0,
-      posPrize:0,
-      fatPrize:0,
-      trocaPrize:0
+      trocaGoal:values.trocaGoal??0,
+      posPrize:values.posPrize??0,
+      fatPrize:values.fatPrize??0,
+      trocaPrize:values.trocaPrize??0
       });
     }
   });
@@ -3239,6 +3338,7 @@ document.getElementById('saveClosingBtn').addEventListener('click',saveClosingCo
 document.getElementById('closePowerInput').addEventListener('change',e=>loadCSVKind(e.target.files[0],'power'));
 document.getElementById('closePPPInput').addEventListener('change',e=>loadCSVKind(e.target.files[0],'ppp'));
 document.getElementById('closeMetasInput').addEventListener('change',e=>loadCSVKind(e.target.files[0],'metas'));
+document.getElementById('closeValuesInput').addEventListener('change',e=>loadCSVKind(e.target.files[0],'values'));
 
 
 // Início controlado pela autenticação.
