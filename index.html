@@ -2956,6 +2956,29 @@ function metasMapFor(seller,month){
   }
   return map;
 }
+function syncGoalsWithOfficialMetas(seller,month){
+  const officialMetas=metasMapFor(seller,month);
+  const configuredBrands=new Set(closeGoals.map(g=>String(g.brand||'').trim().toUpperCase()));
+  const missingBrands=Object.keys(officialMetas)
+    .filter(brand=>!configuredBrands.has(brand))
+    .sort((a,b)=>a.localeCompare(b,'pt-BR'));
+
+  if(!missingBrands.length)return false;
+
+  missingBrands.forEach(brand=>{
+    closeGoals.push({
+      name:brand,
+      brand,
+      posGoal:0,
+      fatGoal:0,
+      trocaGoal:0,
+      posPrize:0,
+      fatPrize:0,
+      trocaPrize:0
+    });
+  });
+  return true;
+}
 function pppDataFor(seller){
   const fixed=['TRADICIONAL','AS 1 A 4 CK','AS 5 A 9 CK','AS 10 + CK'];
   const found={};
@@ -3011,6 +3034,8 @@ function renderClosing(){
   if(!rows.length)return;
   const seller=document.getElementById('closeSeller').value,month=document.getElementById('closeMonth').value;
   if(!seller||!month)return;
+
+  if(syncGoalsWithOfficialMetas(seller,month))renderGoalRows();
 
   setFileStatuses();
 
