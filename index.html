@@ -1779,7 +1779,7 @@ img,svg,canvas{max-width:100%}
 
             <div class="xbox">
               <div style="display:flex;justify-content:space-between;gap:12px;padding:7px 10px;border-bottom:1px solid #111;font-weight:900">
-                <span>GANHA A MÉDIA DO PRÊMIO - PPP NESTLÉ</span>
+                <span>GANHA A MÉDIA DO PRÊMIO - PPP NESTLÉ <small id="pppRefDate" style="display:block;margin-top:3px;color:#64748b;font-size:10px">Aguardando dados</small></span>
                 <span id="pppMaxLabel">R$ 1.200,00</span>
               </div>
               <div id="pppWarning" class="source-warning">Carregue o arquivo PPP Nestlé para calcular automaticamente.</div>
@@ -2403,7 +2403,7 @@ function loadCSVText(txt,kind,filename){
     powerFileName=filename;
   }else if(kind==='ppp'){
     const d=parseDataset(txt);
-    validateDataset(d.col,['VENDEDOR','SEGMENTO','QTDE_CLIENTES','QTDE_ITENS_SEGMENTO','GRUPOS_COLOCADOS'],'PPP Nestlé');
+    validateDataset(d.col,['DATA','VENDEDOR','SEGMENTO','QTDE_CLIENTES','QTDE_ITENS_SEGMENTO','GRUPOS_COLOCADOS'],'PPP Nestlé');
     pppRows=d.rows;pppCol=d.col;pppFileName=filename;
   }else if(kind==='metas'){
     const d=parseDataset(txt);
@@ -3094,23 +3094,41 @@ function syncGoalsWithOfficialMetas(seller,month){
   if(changed)closeGoals=nextGoals;
   return changed;
 }
-function pppDataFor(seller){
+function pppDataFor(seller,month){
   const fixed=['TRADICIONAL','AS 1 A 4 CK','AS 5 A 9 CK','AS 10 + CK'];
   const found={};
-  for(const r of pppRows){
-    if(normSeller(dget(r,pppCol,'VENDEDOR'))!==seller)continue;
+  const sellerMonthRows=pppRows.filter(r=>
+    normSeller(dget(r,pppCol,'VENDEDOR'))===seller&&
+    monthKeyFromBR(dget(r,pppCol,'DATA'))===month
+  );
+  let latestDateKey=0;
+  for(const r of sellerMonthRows){
+    const dateKey=dateKeyBR(dget(r,pppCol,'DATA'));
     const seg=String(dget(r,pppCol,'SEGMENTO')).trim().toUpperCase();
+    if(!dateKey||!seg||found[seg]?.dateKey>dateKey)continue;
     const clients=brNum(dget(r,pppCol,'QTDE_CLIENTES')),items=brNum(dget(r,pppCol,'QTDE_ITENS_SEGMENTO')),groups=brNum(dget(r,pppCol,'GRUPOS_COLOCADOS'));
-    found[seg]={segment:seg,clients,items,groups,rate:clients*items>0?groups/(clients*items)*100:0,active:clients*items>0};
+    found[seg]={segment:seg,clients,items,groups,rate:clients*items>0?groups/(clients*items)*100:0,active:clients*items>0,dateKey};
+    latestDateKey=Math.max(latestDateKey,dateKey);
   }
   const extras=Object.keys(found).filter(x=>!fixed.includes(x)).sort();
-  return [...fixed,...extras].map(seg=>found[seg]||{segment:seg,clients:0,items:0,groups:0,rate:0,active:false});
+  return {
+    data:[...fixed,...extras].map(seg=>found[seg]||{segment:seg,clients:0,items:0,groups:0,rate:0,active:false}),
+    refDate:latestDateKey?brFromKey(latestDateKey):''
+  };
 }
 function segmentLabel(s){return ({'AS 1 A 4 CK':'1 a 4 CK','AS 5 A 9 CK':'5 a 9 CK','AS 10 + CK':'10+ CK','TRADICIONAL':'TRADICIONAL'})[s]||s}
-function renderPPP(seller){
+function renderPPP(seller,month){
   const body=document.getElementById('pppBody'),warn=document.getElementById('pppWarning');
-  let data=pppDataFor(seller),sum=0,count=0,h='';
-  if(!pppRows.length){warn.style.display='block';data=[]}else warn.style.display='none';
+  const source=pppDataFor(seller,month);
+  let data=source.data,sum=0,count=0,h='';
+  if(!pppRows.length||!source.refDate){
+    warn.style.display='block';
+    warn.textContent=pppRows.length?'Não há dados de PPP para o vendedor e mês selecionados.':'Carregue o arquivo PPP Nestlé para calcular automaticamente.';
+    data=[];
+  }else{
+    warn.style.display='none';
+  }
+  document.getElementById('pppRefDate').textContent=source.refDate?`Dados de ${source.refDate}`:'Sem dados para o mês selecionado';
   if(!data.length)data=[{segment:'TRADICIONAL',clients:0,items:0,groups:0,rate:0,active:false},{segment:'AS 1 A 4 CK',clients:0,items:0,groups:0,rate:0,active:false},{segment:'AS 5 A 9 CK',clients:0,items:0,groups:0,rate:0,active:false},{segment:'AS 10 + CK',clients:0,items:0,groups:0,rate:0,active:false}];
   for(const d of data){
     if(d.active){sum+=d.rate;count++}
@@ -3119,7 +3137,7 @@ function renderPPP(seller){
   body.innerHTML=h;
   const mean=count?sum/count:0,pppMax=Number(document.getElementById('pppMax').value)||0,pppValue=pppMax*mean/100;
   document.getElementById('pppMean').textContent=pct(mean);document.getElementById('pppMaxLabel').textContent=money(pppMax);document.getElementById('pppValue').textContent=money(pppValue);
-  return {mean,value:pppValue,max:pppMax};
+  return {mean,value:pppValue,max:pppMax,refDate:source.refDate};
 }
 function payoutPos(ach,prize){return ach>=100?prize:0}
 function payoutFat(ach,prize){if(ach>=100)return prize;if(ach>=90)return prize*.75;if(ach>=80)return prize*.50;return 0}
@@ -3235,7 +3253,7 @@ function renderClosing(){
     goalStatus.textContent=brandPct>=80?'Meta forte':brandPct>=40?'Em evolução':'Ponto de atenção';
   });
 
-  const ppp=renderPPP(seller),
+  const ppp=renderPPP(seller,month),
         prizePossible=goalPossible+ppp.max,
         prizeEarned=goalEarned+ppp.value,
         prizePct=prizePossible?prizeEarned/prizePossible*100:0,
