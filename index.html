@@ -1093,6 +1093,37 @@ img,svg,canvas{max-width:100%}
   .hero-score strong{margin:0}
 }
 @media(prefers-reduced-motion:reduce){.source-chip,.close-kpi,.exec-panel,.close-progress,.bar>span{transition:none}}
+
+/* PRÊMIO METAS — TABELA INTERATIVA */
+.goal-wrap{background:#fff;border:1px solid #dbe5f1;border-radius:16px;box-shadow:0 14px 30px rgba(15,23,42,.07)}
+.goal-table{border-collapse:separate;border-spacing:0;width:100%;font-size:12px}
+.goal-table thead th.yellow{
+  position:sticky;top:0;z-index:2;padding:12px 10px;border:0;border-bottom:1px solid #1d4ed8;
+  background:linear-gradient(135deg,#0f172a 0%,#1e40af 100%);color:#eff6ff;
+  font-size:10px;letter-spacing:.5px;text-transform:uppercase
+}
+.goal-table th:first-child{border-radius:0}.goal-table th:last-child{border-radius:0}
+.goal-table td{padding:9px 10px!important;border:0!important;border-right:1px solid #e8eef6!important;border-bottom:1px solid #e8eef6!important;color:#172033!important;background:#fff!important;transition:background .15s ease}
+.goal-table tr:nth-child(even) td{background:#f8fafc!important}
+.goal-table tbody tr:hover td{background:#eff6ff!important}
+.goal-table td:last-child{border-right:0!important}
+.goal-table .brand{
+  min-width:110px;color:#1e3a8a!important;background:linear-gradient(135deg,#eef6ff 0%,#e0edff 100%)!important;
+  font-size:11px;letter-spacing:.35px;text-transform:uppercase
+}
+.goal-brand-block td{border-top:2px solid #cbdcf4!important}
+.goal-table .result{font-weight:900;color:#64748b!important;font-variant-numeric:tabular-nums}
+.goal-table .result.earned{color:#047857!important;background:#ecfdf5!important}
+.goal-table input,.goal-table input.goal-input{
+  width:100%;min-width:82px;min-height:32px;padding:6px 8px!important;border:1px solid #cbd5e1!important;
+  border-radius:8px!important;background:#fff!important;color:#0f172a!important;caret-color:#2563eb!important;
+  font:inherit;font-weight:800;text-align:right;outline:0;box-shadow:inset 0 1px 1px rgba(15,23,42,.03);transition:border-color .15s ease,box-shadow .15s ease,background .15s ease
+}
+.goal-table input.goal-input:hover{border-color:#93c5fd!important;background:#f8fbff!important}
+.goal-table input.goal-input:focus{border-color:#2563eb!important;background:#fff!important;box-shadow:0 0 0 3px rgba(37,99,235,.16)!important}
+.goal-table input.goal-input::selection{background:#bfdbfe;color:#0f172a}
+.goal-table input.goal-input::-moz-selection{background:#bfdbfe;color:#0f172a}
+@media(max-width:760px){.goal-table{font-size:11px}.goal-table td{padding:7px 8px!important}.goal-table thead th.yellow{padding:10px 8px}.goal-table .brand{min-width:94px}}
 </style>
 </head>
 <body>
@@ -2998,15 +3029,21 @@ function renderClosing(){
     document.getElementById(`meta_${idx}_0`).textContent=INT.format(posGoal);
     document.getElementById(`actual_${idx}_0`).textContent=INT.format(posActual);
     document.getElementById(`ach_${idx}_0`).textContent=pct(posAch);
-    document.getElementById(`result_${idx}_0`).textContent=resPos?money(resPos):'-';
+    const resultPos=document.getElementById(`result_${idx}_0`);
+    resultPos.textContent=resPos?money(resPos):'-';
+    resultPos.className='right result'+(resPos?' earned':'');
 
     document.getElementById(`meta_${idx}_1`).textContent=money(fatGoal);
     document.getElementById(`actual_${idx}_1`).textContent=money(fatActual);
     document.getElementById(`ach_${idx}_1`).textContent=pct(fatAch);
-    document.getElementById(`result_${idx}_1`).textContent=resFat?money(resFat):'-';
+    const resultFat=document.getElementById(`result_${idx}_1`);
+    resultFat.textContent=resFat?money(resFat):'-';
+    resultFat.className='right result'+(resFat?' earned':'');
 
     document.getElementById(`actual_${idx}_2`).textContent=pct(pm.trocaPct);
-    document.getElementById(`result_${idx}_2`).textContent=resTroca?money(resTroca):'-';
+    const resultTroca=document.getElementById(`result_${idx}_2`);
+    resultTroca.textContent=resTroca?money(resTroca):'-';
+    resultTroca.className='right result'+(resTroca?' earned':'');
   });
 
   const ppp=renderPPP(seller),
