@@ -2958,15 +2958,19 @@ function metasMapFor(seller,month){
 }
 function syncGoalsWithOfficialMetas(seller,month){
   const officialMetas=metasMapFor(seller,month);
-  const configuredBrands=new Set(closeGoals.map(g=>String(g.brand||'').trim().toUpperCase()));
-  const missingBrands=Object.keys(officialMetas)
-    .filter(brand=>!configuredBrands.has(brand))
-    .sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  const officialBrands=Object.keys(officialMetas);
+  if(!officialBrands.length)return false;
 
-  if(!missingBrands.length)return false;
+  const configuredByBrand=new Map(closeGoals.map(g=>[String(g.brand||'').trim().toUpperCase(),g]));
+  const nextGoals=[];
 
-  missingBrands.forEach(brand=>{
-    closeGoals.push({
+  // Exibe somente as marcas que possuem metas para o vendedor e mês selecionados.
+  officialBrands.forEach(brand=>{
+    const configured=configuredByBrand.get(brand);
+    if(configured){
+      nextGoals.push(configured);
+    }else{
+      nextGoals.push({
       name:brand,
       brand,
       posGoal:0,
@@ -2975,9 +2979,15 @@ function syncGoalsWithOfficialMetas(seller,month){
       posPrize:0,
       fatPrize:0,
       trocaPrize:0
-    });
+      });
+    }
   });
-  return true;
+
+  const currentBrands=closeGoals.map(g=>String(g.brand||'').trim().toUpperCase());
+  const nextBrands=nextGoals.map(g=>String(g.brand||'').trim().toUpperCase());
+  const changed=currentBrands.length!==nextBrands.length||currentBrands.some((brand,i)=>brand!==nextBrands[i]);
+  if(changed)closeGoals=nextGoals;
+  return changed;
 }
 function pppDataFor(seller){
   const fixed=['TRADICIONAL','AS 1 A 4 CK','AS 5 A 9 CK','AS 10 + CK'];
