@@ -1124,6 +1124,30 @@ img,svg,canvas{max-width:100%}
 .goal-table input.goal-input::selection{background:#bfdbfe;color:#0f172a}
 .goal-table input.goal-input::-moz-selection{background:#bfdbfe;color:#0f172a}
 @media(max-width:760px){.goal-table{font-size:11px}.goal-table td{padding:7px 8px!important}.goal-table thead th.yellow{padding:10px 8px}.goal-table .brand{min-width:94px}}
+
+/* PRÊMIO METAS — CARTÕES POR MARCA */
+.goal-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.goal-card{overflow:hidden;border:1px solid #dbe4f0;border-radius:18px;background:#fff;box-shadow:0 10px 26px rgba(15,23,42,.06);transition:transform .18s ease,box-shadow .18s ease}
+.goal-card:hover{transform:translateY(-3px);box-shadow:0 18px 34px rgba(15,23,42,.12)}
+.goal-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 16px 13px;border-bottom:1px solid #e8eef6;background:linear-gradient(135deg,#f8fbff,#eef6ff)}
+.goal-card-kicker{display:block;font-size:9px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;color:#64748b}
+.goal-card h3{margin:4px 0 0;font-size:18px;color:#0f172a;line-height:1}
+.goal-status{display:inline-flex;align-items:center;white-space:nowrap;padding:6px 9px;border-radius:999px;background:#f1f5f9;color:#475569;font-size:10px;font-weight:900}
+.goal-status.strong{background:#dcfce7;color:#166534}.goal-status.progress{background:#fef3c7;color:#92400e}.goal-status.attention{background:#fee2e2;color:#b91c1c}
+.goal-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}
+.goal-metric{min-width:0;padding:13px;border-right:1px solid #e8eef6}.goal-metric:last-child{border-right:0}
+.goal-metric-top{display:flex;align-items:center;justify-content:space-between;gap:7px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.35px;color:#64748b}
+.goal-metric-top b{color:#2563eb;font-size:11px;font-variant-numeric:tabular-nums}
+.goal-values{display:grid;grid-template-columns:1fr;gap:8px;margin-top:11px}
+.goal-values div{min-width:0}.goal-values small,.goal-prize>span{display:block;font-size:9px;text-transform:uppercase;font-weight:900;letter-spacing:.45px;color:#94a3b8}
+.goal-values strong{display:block;overflow:hidden;margin-top:3px;color:#0f172a;font-size:12px;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}
+.goal-prize{display:grid;grid-template-columns:1fr;gap:4px;margin-top:12px;padding-top:10px;border-top:1px solid #eef2f7}
+.goal-prize .result{display:block;min-height:17px;color:#94a3b8;font-size:12px;font-variant-numeric:tabular-nums}.goal-prize .result.earned{color:#059669}
+.goal-card .goal-input{width:100%;min-width:0;min-height:29px;border:1px solid #cbd5e1!important;border-radius:8px!important;background:#fff!important;color:#0f172a!important;caret-color:#2563eb!important;padding:5px 7px!important;font:inherit;font-size:12px;font-weight:850;text-align:right;outline:0;box-shadow:none!important}
+.goal-card .goal-input:hover{border-color:#93c5fd!important;background:#f8fbff!important}.goal-card .goal-input:focus{border-color:#2563eb!important;background:#fff!important;box-shadow:0 0 0 3px rgba(37,99,235,.16)!important}.goal-card .goal-input::selection{background:#bfdbfe;color:#0f172a}.goal-card .goal-input::-moz-selection{background:#bfdbfe;color:#0f172a}
+.goal-card.strong{border-color:#bbf7d0}.goal-card.progress{border-color:#fde68a}.goal-card.attention{border-color:#fecaca}
+@media(max-width:1050px){.goal-cards{grid-template-columns:1fr}}
+@media(max-width:560px){.goal-card-head{padding:13px}.goal-card h3{font-size:16px}.goal-status{font-size:9px;padding:5px 7px}.goal-metrics{grid-template-columns:1fr}.goal-metric{padding:12px;border-right:0;border-bottom:1px solid #e8eef6}.goal-metric:last-child{border-bottom:0}.goal-values{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -1706,22 +1730,7 @@ img,svg,canvas{max-width:100%}
             <div class="close-section-title">PRÊMIO METAS</div>
 
             <div id="metasWarning" class="source-warning">Carregue o arquivo Prêmio Metas para usar META e ALCANÇADO oficiais.</div>
-            <div class="goal-wrap">
-              <table class="goal-table">
-                <thead>
-                  <tr>
-                    <th class="yellow">MARCA</th>
-                    <th class="yellow">KPI</th>
-                    <th class="yellow">META</th>
-                    <th class="yellow">REALIZADO</th>
-                    <th class="yellow">ALCANÇADO %</th>
-                    <th class="yellow">PRÊMIO</th>
-                    <th class="yellow">RESULTADO</th>
-                  </tr>
-                </thead>
-                <tbody id="goalBody"></tbody>
-              </table>
-            </div>
+            <div class="goal-cards" id="goalBody"></div>
 
             <div class="goal-note">
               Regras aplicadas: Positivação paga 100% somente ao atingir a meta; Faturamento paga 50% a partir de 80%, 75% a partir de 90% e 100% ao atingir 100%; Troca paga 100% se ficar igual ou abaixo da meta.
@@ -2851,9 +2860,14 @@ function initClosingControls(){
 function renderGoalRows(){
   const body=document.getElementById('goalBody');let h='';
   closeGoals.forEach((g,idx)=>{
-    h+=`<tr class="goal-brand-block"><td class="brand" rowspan="3">${escapeHtml(g.name)}</td><td>POSITIVAÇÃO</td><td class="right" id="meta_${idx}_0">-</td><td class="right" id="actual_${idx}_0">-</td><td class="right" id="ach_${idx}_0">-</td><td><input class="goal-input" data-i="${idx}" data-field="posPrize" type="number" step="0.01" value="${g.posPrize}"></td><td class="right result" id="result_${idx}_0">-</td></tr>`;
-    h+=`<tr><td>FATURAMENTO</td><td class="right" id="meta_${idx}_1">-</td><td class="right" id="actual_${idx}_1">-</td><td class="right" id="ach_${idx}_1">-</td><td><input class="goal-input" data-i="${idx}" data-field="fatPrize" type="number" step="0.01" value="${g.fatPrize}"></td><td class="right result" id="result_${idx}_1">-</td></tr>`;
-    h+=`<tr><td>TROCA</td><td><input class="goal-input" data-i="${idx}" data-field="trocaGoal" type="number" step="0.01" value="${g.trocaGoal}"></td><td class="right" id="actual_${idx}_2">-</td><td class="right" id="ach_${idx}_2"></td><td><input class="goal-input" data-i="${idx}" data-field="trocaPrize" type="number" step="0.01" value="${g.trocaPrize}"></td><td class="right result" id="result_${idx}_2">-</td></tr>`;
+    h+=`<article class="goal-card" id="goalCard_${idx}">
+      <div class="goal-card-head"><div><span class="goal-card-kicker">Meta por marca</span><h3>${escapeHtml(g.name)}</h3></div><span class="goal-status" id="goalStatus_${idx}">Em acompanhamento</span></div>
+      <div class="goal-metrics">
+        <div class="goal-metric"><div class="goal-metric-top"><span>Positivação</span><b id="ach_${idx}_0">-</b></div><div class="goal-values"><div><small>Meta</small><strong id="meta_${idx}_0">-</strong></div><div><small>Realizado</small><strong id="actual_${idx}_0">-</strong></div></div><div class="goal-prize"><span>Prêmio</span><input class="goal-input" data-i="${idx}" data-field="posPrize" aria-label="Prêmio de positivação ${escapeHtml(g.name)}" type="number" step="0.01" value="${g.posPrize}"><b class="result" id="result_${idx}_0">-</b></div></div>
+        <div class="goal-metric"><div class="goal-metric-top"><span>Faturamento</span><b id="ach_${idx}_1">-</b></div><div class="goal-values"><div><small>Meta</small><strong id="meta_${idx}_1">-</strong></div><div><small>Realizado</small><strong id="actual_${idx}_1">-</strong></div></div><div class="goal-prize"><span>Prêmio</span><input class="goal-input" data-i="${idx}" data-field="fatPrize" aria-label="Prêmio de faturamento ${escapeHtml(g.name)}" type="number" step="0.01" value="${g.fatPrize}"><b class="result" id="result_${idx}_1">-</b></div></div>
+        <div class="goal-metric"><div class="goal-metric-top"><span>Troca</span><b id="ach_${idx}_2">-</b></div><div class="goal-values"><div><small>Meta</small><input class="goal-input" data-i="${idx}" data-field="trocaGoal" aria-label="Meta de troca ${escapeHtml(g.name)}" type="number" step="0.01" value="${g.trocaGoal}"></div><div><small>Realizado</small><strong id="actual_${idx}_2">-</strong></div></div><div class="goal-prize"><span>Prêmio</span><input class="goal-input" data-i="${idx}" data-field="trocaPrize" aria-label="Prêmio de troca ${escapeHtml(g.name)}" type="number" step="0.01" value="${g.trocaPrize}"><b class="result" id="result_${idx}_2">-</b></div></div>
+      </div>
+    </article>`;
   });
   body.innerHTML=h;
   document.querySelectorAll('.goal-input').forEach(inp=>inp.addEventListener('input',()=>{
@@ -3044,6 +3058,16 @@ function renderClosing(){
     const resultTroca=document.getElementById(`result_${idx}_2`);
     resultTroca.textContent=resTroca?money(resTroca):'-';
     resultTroca.className='right result'+(resTroca?' earned':'');
+
+    const brandPossible=g.posPrize+g.fatPrize+g.trocaPrize;
+    const brandEarned=resPos+resFat+resTroca;
+    const brandPct=brandPossible?brandEarned/brandPossible*100:0;
+    const goalCard=document.getElementById(`goalCard_${idx}`);
+    const goalStatus=document.getElementById(`goalStatus_${idx}`);
+    const brandStatus=brandPct>=80?'strong':brandPct>=40?'progress':'attention';
+    goalCard.className='goal-card '+brandStatus;
+    goalStatus.className='goal-status '+brandStatus;
+    goalStatus.textContent=brandPct>=80?'Meta forte':brandPct>=40?'Em evolução':'Ponto de atenção';
   });
 
   const ppp=renderPPP(seller),
