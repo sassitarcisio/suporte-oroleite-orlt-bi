@@ -1601,7 +1601,7 @@ img,svg,canvas{max-width:100%}
               </div>
               <div class="field">
                 <label>Comissão %</label>
-                <input id="commissionPct" type="number" step="0.01" value="1">
+                <input id="commissionPct" class="percent-input" type="text" inputmode="decimal" value="1,00%" aria-label="Percentual de comissão">
               </div>
               <div class="field">
                 <label>&nbsp;</label>
@@ -2905,7 +2905,7 @@ document.getElementById('lossProductSearch').addEventListener('input',applyLossF
 document.getElementById('lossClientSearch').addEventListener('input',applyLossFilters);
 
 const closingDefaults = [
-  {name:'IOGURTE', brand:'NESTLE', posGoal:155, fatGoal:110000, trocaGoal:2.00, posPrize:200, fatPrize:200, trocaPrize:200},
+  {name:'NESTLE', brand:'NESTLE', posGoal:155, fatGoal:110000, trocaGoal:2.00, posPrize:200, fatPrize:200, trocaPrize:200},
   {name:'GALBANI', brand:'GALBANI', posGoal:88, fatGoal:30000, trocaGoal:2.00, posPrize:150, fatPrize:150, trocaPrize:150},
   {name:'ZINHO', brand:'ZINHO', posGoal:85, fatGoal:10000, trocaGoal:2.00, posPrize:150, fatPrize:150, trocaPrize:150},
   {name:'LIFE', brand:'LIFE', posGoal:70, fatGoal:20000, trocaGoal:2.00, posPrize:100, fatPrize:100, trocaPrize:100},
@@ -2932,6 +2932,11 @@ function editMoneyInput(el){
   el.value=brNum(el.value).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 function pct(v){return (Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%'}
+function formatPercentInput(el){if(el)el.value=pct(brNum(el.value))}
+function editPercentInput(el){
+  if(!el)return;
+  el.value=brNum(el.value).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
 function closingStorageKey(){return 'biPowerClosing:'+document.getElementById('closeSeller').value+':'+document.getElementById('closeMonth').value}
 function applyValueMetasConfig(){
   if(!valueMetasConfig)return;
@@ -2947,7 +2952,7 @@ function applyValueMetasConfig(){
     document.getElementById('baseSalary').title='Valor definido em VALOR_METAS.csv';
   }
   if(valueMetasConfig.commissionPct!=null){
-    document.getElementById('commissionPct').value=valueMetasConfig.commissionPct;
+    document.getElementById('commissionPct').value=pct(valueMetasConfig.commissionPct);
     document.getElementById('commissionPct').readOnly=true;
     document.getElementById('commissionPct').title='Valor definido em VALOR_METAS.csv';
   }
@@ -2987,11 +2992,11 @@ function renderGoalRows(){
   const body=document.getElementById('goalBody');let h='';
   closeGoals.forEach((g,idx)=>{
     h+=`<article class="goal-card" id="goalCard_${idx}">
-      <div class="goal-card-head"><div><span class="goal-card-kicker">Meta por marca</span><h3>${escapeHtml(g.name)}</h3></div><span class="goal-status" id="goalStatus_${idx}">Em acompanhamento</span></div>
+      <div class="goal-card-head"><div><span class="goal-card-kicker">Meta por marca</span><h3>${escapeHtml(g.brand)}</h3></div><span class="goal-status" id="goalStatus_${idx}">Em acompanhamento</span></div>
       <div class="goal-metrics">
-        <div class="goal-metric"><div class="goal-metric-top"><span>Positivação</span><b id="ach_${idx}_0">-</b></div><div class="goal-values"><div><small>Meta</small><strong id="meta_${idx}_0">-</strong></div><div><small>Realizado</small><strong id="actual_${idx}_0">-</strong></div></div><div class="goal-prize"><span>Prêmio</span><input class="goal-input currency-input" data-i="${idx}" data-field="posPrize" aria-label="Prêmio de positivação ${escapeHtml(g.name)}" type="text" inputmode="decimal" value="${money(g.posPrize)}"><b class="result" id="result_${idx}_0">-</b></div></div>
-        <div class="goal-metric"><div class="goal-metric-top"><span>Faturamento</span><b id="ach_${idx}_1">-</b></div><div class="goal-values"><div><small>Meta</small><strong id="meta_${idx}_1">-</strong></div><div><small>Realizado</small><strong id="actual_${idx}_1">-</strong></div></div><div class="goal-prize"><span>Prêmio</span><input class="goal-input currency-input" data-i="${idx}" data-field="fatPrize" aria-label="Prêmio de faturamento ${escapeHtml(g.name)}" type="text" inputmode="decimal" value="${money(g.fatPrize)}"><b class="result" id="result_${idx}_1">-</b></div></div>
-        <div class="goal-metric"><div class="goal-metric-top"><span>Troca</span><b id="ach_${idx}_2">-</b></div><div class="goal-values"><div><small>Meta</small><input class="goal-input" data-i="${idx}" data-field="trocaGoal" aria-label="Meta de troca ${escapeHtml(g.name)}" type="number" step="0.01" value="${g.trocaGoal}"></div><div><small>Realizado</small><strong id="actual_${idx}_2">-</strong></div></div><div class="goal-prize"><span>Prêmio</span><input class="goal-input currency-input" data-i="${idx}" data-field="trocaPrize" aria-label="Prêmio de troca ${escapeHtml(g.name)}" type="text" inputmode="decimal" value="${money(g.trocaPrize)}"><b class="result" id="result_${idx}_2">-</b></div></div>
+        <div class="goal-metric"><div class="goal-metric-top"><span>Positivação</span><b id="ach_${idx}_0">-</b></div><div class="goal-values"><div><small>Meta</small><strong id="meta_${idx}_0">-</strong></div><div><small>Realizado</small><strong id="actual_${idx}_0">-</strong></div></div><div class="goal-prize"><span>Prêmio</span><input class="goal-input currency-input" data-i="${idx}" data-field="posPrize" aria-label="Prêmio de positivação ${escapeHtml(g.brand)}" type="text" inputmode="decimal" value="${money(g.posPrize)}"><b class="result" id="result_${idx}_0">-</b></div></div>
+        <div class="goal-metric"><div class="goal-metric-top"><span>Faturamento</span><b id="ach_${idx}_1">-</b></div><div class="goal-values"><div><small>Meta</small><strong id="meta_${idx}_1">-</strong></div><div><small>Realizado</small><strong id="actual_${idx}_1">-</strong></div></div><div class="goal-prize"><span>Prêmio</span><input class="goal-input currency-input" data-i="${idx}" data-field="fatPrize" aria-label="Prêmio de faturamento ${escapeHtml(g.brand)}" type="text" inputmode="decimal" value="${money(g.fatPrize)}"><b class="result" id="result_${idx}_1">-</b></div></div>
+        <div class="goal-metric"><div class="goal-metric-top"><span>Troca</span><b id="ach_${idx}_2">-</b></div><div class="goal-values"><div><small>Meta</small><input class="goal-input percent-input" data-i="${idx}" data-field="trocaGoal" aria-label="Meta de troca ${escapeHtml(g.brand)}" type="text" inputmode="decimal" value="${pct(g.trocaGoal)}"></div><div><small>Realizado</small><strong id="actual_${idx}_2">-</strong></div></div><div class="goal-prize"><span>Prêmio</span><input class="goal-input currency-input" data-i="${idx}" data-field="trocaPrize" aria-label="Prêmio de troca ${escapeHtml(g.brand)}" type="text" inputmode="decimal" value="${money(g.trocaPrize)}"><b class="result" id="result_${idx}_2">-</b></div></div>
       </div>
     </article>`;
   });
@@ -2999,12 +3004,16 @@ function renderGoalRows(){
   document.querySelectorAll('.goal-input').forEach(inp=>{
     if(valueMetasConfig){inp.readOnly=true;inp.title='Valor definido em VALOR_METAS.csv'}
     inp.addEventListener('input',()=>{
-      const isMoney=inp.classList.contains('currency-input');
-      closeGoals[Number(inp.dataset.i)][inp.dataset.field]=isMoney?brNum(inp.value):(Number(inp.value)||0);renderClosing();
+      const isFormatted=inp.classList.contains('currency-input')||inp.classList.contains('percent-input');
+      closeGoals[Number(inp.dataset.i)][inp.dataset.field]=isFormatted?brNum(inp.value):(Number(inp.value)||0);renderClosing();
     });
     if(inp.classList.contains('currency-input')){
       inp.addEventListener('focus',()=>editMoneyInput(inp));
       inp.addEventListener('blur',()=>formatMoneyInput(inp));
+    }
+    if(inp.classList.contains('percent-input')){
+      inp.addEventListener('focus',()=>editPercentInput(inp));
+      inp.addEventListener('blur',()=>formatPercentInput(inp));
     }
   });
 }
@@ -3012,7 +3021,7 @@ function renderGoalRows(){
 function loadClosingConfig(){
   closeGoals=JSON.parse(JSON.stringify(closingDefaults));
   document.getElementById('baseSalary').value=money(1951);
-  document.getElementById('commissionPct').value=1;
+  document.getElementById('commissionPct').value=pct(1);
   document.getElementById('pppMax').value=money(1200);
   ['baseSalary','commissionPct','pppMax'].forEach(id=>{
     document.getElementById(id).readOnly=false;
@@ -3024,7 +3033,7 @@ function loadClosingConfig(){
     const saved=JSON.parse(localStorage.getItem(closingStorageKey())||'null');
     if(saved){
       if(saved.baseSalary!=null)document.getElementById('baseSalary').value=money(saved.baseSalary);
-      if(saved.commissionPct!=null)document.getElementById('commissionPct').value=saved.commissionPct;
+      if(saved.commissionPct!=null)document.getElementById('commissionPct').value=pct(saved.commissionPct);
       if(saved.pppMax!=null)document.getElementById('pppMax').value=money(saved.pppMax);
       if(Array.isArray(saved.goals)&&saved.goals.length)closeGoals=saved.goals;
     }
@@ -3035,7 +3044,7 @@ function loadClosingConfig(){
 function saveClosingConfig(){
   localStorage.setItem(closingStorageKey(),JSON.stringify({
     baseSalary:brNum(document.getElementById('baseSalary').value),
-    commissionPct:Number(document.getElementById('commissionPct').value)||0,
+    commissionPct:brNum(document.getElementById('commissionPct').value),
     pppMax:brNum(document.getElementById('pppMax').value),
     goals:closeGoals
   }));
@@ -3186,7 +3195,7 @@ function renderClosing(){
 
   const cr=getClosingRows(),
         base=brNum(document.getElementById('baseSalary').value),
-        comPct=Number(document.getElementById('commissionPct').value)||0;
+        comPct=brNum(document.getElementById('commissionPct').value);
 
   let revenue=0,salesOnly=0,totalTradeValue=0;
   const docs=new Set();
@@ -3372,6 +3381,8 @@ document.getElementById('pppMax').addEventListener('input',renderClosing);
   input.addEventListener('focus',()=>editMoneyInput(input));
   input.addEventListener('blur',()=>formatMoneyInput(input));
 });
+document.getElementById('commissionPct').addEventListener('focus',()=>editPercentInput(document.getElementById('commissionPct')));
+document.getElementById('commissionPct').addEventListener('blur',()=>formatPercentInput(document.getElementById('commissionPct')));
 document.getElementById('saveClosingBtn').addEventListener('click',saveClosingConfig);
 
 
