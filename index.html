@@ -1145,6 +1145,7 @@ img,svg,canvas{max-width:100%}
 .goal-prize .result{display:block;min-height:17px;color:#94a3b8;font-size:12px;font-variant-numeric:tabular-nums}.goal-prize .result.earned{color:#059669}
 .goal-card .goal-input{width:100%;min-width:0;min-height:29px;border:1px solid #cbd5e1!important;border-radius:8px!important;background:#fff!important;color:#0f172a!important;caret-color:#2563eb!important;padding:5px 7px!important;font:inherit;font-size:12px;font-weight:850;text-align:right;outline:0;box-shadow:none!important}
 .goal-card .goal-input:hover{border-color:#93c5fd!important;background:#f8fbff!important}.goal-card .goal-input:focus{border-color:#2563eb!important;background:#fff!important;box-shadow:0 0 0 3px rgba(37,99,235,.16)!important}.goal-card .goal-input::selection{background:#bfdbfe;color:#0f172a}.goal-card .goal-input::-moz-selection{background:#bfdbfe;color:#0f172a}
+.currency-input{font-variant-numeric:tabular-nums}
 .goal-card.strong{border-color:#bbf7d0}.goal-card.progress{border-color:#fde68a}.goal-card.attention{border-color:#fecaca}
 @media(max-width:1050px){.goal-cards{grid-template-columns:1fr}}
 @media(max-width:560px){.goal-card-head{padding:13px}.goal-card h3{font-size:16px}.goal-status{font-size:9px;padding:5px 7px}.goal-metrics{grid-template-columns:1fr}.goal-metric{padding:12px;border-right:0;border-bottom:1px solid #e8eef6}.goal-metric:last-child{border-bottom:0}.goal-values{grid-template-columns:1fr 1fr}}
@@ -1596,7 +1597,7 @@ img,svg,canvas{max-width:100%}
               </div>
               <div class="field">
                 <label>Salário base</label>
-                <input id="baseSalary" type="number" step="0.01" value="1951">
+                <input id="baseSalary" class="currency-input" type="text" inputmode="decimal" value="R$ 1.951,00" aria-label="Salário base em reais">
               </div>
               <div class="field">
                 <label>Comissão %</label>
@@ -1787,7 +1788,7 @@ img,svg,canvas{max-width:100%}
                 <table class="ppp-table">
                   <thead><tr><th>SEGMENTOS</th><th>TOTAL</th><th>ITENS</th><th>POSITIVAÇÃO</th><th>ALCANÇADO %</th><th>PRÊMIO</th><th>VALOR</th></tr></thead>
                   <tbody id="pppBody"></tbody>
-                  <tfoot><tr class="greenrow"><td>TOTAL / MÉDIA</td><td></td><td></td><td></td><td class="right" id="pppMean">0,00%</td><td><input id="pppMax" type="number" step="0.01" value="1200"></td><td class="right" id="pppValue">R$ 0,00</td></tr></tfoot>
+                  <tfoot><tr class="greenrow"><td>TOTAL / MÉDIA</td><td></td><td></td><td></td><td class="right" id="pppMean">0,00%</td><td><input id="pppMax" class="currency-input" type="text" inputmode="decimal" value="R$ 1.200,00" aria-label="Prêmio máximo PPP em reais"></td><td class="right" id="pppValue">R$ 0,00</td></tr></tfoot>
                 </table>
               </div>
             </div>
@@ -1843,7 +1844,8 @@ function parseCSV(text){
 
 function brNum(v){
   if(v==null||v==='') return 0;
-  let s=String(v).trim().replace(/\./g,'').replace(',','.');
+  let s=String(v).trim().replace(/[^\d,.-]/g,'');
+  if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');
   const n=Number(s);
   return Number.isFinite(n)?n:0;
 }
@@ -2924,6 +2926,11 @@ function monthLabel(k){
   return m?`${names[Number(m[2])-1]}-${m[1].slice(-2)}`:'-';
 }
 function money(v){return MONEY.format(Number(v)||0)}
+function formatMoneyInput(el){if(el)el.value=money(brNum(el.value))}
+function editMoneyInput(el){
+  if(!el)return;
+  el.value=brNum(el.value).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
 function pct(v){return (Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%'}
 function closingStorageKey(){return 'biPowerClosing:'+document.getElementById('closeSeller').value+':'+document.getElementById('closeMonth').value}
 function applyValueMetasConfig(){
@@ -2935,7 +2942,7 @@ function applyValueMetasConfig(){
     saveButton.title='Os valores são definidos em VALOR_METAS.csv';
   }
   if(valueMetasConfig.baseSalary!=null){
-    document.getElementById('baseSalary').value=valueMetasConfig.baseSalary;
+    document.getElementById('baseSalary').value=money(valueMetasConfig.baseSalary);
     document.getElementById('baseSalary').readOnly=true;
     document.getElementById('baseSalary').title='Valor definido em VALOR_METAS.csv';
   }
@@ -2945,7 +2952,7 @@ function applyValueMetasConfig(){
     document.getElementById('commissionPct').title='Valor definido em VALOR_METAS.csv';
   }
   if(valueMetasConfig.pppMax!=null){
-    document.getElementById('pppMax').value=valueMetasConfig.pppMax;
+    document.getElementById('pppMax').value=money(valueMetasConfig.pppMax);
     document.getElementById('pppMax').readOnly=true;
     document.getElementById('pppMax').title='Valor definido em VALOR_METAS.csv';
   }
@@ -2982,9 +2989,9 @@ function renderGoalRows(){
     h+=`<article class="goal-card" id="goalCard_${idx}">
       <div class="goal-card-head"><div><span class="goal-card-kicker">Meta por marca</span><h3>${escapeHtml(g.name)}</h3></div><span class="goal-status" id="goalStatus_${idx}">Em acompanhamento</span></div>
       <div class="goal-metrics">
-        <div class="goal-metric"><div class="goal-metric-top"><span>Positivação</span><b id="ach_${idx}_0">-</b></div><div class="goal-values"><div><small>Meta</small><strong id="meta_${idx}_0">-</strong></div><div><small>Realizado</small><strong id="actual_${idx}_0">-</strong></div></div><div class="goal-prize"><span>Prêmio</span><input class="goal-input" data-i="${idx}" data-field="posPrize" aria-label="Prêmio de positivação ${escapeHtml(g.name)}" type="number" step="0.01" value="${g.posPrize}"><b class="result" id="result_${idx}_0">-</b></div></div>
-        <div class="goal-metric"><div class="goal-metric-top"><span>Faturamento</span><b id="ach_${idx}_1">-</b></div><div class="goal-values"><div><small>Meta</small><strong id="meta_${idx}_1">-</strong></div><div><small>Realizado</small><strong id="actual_${idx}_1">-</strong></div></div><div class="goal-prize"><span>Prêmio</span><input class="goal-input" data-i="${idx}" data-field="fatPrize" aria-label="Prêmio de faturamento ${escapeHtml(g.name)}" type="number" step="0.01" value="${g.fatPrize}"><b class="result" id="result_${idx}_1">-</b></div></div>
-        <div class="goal-metric"><div class="goal-metric-top"><span>Troca</span><b id="ach_${idx}_2">-</b></div><div class="goal-values"><div><small>Meta</small><input class="goal-input" data-i="${idx}" data-field="trocaGoal" aria-label="Meta de troca ${escapeHtml(g.name)}" type="number" step="0.01" value="${g.trocaGoal}"></div><div><small>Realizado</small><strong id="actual_${idx}_2">-</strong></div></div><div class="goal-prize"><span>Prêmio</span><input class="goal-input" data-i="${idx}" data-field="trocaPrize" aria-label="Prêmio de troca ${escapeHtml(g.name)}" type="number" step="0.01" value="${g.trocaPrize}"><b class="result" id="result_${idx}_2">-</b></div></div>
+        <div class="goal-metric"><div class="goal-metric-top"><span>Positivação</span><b id="ach_${idx}_0">-</b></div><div class="goal-values"><div><small>Meta</small><strong id="meta_${idx}_0">-</strong></div><div><small>Realizado</small><strong id="actual_${idx}_0">-</strong></div></div><div class="goal-prize"><span>Prêmio</span><input class="goal-input currency-input" data-i="${idx}" data-field="posPrize" aria-label="Prêmio de positivação ${escapeHtml(g.name)}" type="text" inputmode="decimal" value="${money(g.posPrize)}"><b class="result" id="result_${idx}_0">-</b></div></div>
+        <div class="goal-metric"><div class="goal-metric-top"><span>Faturamento</span><b id="ach_${idx}_1">-</b></div><div class="goal-values"><div><small>Meta</small><strong id="meta_${idx}_1">-</strong></div><div><small>Realizado</small><strong id="actual_${idx}_1">-</strong></div></div><div class="goal-prize"><span>Prêmio</span><input class="goal-input currency-input" data-i="${idx}" data-field="fatPrize" aria-label="Prêmio de faturamento ${escapeHtml(g.name)}" type="text" inputmode="decimal" value="${money(g.fatPrize)}"><b class="result" id="result_${idx}_1">-</b></div></div>
+        <div class="goal-metric"><div class="goal-metric-top"><span>Troca</span><b id="ach_${idx}_2">-</b></div><div class="goal-values"><div><small>Meta</small><input class="goal-input" data-i="${idx}" data-field="trocaGoal" aria-label="Meta de troca ${escapeHtml(g.name)}" type="number" step="0.01" value="${g.trocaGoal}"></div><div><small>Realizado</small><strong id="actual_${idx}_2">-</strong></div></div><div class="goal-prize"><span>Prêmio</span><input class="goal-input currency-input" data-i="${idx}" data-field="trocaPrize" aria-label="Prêmio de troca ${escapeHtml(g.name)}" type="text" inputmode="decimal" value="${money(g.trocaPrize)}"><b class="result" id="result_${idx}_2">-</b></div></div>
       </div>
     </article>`;
   });
@@ -2992,16 +2999,21 @@ function renderGoalRows(){
   document.querySelectorAll('.goal-input').forEach(inp=>{
     if(valueMetasConfig){inp.readOnly=true;inp.title='Valor definido em VALOR_METAS.csv'}
     inp.addEventListener('input',()=>{
-      closeGoals[Number(inp.dataset.i)][inp.dataset.field]=Number(inp.value)||0;renderClosing();
+      const isMoney=inp.classList.contains('currency-input');
+      closeGoals[Number(inp.dataset.i)][inp.dataset.field]=isMoney?brNum(inp.value):(Number(inp.value)||0);renderClosing();
     });
+    if(inp.classList.contains('currency-input')){
+      inp.addEventListener('focus',()=>editMoneyInput(inp));
+      inp.addEventListener('blur',()=>formatMoneyInput(inp));
+    }
   });
 }
 
 function loadClosingConfig(){
   closeGoals=JSON.parse(JSON.stringify(closingDefaults));
-  document.getElementById('baseSalary').value=1951;
+  document.getElementById('baseSalary').value=money(1951);
   document.getElementById('commissionPct').value=1;
-  document.getElementById('pppMax').value=1200;
+  document.getElementById('pppMax').value=money(1200);
   ['baseSalary','commissionPct','pppMax'].forEach(id=>{
     document.getElementById(id).readOnly=false;
     document.getElementById(id).removeAttribute('title');
@@ -3011,9 +3023,9 @@ function loadClosingConfig(){
   try{
     const saved=JSON.parse(localStorage.getItem(closingStorageKey())||'null');
     if(saved){
-      if(saved.baseSalary!=null)document.getElementById('baseSalary').value=saved.baseSalary;
+      if(saved.baseSalary!=null)document.getElementById('baseSalary').value=money(saved.baseSalary);
       if(saved.commissionPct!=null)document.getElementById('commissionPct').value=saved.commissionPct;
-      if(saved.pppMax!=null)document.getElementById('pppMax').value=saved.pppMax;
+      if(saved.pppMax!=null)document.getElementById('pppMax').value=money(saved.pppMax);
       if(Array.isArray(saved.goals)&&saved.goals.length)closeGoals=saved.goals;
     }
   }catch(e){console.warn(e)}
@@ -3022,9 +3034,9 @@ function loadClosingConfig(){
 }
 function saveClosingConfig(){
   localStorage.setItem(closingStorageKey(),JSON.stringify({
-    baseSalary:Number(document.getElementById('baseSalary').value)||0,
+    baseSalary:brNum(document.getElementById('baseSalary').value),
     commissionPct:Number(document.getElementById('commissionPct').value)||0,
-    pppMax:Number(document.getElementById('pppMax').value)||0,
+    pppMax:brNum(document.getElementById('pppMax').value),
     goals:closeGoals
   }));
   alert('Configuração do fechamento salva neste navegador.');
@@ -3135,7 +3147,7 @@ function renderPPP(seller,month){
     h+=`<tr><td>${escapeHtml(segmentLabel(d.segment))}</td><td class="right">${INT.format(d.clients)}</td><td class="right">${INT.format(d.items)}</td><td class="right">${INT.format(d.groups)}</td><td class="right">${pct(d.rate)}</td><td></td><td></td></tr>`;
   }
   body.innerHTML=h;
-  const mean=count?sum/count:0,pppMax=Number(document.getElementById('pppMax').value)||0,pppValue=pppMax*mean/100;
+  const mean=count?sum/count:0,pppMax=brNum(document.getElementById('pppMax').value),pppValue=pppMax*mean/100;
   document.getElementById('pppMean').textContent=pct(mean);document.getElementById('pppMaxLabel').textContent=money(pppMax);document.getElementById('pppValue').textContent=money(pppValue);
   return {mean,value:pppValue,max:pppMax,refDate:source.refDate};
 }
@@ -3173,7 +3185,7 @@ function renderClosing(){
   setFileStatuses();
 
   const cr=getClosingRows(),
-        base=Number(document.getElementById('baseSalary').value)||0,
+        base=brNum(document.getElementById('baseSalary').value),
         comPct=Number(document.getElementById('commissionPct').value)||0;
 
   let revenue=0,salesOnly=0,totalTradeValue=0;
@@ -3355,6 +3367,11 @@ document.getElementById('closeMonth').addEventListener('change',loadClosingConfi
 document.getElementById('baseSalary').addEventListener('input',renderClosing);
 document.getElementById('commissionPct').addEventListener('input',renderClosing);
 document.getElementById('pppMax').addEventListener('input',renderClosing);
+['baseSalary','pppMax'].forEach(id=>{
+  const input=document.getElementById(id);
+  input.addEventListener('focus',()=>editMoneyInput(input));
+  input.addEventListener('blur',()=>formatMoneyInput(input));
+});
 document.getElementById('saveClosingBtn').addEventListener('click',saveClosingConfig);
 
 
