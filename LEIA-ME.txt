@@ -1,0 +1,16 @@
+BI OROLEITE - FECHAMENTO EXECUTIVO RESPONSIVO
+
+Arquivos:
+- index.html
+- POWER.csv
+- ppp.csv
+- metas.csv
+
+Acesso:
+Usuário: oroleite
+Senha: oroleite123
+
+Esta versão foi adaptada para desktop, tablet e celular.
+No celular, tabelas largas de PPP e Metas rolam horizontalmente dentro da própria tabela sem deslocar a página inteira.
+
+Para atualizar os dados, substitua POWER.csv, ppp.csv e metas.csv mantendo os mesmos nomes.
