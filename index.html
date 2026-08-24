@@ -298,11 +298,16 @@ tbody tr:hover td{background:#181b21}
 .loss-explain{
   color:var(--muted);font-size:10px;line-height:1.45;margin-top:5px
 }
+.trade-kpis{grid-template-columns:repeat(6,1fr)}
+.trade-table-wrap{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.trade-table-wrap td,.trade-table-wrap th{white-space:normal}
+.trade-rate{font-weight:900;color:#ffb4ae}
 @media(max-width:1250px){
   .loss-toolbar{grid-template-columns:repeat(4,1fr)}
   .loss-kpis{grid-template-columns:repeat(4,1fr)}
+  .trade-kpis{grid-template-columns:repeat(3,1fr)}
 }
-@media(max-width:900px){.loss-kpis{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:900px){.loss-kpis,.trade-kpis{grid-template-columns:repeat(2,1fr)}}
 
 
 input[type="date"]{cursor:pointer}
@@ -380,14 +385,22 @@ input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer}
   /* Imprime apenas a aba escolhida */
   body.print-dashboard #tabDashboard{display:block!important}
   body.print-dashboard #tabLoss{display:none!important}
+  body.print-dashboard #tabTradeAnalysis{display:none!important}
   body.print-dashboard #tabClosing{display:none!important}
 
   body.print-loss #tabDashboard{display:none!important}
   body.print-loss #tabLoss{display:block!important}
+  body.print-loss #tabTradeAnalysis{display:none!important}
   body.print-loss #tabClosing{display:none!important}
+
+  body.print-trade-analysis #tabDashboard{display:none!important}
+  body.print-trade-analysis #tabLoss{display:none!important}
+  body.print-trade-analysis #tabTradeAnalysis{display:block!important}
+  body.print-trade-analysis #tabClosing{display:none!important}
 
   body.print-closing #tabDashboard{display:none!important}
   body.print-closing #tabLoss{display:none!important}
+  body.print-closing #tabTradeAnalysis{display:none!important}
   body.print-closing #tabClosing{display:block!important}
 
   .panel{
@@ -980,7 +993,7 @@ img,svg,canvas{max-width:100%}
   .field.wide{grid-column:span 1}
   .toolbar select,.toolbar input,.toolbar button,.loss-toolbar select,.loss-toolbar input,.loss-toolbar button{width:100%;min-width:0}
 
-  .kpis,.loss-kpis,.close-kpis{grid-template-columns:1fr 1fr;gap:8px}
+  .kpis,.loss-kpis,.trade-kpis,.close-kpis{grid-template-columns:1fr 1fr;gap:8px}
   .kpi,.close-kpi{min-height:88px;padding:11px}
   .kpi .value,.close-kpi .val{font-size:18px;overflow-wrap:anywhere}
   .kpi .sub,.close-kpi .sub{font-size:9px;line-height:1.3}
@@ -1034,7 +1047,7 @@ img,svg,canvas{max-width:100%}
 
 @media(max-width:480px){
   .container{padding:8px}
-  .kpis,.loss-kpis,.close-kpis{grid-template-columns:1fr}
+  .kpis,.loss-kpis,.trade-kpis,.close-kpis{grid-template-columns:1fr}
   .kpi,.close-kpi{min-height:76px}
   .exec-mini-grid{grid-template-columns:1fr}
   .chart{height:240px}
@@ -1293,6 +1306,7 @@ img,svg,canvas{max-width:100%}
     <div class="tabbar">
       <button class="tabbtn active" id="tabDashboardBtn">Dashboard</button>
       <button class="tabbtn" id="tabLossBtn">Visão de Trocas</button>
+      <button class="tabbtn" id="tabTradeAnalysisBtn">Análise Venda × Troca</button>
       <button class="tabbtn" id="tabClosingBtn">Fechamento por vendedor</button>
     </div>
 
@@ -1557,6 +1571,57 @@ img,svg,canvas{max-width:100%}
       </div>
     </section>
 
+    <section id="tabTradeAnalysis" class="hidden">
+      <div class="view-actions"><button class="print-btn" type="button" onclick="printCurrentView('trade-analysis')">🖨 Imprimir A4</button></div>
+      <div class="panel loss-rules">
+        <strong>ANÁLISE VENDA × TROCA:</strong>
+        <span class="rule-chip rule-good">FATURAMENTO: VENDA + DEVOL ENT + DEVOLUCAO</span>
+        <span class="rule-chip rule-loss">TROCAS: TROCA + TROCA DEV</span>
+      </div>
+      <div class="panel toolbar loss-toolbar">
+        <div class="field"><label>Data inicial</label><input type="date" id="tradeDateFrom"></div>
+        <div class="field"><label>Data final</label><input type="date" id="tradeDateTo"></div>
+        <div class="field"><label>Vendedor</label><select id="tradeSeller"></select></div>
+        <div class="field"><label>Marca</label><select id="tradeBrand"></select></div>
+        <div class="field"><label>Cidade</label><select id="tradeCity"></select></div>
+        <div class="field wide"><label>Cliente contém</label><input id="tradeClientSearch" placeholder="Ex.: Koch, Bistek, Komprão..."></div>
+        <div class="field wide"><label>Produto contém</label><input id="tradeProductSearch" placeholder="Ex.: Ninho, Chandelle, Chamyto..."></div>
+        <div class="field"><label>&nbsp;</label><button class="gold" id="tradeApplyBtn">Aplicar</button></div>
+        <div class="field"><label>&nbsp;</label><button id="tradeClearBtn">Limpar</button></div>
+      </div>
+      <div class="panel status" id="tradeStatus">Comparativo de faturamento líquido e trocas impróprias para consumo.</div>
+      <div class="kpis trade-kpis">
+        <div class="panel kpi"><div class="name">Faturamento líquido</div><div class="value green" id="tradeRevenue">R$ 0,00</div><div class="sub">VENDA + DEVOL ENT + DEVOLUCAO</div></div>
+        <div class="panel kpi loss-kpi-loss"><div class="name">Valor em trocas</div><div class="value red" id="tradeTotal">R$ 0,00</div><div class="sub">TROCA + TROCA DEV</div></div>
+        <div class="panel kpi loss-kpi-loss"><div class="name">% troca / faturamento</div><div class="value red" id="tradePct">0,00%</div><div class="sub">trocas ÷ faturamento líquido</div></div>
+        <div class="panel kpi"><div class="name">Clientes com troca</div><div class="value" id="tradeClients">0</div><div class="sub">clientes que tiveram troca</div></div>
+        <div class="panel kpi"><div class="name">Produtos com troca</div><div class="value" id="tradeProducts">0</div><div class="sub">produtos impróprios para consumo</div></div>
+        <div class="panel kpi"><div class="name">Marcas com troca</div><div class="value" id="tradeBrands">0</div><div class="sub">marcas com ocorrência de troca</div></div>
+      </div>
+      <div class="grid3">
+        <div class="panel card"><div class="card-head"><h3>Clientes com maior troca</h3><span class="small">valor em troca</span></div><div class="chart" id="tradeClientChart"></div></div>
+        <div class="panel card"><div class="card-head"><h3>Produtos com maior troca</h3><span class="small">valor em troca</span></div><div class="chart" id="tradeProductChart"></div></div>
+        <div class="panel card"><div class="card-head"><h3>Marcas com maior troca</h3><span class="small">valor em troca</span></div><div class="chart" id="tradeBrandChart"></div></div>
+      </div>
+      <div class="grid2">
+        <div class="panel card">
+          <div class="card-head"><h3>Detalhamento comparativo</h3><span class="small">faturamento, troca e percentual</span></div>
+          <div class="dynamic-controls">
+            <select id="tradeDimension"><option value="NOME">Por cliente</option><option value="PRODUTO">Por produto</option><option value="MARCA">Por marca</option></select>
+            <select id="tradeOrder"><option value="TRADE">Maior valor em troca</option><option value="PCT">Maior % de troca</option><option value="REVENUE">Maior faturamento</option></select>
+            <select id="tradeLimit"><option value="10">Top 10</option><option value="20" selected>Top 20</option><option value="50">Top 50</option></select>
+            <button class="gold" id="tradeDetailBtn">Atualizar</button>
+          </div>
+          <div class="trade-table-wrap" id="tradeRankTable"></div>
+        </div>
+        <div class="panel card"><div class="card-head"><h3>Como esta análise é calculada</h3></div><div style="padding:10px 4px">
+          <p class="loss-explain"><b style="color:#7ee787">Faturamento líquido</b> soma VENDA, DEVOL ENT e DEVOLUCAO, respeitando o sinal de cada movimento.</p>
+          <p class="loss-explain"><b style="color:#ff8b84">Trocas por produto impróprio para consumo</b> somam o valor absoluto de TROCA e TROCA DEV.</p>
+          <p class="loss-explain">Para cada cliente, produto ou marca, o percentual é valor em trocas ÷ faturamento líquido do mesmo recorte. Sem faturamento, o percentual fica em branco.</p>
+        </div></div>
+      </div>
+    </section>
+
     <section id="tabClosing" class="hidden">
       <div class="view-actions">
         <button id="printClosingSummaryBtn" class="print-btn" type="button" onclick="printCurrentView('closing')">🖨 Imprimir A4</button>
@@ -1818,6 +1883,7 @@ const INT = new Intl.NumberFormat('pt-BR',{maximumFractionDigits:0});
 let headers=[], rows=[], filtered=[], col={};
 let allMovementTypes=[], selectedMovementTypes=new Set();
 let lossBaseRows=[];
+let tradeBaseRows=[];
 let pppRows=[], pppCol={}, metasRows=[], metasCol={}, valueMetasConfig=null;
 let powerFileName="", pppFileName="", metasFileName="", valueMetasFileName="";
 let dashboardOpened=false;
@@ -2006,6 +2072,7 @@ function initFromText(text,sourceName){
   initTypeMulti(unique('TIPO'));
   fillSelect('city',unique('CIDADE'));
   initLossControls(mm);
+  initTradeControls(mm);
 
   document.getElementById('subtitle').textContent=
     `${sourceName} • ${rows.length.toLocaleString('pt-BR')} linhas • ${brFromKey(mm.min)} a ${brFromKey(mm.max)}`;
@@ -2885,6 +2952,116 @@ function renderLossView(){
     {color:'#58a6ff'});
 }
 
+const TRADE_REVENUE_TYPES=new Set(['VENDA','DEVOL ENT','DEVOLUCAO']);
+
+function initTradeControls(mm){
+  if(!document.getElementById('tradeDateFrom'))return;
+  document.getElementById('tradeDateFrom').value=isoFromKey(mm.min);
+  document.getElementById('tradeDateTo').value=isoFromKey(mm.max);
+  fillSelect('tradeSeller',[...new Set(rows.map(r=>normSeller(get(r,'VENDEDOR'))))].sort((a,b)=>a.localeCompare(b,'pt-BR')));
+  fillSelect('tradeBrand',unique('MARCA',v=>String(v||'').trim()||'SEM MARCA'));
+  fillSelect('tradeCity',unique('CIDADE'));
+  document.getElementById('tradeClientSearch').value='';
+  document.getElementById('tradeProductSearch').value='';
+  applyTradeFilters();
+}
+
+function applyTradeFilters(){
+  if(!rows.length||!document.getElementById('tradeDateFrom'))return;
+  const from=Number((document.getElementById('tradeDateFrom').value||'0000-00-00').replace(/-/g,''))||0;
+  const to=Number((document.getElementById('tradeDateTo').value||'9999-99-99').replace(/-/g,''))||99999999;
+  const seller=document.getElementById('tradeSeller').value;
+  const brand=document.getElementById('tradeBrand').value;
+  const city=document.getElementById('tradeCity').value;
+  const client=document.getElementById('tradeClientSearch').value.trim().toLowerCase();
+  const product=document.getElementById('tradeProductSearch').value.trim().toLowerCase();
+  tradeBaseRows=rows.filter(r=>{
+    const d=dateKeyBR(get(r,'DATA'));
+    if(d<from||d>to)return false;
+    if(seller&&normSeller(get(r,'VENDEDOR'))!==seller)return false;
+    if(brand&&(String(get(r,'MARCA')).trim()||'SEM MARCA')!==brand)return false;
+    if(city&&String(get(r,'CIDADE')).trim()!==city)return false;
+    if(client&&!String(get(r,'NOME')).toLowerCase().includes(client))return false;
+    if(product&&!String(get(r,'PRODUTO')).toLowerCase().includes(product))return false;
+    const type=movementType(r);
+    if(!TRADE_REVENUE_TYPES.has(type)&&!PHYSICAL_LOSS_TYPES.has(type))return false;
+    return true;
+  });
+  renderTradeAnalysis();
+}
+
+function clearTradeFilters(){
+  ['tradeSeller','tradeBrand','tradeCity'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('tradeClientSearch').value='';
+  document.getElementById('tradeProductSearch').value='';
+  const mm=safeMinMax(rows.map(r=>dateKeyBR(get(r,'DATA'))).filter(Boolean));
+  document.getElementById('tradeDateFrom').value=isoFromKey(mm.min);
+  document.getElementById('tradeDateTo').value=isoFromKey(mm.max);
+  applyTradeFilters();
+}
+
+function tradeAggregate(field){
+  const map=new Map();
+  for(const r of tradeBaseRows){
+    const t=movementType(r);
+    if(!TRADE_REVENUE_TYPES.has(t)&&!PHYSICAL_LOSS_TYPES.has(t))continue;
+    const key=field==='VENDEDOR' ? normSeller(get(r,'VENDEDOR')) : String(get(r,field)||'').trim()||'SEM INFORMAÇÃO';
+    if(!map.has(key))map.set(key,{revenue:0,trade:0,qty:0});
+    const a=map.get(key);
+    if(TRADE_REVENUE_TYPES.has(t))a.revenue+=brNum(get(r,'VALTOTAL'));
+    if(PHYSICAL_LOSS_TYPES.has(t)){a.trade+=absVal(r);a.qty+=absQty(r);}
+  }
+  return [...map.entries()].map(([label,a])=>({label,...a,pct:a.revenue>0?a.trade/a.revenue*100:null,value:a.trade}));
+}
+
+function renderTradeDetail(){
+  const field=document.getElementById('tradeDimension').value;
+  const order=document.getElementById('tradeOrder').value;
+  const limit=Number(document.getElementById('tradeLimit').value);
+  const data=tradeAggregate(field).filter(d=>d.trade>0);
+  data.sort((a,b)=>{
+    if(order==='PCT')return (b.pct??-1)-(a.pct??-1);
+    if(order==='REVENUE')return b.revenue-a.revenue;
+    return b.trade-a.trade;
+  });
+  const label=document.getElementById('tradeDimension').selectedOptions[0].text.replace(/^Por /,'');
+  let html=`<table><thead><tr><th>#</th><th>${escapeHtml(label)}</th><th class="num">Faturamento líquido</th><th class="num">Trocas</th><th class="num">% troca</th><th class="num">Qtde. troca</th></tr></thead><tbody>`;
+  data.slice(0,limit).forEach((d,i)=>{
+    const pct=d.pct==null?'—':d.pct.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+    html+=`<tr><td>${i+1}</td><td title="${escapeHtml(d.label)}">${escapeHtml(short(d.label,52))}</td><td class="num">${MONEY.format(d.revenue)}</td><td class="num">${MONEY.format(d.trade)}</td><td class="num trade-rate">${pct}</td><td class="num">${INT.format(d.qty)}</td></tr>`;
+  });
+  html+='</tbody></table>';
+  document.getElementById('tradeRankTable').innerHTML=data.length?html:'<div class="empty">Sem trocas para os filtros selecionados</div>';
+}
+
+function renderTradeAnalysis(){
+  if(!rows.length||!document.getElementById('tradeRevenue'))return;
+  let revenue=0,trade=0;
+  const clients=new Set(),products=new Set(),brands=new Set();
+  for(const r of tradeBaseRows){
+    const t=movementType(r);
+    if(TRADE_REVENUE_TYPES.has(t))revenue+=brNum(get(r,'VALTOTAL'));
+    if(PHYSICAL_LOSS_TYPES.has(t)){
+      trade+=absVal(r);
+      clients.add(String(get(r,'CODCLIENTE'))||String(get(r,'NOME')));
+      products.add(String(get(r,'PRODUTO')));
+      brands.add(String(get(r,'MARCA')));
+    }
+  }
+  const pct=revenue>0?trade/revenue*100:0;
+  document.getElementById('tradeRevenue').textContent=MONEY.format(revenue);
+  document.getElementById('tradeTotal').textContent=MONEY.format(trade);
+  document.getElementById('tradePct').textContent=pct.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+  document.getElementById('tradeClients').textContent=INT.format(clients.size);
+  document.getElementById('tradeProducts').textContent=INT.format(products.size);
+  document.getElementById('tradeBrands').textContent=INT.format(brands.size);
+  document.getElementById('tradeStatus').innerHTML=`Base filtrada: <strong>${tradeBaseRows.length.toLocaleString('pt-BR')} movimentos</strong> • Faturamento líquido: <strong>${MONEY.format(revenue)}</strong> • Trocas: <strong>${MONEY.format(trade)}</strong>`;
+  horizontalBar('tradeClientChart',tradeAggregate('NOME').filter(d=>d.trade>0).sort((a,b)=>b.trade-a.trade).slice(0,10),{color:'#bc8cff'});
+  horizontalBar('tradeProductChart',tradeAggregate('PRODUTO').filter(d=>d.trade>0).sort((a,b)=>b.trade-a.trade).slice(0,10),{color:'#f0883e'});
+  horizontalBar('tradeBrandChart',tradeAggregate('MARCA').filter(d=>d.trade>0).sort((a,b)=>b.trade-a.trade).slice(0,10),{color:'#f85149'});
+  renderTradeDetail();
+}
+
 
 document.getElementById('typeTrigger').addEventListener('click',e=>{
   e.stopPropagation();
@@ -2903,6 +3080,14 @@ document.getElementById('lossClearBtn').addEventListener('click',clearLossFilter
 
 document.getElementById('lossProductSearch').addEventListener('input',applyLossFilters);
 document.getElementById('lossClientSearch').addEventListener('input',applyLossFilters);
+
+document.getElementById('tradeApplyBtn').addEventListener('click',applyTradeFilters);
+document.getElementById('tradeClearBtn').addEventListener('click',clearTradeFilters);
+document.getElementById('tradeDetailBtn').addEventListener('click',renderTradeDetail);
+['tradeSeller','tradeBrand','tradeCity'].forEach(id=>document.getElementById(id).addEventListener('change',applyTradeFilters));
+['tradeDimension','tradeOrder','tradeLimit'].forEach(id=>document.getElementById(id).addEventListener('change',renderTradeDetail));
+document.getElementById('tradeProductSearch').addEventListener('input',applyTradeFilters);
+document.getElementById('tradeClientSearch').addEventListener('input',applyTradeFilters);
 
 const closingDefaults = [
   {name:'NESTLE', brand:'NESTLE', posGoal:155, fatGoal:110000, trocaGoal:2.00, posPrize:200, fatPrize:200, trocaPrize:200},
@@ -3333,10 +3518,11 @@ function renderClosing(){
 
 
 function printCurrentView(view){
-  document.body.classList.remove('print-dashboard','print-loss','print-closing');
+  document.body.classList.remove('print-dashboard','print-loss','print-trade-analysis','print-closing');
 
   if(view==='dashboard') document.body.classList.add('print-dashboard');
   if(view==='loss') document.body.classList.add('print-loss');
+  if(view==='trade-analysis') document.body.classList.add('print-trade-analysis');
   if(view==='closing') document.body.classList.add('print-closing');
 
   // Pequeno atraso para o navegador aplicar o CSS antes de abrir a impressão.
@@ -3344,32 +3530,36 @@ function printCurrentView(view){
     window.print();
 
     setTimeout(()=>{
-      document.body.classList.remove('print-dashboard','print-loss','print-closing');
+      document.body.classList.remove('print-dashboard','print-loss','print-trade-analysis','print-closing');
     },300);
   },80);
 }
 
 window.addEventListener('afterprint',()=>{
-  document.body.classList.remove('print-dashboard','print-loss','print-closing');
+  document.body.classList.remove('print-dashboard','print-loss','print-trade-analysis','print-closing');
 });
 
 function switchTab(which){
-  const dash=which==='dashboard', loss=which==='loss', closing=which==='closing';
+  const dash=which==='dashboard', loss=which==='loss', trade=which==='trade-analysis', closing=which==='closing';
 
   document.getElementById('tabDashboard').classList.toggle('hidden',!dash);
   document.getElementById('tabLoss').classList.toggle('hidden',!loss);
+  document.getElementById('tabTradeAnalysis').classList.toggle('hidden',!trade);
   document.getElementById('tabClosing').classList.toggle('hidden',!closing);
 
   document.getElementById('tabDashboardBtn').classList.toggle('active',dash);
   document.getElementById('tabLossBtn').classList.toggle('active',loss);
+  document.getElementById('tabTradeAnalysisBtn').classList.toggle('active',trade);
   document.getElementById('tabClosingBtn').classList.toggle('active',closing);
 
   if(loss)renderLossView();
+  if(trade)renderTradeAnalysis();
   if(closing)renderClosing();
 }
 
 document.getElementById('tabDashboardBtn').addEventListener('click',()=>switchTab('dashboard'));
 document.getElementById('tabLossBtn').addEventListener('click',()=>switchTab('loss'));
+document.getElementById('tabTradeAnalysisBtn').addEventListener('click',()=>switchTab('trade-analysis'));
 document.getElementById('tabClosingBtn').addEventListener('click',()=>switchTab('closing'));
 document.getElementById('closeSeller').addEventListener('change',loadClosingConfig);
 document.getElementById('closeMonth').addEventListener('change',loadClosingConfig);
