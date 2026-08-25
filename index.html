@@ -3560,7 +3560,8 @@ function renderPPP(seller,month){
   }
   body.innerHTML=h;
   const mean=count?sum/count:0,pppMax=brNum(document.getElementById('pppMax').value),pppValue=pppMax*mean/100;
-  document.getElementById('pppMean').textContent=pct(mean);document.getElementById('pppMaxLabel').textContent=money(pppMax);document.getElementById('pppValue').textContent=money(pppValue);
+  document.getElementById('pppMean').textContent=pct(mean);
+  document.getElementById('pppValue').textContent=money(pppValue);
   return {mean,value:pppValue,max:pppMax,refDate:source.refDate};
 }
 function payoutPos(ach,prize){return ach>=100?prize:0}
