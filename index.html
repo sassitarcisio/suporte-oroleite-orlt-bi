@@ -386,21 +386,31 @@ input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer}
   body.print-dashboard #tabDashboard{display:block!important}
   body.print-dashboard #tabLoss{display:none!important}
   body.print-dashboard #tabTradeAnalysis{display:none!important}
+  body.print-dashboard #tabMargin{display:none!important}
   body.print-dashboard #tabClosing{display:none!important}
 
   body.print-loss #tabDashboard{display:none!important}
   body.print-loss #tabLoss{display:block!important}
   body.print-loss #tabTradeAnalysis{display:none!important}
+  body.print-loss #tabMargin{display:none!important}
   body.print-loss #tabClosing{display:none!important}
 
   body.print-trade-analysis #tabDashboard{display:none!important}
   body.print-trade-analysis #tabLoss{display:none!important}
   body.print-trade-analysis #tabTradeAnalysis{display:block!important}
+  body.print-trade-analysis #tabMargin{display:none!important}
   body.print-trade-analysis #tabClosing{display:none!important}
+
+  body.print-margin #tabDashboard{display:none!important}
+  body.print-margin #tabLoss{display:none!important}
+  body.print-margin #tabTradeAnalysis{display:none!important}
+  body.print-margin #tabMargin{display:block!important}
+  body.print-margin #tabClosing{display:none!important}
 
   body.print-closing #tabDashboard{display:none!important}
   body.print-closing #tabLoss{display:none!important}
   body.print-closing #tabTradeAnalysis{display:none!important}
+  body.print-closing #tabMargin{display:none!important}
   body.print-closing #tabClosing{display:block!important}
 
   .panel{
@@ -1307,6 +1317,7 @@ img,svg,canvas{max-width:100%}
       <button class="tabbtn active" id="tabDashboardBtn">Dashboard</button>
       <button class="tabbtn" id="tabLossBtn">Visão de Trocas</button>
       <button class="tabbtn" id="tabTradeAnalysisBtn">Análise Venda × Troca</button>
+      <button class="tabbtn" id="tabMarginBtn">Margem de Produtos</button>
       <button class="tabbtn" id="tabClosingBtn">Fechamento por vendedor</button>
     </div>
 
@@ -1622,6 +1633,59 @@ img,svg,canvas{max-width:100%}
       </div>
     </section>
 
+    <section id="tabMargin" class="hidden">
+      <div class="view-actions">
+        <button class="print-btn" type="button" onclick="printCurrentView('margin')">🖨 Imprimir A4</button>
+      </div>
+      <div class="panel loss-rules">
+        <strong>MARGEM DE PRODUTOS:</strong>
+        <span class="rule-chip rule-good">SOMENTE MOVIMENTOS DE VENDA</span>
+        <span class="small">Custo total = quantidade vendida × PRECOCUSTO</span>
+      </div>
+      <div class="panel toolbar loss-toolbar">
+        <div class="field"><label>Data inicial</label><input type="date" id="marginDateFrom"></div>
+        <div class="field"><label>Data final</label><input type="date" id="marginDateTo"></div>
+        <div class="field"><label>Vendedor</label><select id="marginSeller"></select></div>
+        <div class="field"><label>Marca</label><select id="marginBrand"></select></div>
+        <div class="field"><label>Cidade</label><select id="marginCity"></select></div>
+        <div class="field wide"><label>Cliente contém</label><input id="marginClientSearch" placeholder="Ex.: Koch, Bistek, Komprão..."></div>
+        <div class="field wide"><label>Produto contém</label><input id="marginProductSearch" placeholder="Ex.: Ninho, Chandelle, Trento..."></div>
+        <div class="field"><label>&nbsp;</label><button class="gold" id="marginApplyBtn">Aplicar</button></div>
+        <div class="field"><label>&nbsp;</label><button id="marginClearBtn">Limpar</button></div>
+      </div>
+      <div class="panel status" id="marginStatus">Margem bruta calculada com PRECOCUSTO.</div>
+      <div class="kpis trade-kpis">
+        <div class="panel kpi"><div class="name">Faturamento de vendas</div><div class="value goldtxt" id="marginRevenue">R$ 0</div><div class="sub">soma de VALTOTAL nas vendas</div></div>
+        <div class="panel kpi"><div class="name">Custo dos produtos</div><div class="value red" id="marginCost">R$ 0</div><div class="sub">quantidade × PRECOCUSTO</div></div>
+        <div class="panel kpi"><div class="name">Lucro bruto</div><div class="value green" id="marginProfit">R$ 0</div><div class="sub">faturamento menos custo</div></div>
+        <div class="panel kpi"><div class="name">Margem bruta</div><div class="value" id="marginPct">0%</div><div class="sub">lucro bruto ÷ faturamento</div></div>
+        <div class="panel kpi"><div class="name">Clientes</div><div class="value" id="marginClients">0</div><div class="sub">com vendas no filtro</div></div>
+        <div class="panel kpi"><div class="name">Produtos</div><div class="value" id="marginProducts">0</div><div class="sub">com vendas no filtro</div></div>
+      </div>
+      <div class="grid3">
+        <div class="panel card"><div class="card-head"><h3>Maior lucro por cliente</h3><span class="small">Top 10</span></div><div class="chart" id="marginClientChart"></div></div>
+        <div class="panel card"><div class="card-head"><h3>Maior lucro por produto</h3><span class="small">Top 10</span></div><div class="chart" id="marginProductChart"></div></div>
+        <div class="panel card"><div class="card-head"><h3>Maior lucro por marca</h3><span class="small">Top 10</span></div><div class="chart" id="marginBrandChart"></div></div>
+      </div>
+      <div class="grid2">
+        <div class="panel card">
+          <div class="card-head"><h3>Detalhamento de margem</h3><span class="small">cliente, produto ou marca</span></div>
+          <div class="dynamic-controls">
+            <select id="marginDimension"><option value="NOME">Por cliente</option><option value="PRODUTO">Por produto</option><option value="MARCA">Por marca</option></select>
+            <select id="marginOrder"><option value="PROFIT">Maior lucro bruto</option><option value="PCT">Maior margem %</option><option value="REVENUE">Maior faturamento</option></select>
+            <select id="marginLimit"><option value="10">Top 10</option><option value="20" selected>Top 20</option><option value="50">Top 50</option></select>
+            <button class="gold" id="marginDetailBtn">Atualizar</button>
+          </div>
+          <div class="trade-table-wrap" id="marginRankTable"></div>
+        </div>
+        <div class="panel card"><div class="card-head"><h3>Como a margem é calculada</h3></div><div style="padding:10px 4px">
+          <p class="loss-explain"><b style="color:#f0d27d">Faturamento</b> considera somente linhas com <b>TIPO = VENDA</b>.</p>
+          <p class="loss-explain"><b style="color:#ff8b84">Custo</b> é calculado em cada linha como <b>QTDE × PRECOCUSTO</b>.</p>
+          <p class="loss-explain"><b style="color:#7ee787">Lucro bruto</b> = faturamento − custo; <b>margem</b> = lucro bruto ÷ faturamento.</p>
+        </div></div>
+      </div>
+    </section>
+
     <section id="tabClosing" class="hidden">
       <div class="view-actions">
         <button id="printClosingSummaryBtn" class="print-btn" type="button" onclick="printCurrentView('closing')">🖨 Imprimir A4</button>
@@ -1884,6 +1948,7 @@ let headers=[], rows=[], filtered=[], col={};
 let allMovementTypes=[], selectedMovementTypes=new Set();
 let lossBaseRows=[];
 let tradeBaseRows=[];
+let marginBaseRows=[];
 let pppRows=[], pppCol={}, metasRows=[], metasCol={}, valueMetasConfig=null;
 let powerFileName="", pppFileName="", metasFileName="", valueMetasFileName="";
 let dashboardOpened=false;
@@ -2036,7 +2101,7 @@ function selectNoMovementTypes(){
 }
 
 function validateColumns(){
-  const required=['DATA','VENDEDOR','MARCA','GRUPO','TIPO','CIDADE','NOME','PRODUTO','VALTOTAL','QTDE','CODCLIENTE','NRODOCUMENTO'];
+  const required=['DATA','VENDEDOR','MARCA','GRUPO','TIPO','CIDADE','NOME','PRODUTO','VALTOTAL','QTDE','PRECOCUSTO','CODCLIENTE','NRODOCUMENTO'];
   const missing=required.filter(x=>col[x]==null);
   if(missing.length){
     throw new Error('O arquivo não possui as colunas esperadas: '+missing.join(', '));
@@ -2073,6 +2138,7 @@ function initFromText(text,sourceName){
   fillSelect('city',unique('CIDADE'));
   initLossControls(mm);
   initTradeControls(mm);
+  initMarginControls(mm);
 
   document.getElementById('subtitle').textContent=
     `${sourceName} • ${rows.length.toLocaleString('pt-BR')} linhas • ${brFromKey(mm.min)} a ${brFromKey(mm.max)}`;
@@ -3062,6 +3128,110 @@ function renderTradeAnalysis(){
   renderTradeDetail();
 }
 
+function initMarginControls(mm){
+  if(!document.getElementById('marginDateFrom'))return;
+  document.getElementById('marginDateFrom').value=isoFromKey(mm.min);
+  document.getElementById('marginDateTo').value=isoFromKey(mm.max);
+  fillSelect('marginSeller',[...new Set(rows.map(r=>normSeller(get(r,'VENDEDOR'))))].sort((a,b)=>a.localeCompare(b,'pt-BR')));
+  fillSelect('marginBrand',unique('MARCA',v=>String(v||'').trim()||'SEM MARCA'));
+  fillSelect('marginCity',unique('CIDADE'));
+  document.getElementById('marginClientSearch').value='';
+  document.getElementById('marginProductSearch').value='';
+  applyMarginFilters();
+}
+
+function applyMarginFilters(){
+  if(!rows.length||!document.getElementById('marginDateFrom'))return;
+  const from=Number((document.getElementById('marginDateFrom').value||'0000-00-00').replace(/-/g,''))||0;
+  const to=Number((document.getElementById('marginDateTo').value||'9999-99-99').replace(/-/g,''))||99999999;
+  const seller=document.getElementById('marginSeller').value;
+  const brand=document.getElementById('marginBrand').value;
+  const city=document.getElementById('marginCity').value;
+  const client=document.getElementById('marginClientSearch').value.trim().toLowerCase();
+  const product=document.getElementById('marginProductSearch').value.trim().toLowerCase();
+
+  marginBaseRows=rows.filter(r=>{
+    const d=dateKeyBR(get(r,'DATA'));
+    if(d<from||d>to)return false;
+    if(movementType(r)!=='VENDA')return false;
+    if(seller&&normSeller(get(r,'VENDEDOR'))!==seller)return false;
+    if(brand&&(String(get(r,'MARCA')).trim()||'SEM MARCA')!==brand)return false;
+    if(city&&String(get(r,'CIDADE')).trim()!==city)return false;
+    if(client&&!String(get(r,'NOME')).toLowerCase().includes(client))return false;
+    if(product&&!String(get(r,'PRODUTO')).toLowerCase().includes(product))return false;
+    return true;
+  });
+  renderMarginView();
+}
+
+function clearMarginFilters(){
+  ['marginSeller','marginBrand','marginCity'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('marginClientSearch').value='';
+  document.getElementById('marginProductSearch').value='';
+  const mm=safeMinMax(rows.map(r=>dateKeyBR(get(r,'DATA'))).filter(Boolean));
+  document.getElementById('marginDateFrom').value=isoFromKey(mm.min);
+  document.getElementById('marginDateTo').value=isoFromKey(mm.max);
+  applyMarginFilters();
+}
+
+function marginAggregate(field){
+  const map=new Map();
+  for(const r of marginBaseRows){
+    const key=String(get(r,field)||'').trim()||'SEM INFORMAÇÃO';
+    if(!map.has(key))map.set(key,{revenue:0,cost:0,qty:0});
+    const a=map.get(key);
+    const qty=brNum(get(r,'QTDE'));
+    a.revenue+=brNum(get(r,'VALTOTAL'));
+    a.cost+=qty*brNum(get(r,'PRECOCUSTO'));
+    a.qty+=qty;
+  }
+  return [...map.entries()].map(([label,a])=>{
+    const profit=a.revenue-a.cost;
+    return {label,...a,profit,pct:a.revenue?profit/a.revenue*100:null,value:profit};
+  });
+}
+
+function renderMarginDetail(){
+  const field=document.getElementById('marginDimension').value;
+  const order=document.getElementById('marginOrder').value;
+  const limit=Number(document.getElementById('marginLimit').value);
+  const data=marginAggregate(field);
+  data.sort((a,b)=>order==='PCT'?(b.pct??-Infinity)-(a.pct??-Infinity):order==='REVENUE'?b.revenue-a.revenue:b.profit-a.profit);
+  const label=document.getElementById('marginDimension').selectedOptions[0].text.replace(/^Por /,'');
+  let html=`<table><thead><tr><th>#</th><th>${escapeHtml(label)}</th><th class="num">Faturamento</th><th class="num">Custo</th><th class="num">Lucro bruto</th><th class="num">Margem</th></tr></thead><tbody>`;
+  data.slice(0,limit).forEach((d,i)=>{
+    const pct=d.pct==null?'—':d.pct.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+    html+=`<tr><td>${i+1}</td><td title="${escapeHtml(d.label)}">${escapeHtml(short(d.label,52))}</td><td class="num">${MONEY.format(d.revenue)}</td><td class="num">${MONEY.format(d.cost)}</td><td class="num ${d.profit<0?'red':'green'}">${MONEY.format(d.profit)}</td><td class="num ${d.pct<0?'red':'green'}">${pct}</td></tr>`;
+  });
+  html+='</tbody></table>';
+  document.getElementById('marginRankTable').innerHTML=data.length?html:'<div class="empty">Sem vendas para os filtros selecionados</div>';
+}
+
+function renderMarginView(){
+  if(!rows.length||!document.getElementById('marginRevenue'))return;
+  let revenue=0,cost=0;
+  const clients=new Set(),products=new Set();
+  for(const r of marginBaseRows){
+    const qty=brNum(get(r,'QTDE'));
+    revenue+=brNum(get(r,'VALTOTAL'));
+    cost+=qty*brNum(get(r,'PRECOCUSTO'));
+    clients.add(String(get(r,'CODCLIENTE'))||String(get(r,'NOME')));
+    products.add(String(get(r,'PRODUTO')));
+  }
+  const profit=revenue-cost,pct=revenue?profit/revenue*100:0;
+  document.getElementById('marginRevenue').textContent=MONEY.format(revenue);
+  document.getElementById('marginCost').textContent=MONEY.format(cost);
+  document.getElementById('marginProfit').textContent=MONEY.format(profit);
+  document.getElementById('marginPct').textContent=pct.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+  document.getElementById('marginClients').textContent=INT.format(clients.size);
+  document.getElementById('marginProducts').textContent=INT.format(products.size);
+  document.getElementById('marginStatus').innerHTML=`Base filtrada: <strong>${marginBaseRows.length.toLocaleString('pt-BR')} linhas de VENDA</strong> • Faturamento: <strong>${MONEY.format(revenue)}</strong> • Lucro bruto: <strong>${MONEY.format(profit)}</strong>`;
+  horizontalBar('marginClientChart',marginAggregate('NOME').sort((a,b)=>b.profit-a.profit).slice(0,10),{color:'#3fb950'});
+  horizontalBar('marginProductChart',marginAggregate('PRODUTO').sort((a,b)=>b.profit-a.profit).slice(0,10),{color:'#f0d27d'});
+  horizontalBar('marginBrandChart',marginAggregate('MARCA').sort((a,b)=>b.profit-a.profit).slice(0,10),{color:'#bc8cff'});
+  renderMarginDetail();
+}
+
 
 document.getElementById('typeTrigger').addEventListener('click',e=>{
   e.stopPropagation();
@@ -3088,6 +3258,14 @@ document.getElementById('tradeDetailBtn').addEventListener('click',renderTradeDe
 ['tradeDimension','tradeOrder','tradeLimit'].forEach(id=>document.getElementById(id).addEventListener('change',renderTradeDetail));
 document.getElementById('tradeProductSearch').addEventListener('input',applyTradeFilters);
 document.getElementById('tradeClientSearch').addEventListener('input',applyTradeFilters);
+
+document.getElementById('marginApplyBtn').addEventListener('click',applyMarginFilters);
+document.getElementById('marginClearBtn').addEventListener('click',clearMarginFilters);
+document.getElementById('marginDetailBtn').addEventListener('click',renderMarginDetail);
+['marginSeller','marginBrand','marginCity'].forEach(id=>document.getElementById(id).addEventListener('change',applyMarginFilters));
+['marginDimension','marginOrder','marginLimit'].forEach(id=>document.getElementById(id).addEventListener('change',renderMarginDetail));
+document.getElementById('marginProductSearch').addEventListener('input',applyMarginFilters);
+document.getElementById('marginClientSearch').addEventListener('input',applyMarginFilters);
 
 const closingDefaults = [
   {name:'NESTLE', brand:'NESTLE', posGoal:155, fatGoal:110000, trocaGoal:2.00, posPrize:200, fatPrize:200, trocaPrize:200},
@@ -3518,11 +3696,12 @@ function renderClosing(){
 
 
 function printCurrentView(view){
-  document.body.classList.remove('print-dashboard','print-loss','print-trade-analysis','print-closing');
+  document.body.classList.remove('print-dashboard','print-loss','print-trade-analysis','print-margin','print-closing');
 
   if(view==='dashboard') document.body.classList.add('print-dashboard');
   if(view==='loss') document.body.classList.add('print-loss');
   if(view==='trade-analysis') document.body.classList.add('print-trade-analysis');
+  if(view==='margin') document.body.classList.add('print-margin');
   if(view==='closing') document.body.classList.add('print-closing');
 
   // Pequeno atraso para o navegador aplicar o CSS antes de abrir a impressão.
@@ -3530,36 +3709,40 @@ function printCurrentView(view){
     window.print();
 
     setTimeout(()=>{
-      document.body.classList.remove('print-dashboard','print-loss','print-trade-analysis','print-closing');
+      document.body.classList.remove('print-dashboard','print-loss','print-trade-analysis','print-margin','print-closing');
     },300);
   },80);
 }
 
 window.addEventListener('afterprint',()=>{
-  document.body.classList.remove('print-dashboard','print-loss','print-trade-analysis','print-closing');
+  document.body.classList.remove('print-dashboard','print-loss','print-trade-analysis','print-margin','print-closing');
 });
 
 function switchTab(which){
-  const dash=which==='dashboard', loss=which==='loss', trade=which==='trade-analysis', closing=which==='closing';
+  const dash=which==='dashboard', loss=which==='loss', trade=which==='trade-analysis', margin=which==='margin', closing=which==='closing';
 
   document.getElementById('tabDashboard').classList.toggle('hidden',!dash);
   document.getElementById('tabLoss').classList.toggle('hidden',!loss);
   document.getElementById('tabTradeAnalysis').classList.toggle('hidden',!trade);
+  document.getElementById('tabMargin').classList.toggle('hidden',!margin);
   document.getElementById('tabClosing').classList.toggle('hidden',!closing);
 
   document.getElementById('tabDashboardBtn').classList.toggle('active',dash);
   document.getElementById('tabLossBtn').classList.toggle('active',loss);
   document.getElementById('tabTradeAnalysisBtn').classList.toggle('active',trade);
+  document.getElementById('tabMarginBtn').classList.toggle('active',margin);
   document.getElementById('tabClosingBtn').classList.toggle('active',closing);
 
   if(loss)renderLossView();
   if(trade)renderTradeAnalysis();
+  if(margin)renderMarginView();
   if(closing)renderClosing();
 }
 
 document.getElementById('tabDashboardBtn').addEventListener('click',()=>switchTab('dashboard'));
 document.getElementById('tabLossBtn').addEventListener('click',()=>switchTab('loss'));
 document.getElementById('tabTradeAnalysisBtn').addEventListener('click',()=>switchTab('trade-analysis'));
+document.getElementById('tabMarginBtn').addEventListener('click',()=>switchTab('margin'));
 document.getElementById('tabClosingBtn').addEventListener('click',()=>switchTab('closing'));
 document.getElementById('closeSeller').addEventListener('change',loadClosingConfig);
 document.getElementById('closeMonth').addEventListener('change',loadClosingConfig);
