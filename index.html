@@ -932,6 +932,13 @@ input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer}
 .bar.red > span{background:linear-gradient(90deg,#fb7185 0%,#dc2626 100%)}
 
 .close-summary-grid{display:grid;grid-template-columns:295px 1fr;gap:14px;padding:0 0 10px}
+.commission-panel{margin:0 0 18px;overflow:hidden;border:1px solid #dbe5f1;border-radius:18px;background:#fff;box-shadow:0 10px 26px rgba(15,23,42,.07)}
+.commission-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;padding:18px 20px;background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 65%,#2563eb 100%);color:#fff}
+.commission-head>div>span,.commission-period span{display:block;font-size:9px;font-weight:900;letter-spacing:.7px;text-transform:uppercase;color:#bfdbfe}.commission-head h3{margin:5px 0 4px;font-size:20px;line-height:1.1}.commission-head p{margin:0;color:#dbeafe;font-size:11px;line-height:1.4}
+.commission-period{min-width:125px;padding:10px 12px;border:1px solid rgba(255,255,255,.22);border-radius:12px;background:rgba(255,255,255,.1);text-align:right}.commission-period strong{display:block;margin-top:5px;font-size:13px;color:#fff}
+.commission-metrics{display:grid;grid-template-columns:1.45fr .8fr 1fr 1.15fr;gap:0}.commission-metric{position:relative;min-width:0;padding:16px 18px;border-right:1px solid #e6edf6;background:#fff}.commission-metric:last-child{border-right:0}.commission-metric:before{content:"";position:absolute;top:0;left:18px;right:18px;height:3px;border-radius:0 0 4px 4px;background:#94a3b8}.commission-metric.revenue:before{background:#2563eb}.commission-metric.rate:before{background:#f59e0b}.commission-metric.base:before{background:#64748b}.commission-metric.earned:before{background:#16a34a}
+.commission-metric span{display:block;font-size:9px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;color:#64748b}.commission-metric strong{display:block;overflow:hidden;margin-top:8px;color:#0f172a;font-size:19px;line-height:1.1;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}.commission-metric small{display:block;margin-top:6px;color:#64748b;font-size:10px}.commission-metric.revenue{background:linear-gradient(180deg,#eff6ff,#fff)}.commission-metric.revenue strong{color:#1d4ed8}.commission-metric.rate{background:linear-gradient(180deg,#fffbeb,#fff)}.commission-metric.rate strong{color:#b45309}.commission-metric.earned{background:linear-gradient(180deg,#ecfdf5,#fff)}.commission-metric.earned strong{color:#047857}
+@media(max-width:900px){.commission-metrics{grid-template-columns:1fr 1fr}.commission-metric:nth-child(2){border-right:0}.commission-metric:nth-child(-n+2){border-bottom:1px solid #e6edf6}}@media(max-width:560px){.commission-head{flex-direction:column}.commission-period{width:100%;text-align:left}.commission-metrics{grid-template-columns:1fr}.commission-metric,.commission-metric:nth-child(2){border-right:0;border-bottom:1px solid #e6edf6}.commission-metric:last-child{border-bottom:0}}
 .xbox,.close-card{
   border:1px solid #dbe3ef;background:#fff;border-radius:16px;overflow:hidden;
 }
@@ -1906,32 +1913,18 @@ img,svg,canvas{max-width:100%}
               </div>
             </div>
 
-            <div class="close-summary-grid">
-              <div class="xbox">
-                <table class="xtable">
-                  <tr><th>REF. MÊS</th><td class="center" id="closeRefMonth">-</td></tr>
-                  <tr>
-                    <th>BASE</th><th>COMISSÃO</th>
-                  </tr>
-                  <tr>
-                    <td class="right" id="closeBaseSalary">R$ 0,00</td>
-                    <td class="right" id="closeCommissionValue">R$ 0,00</td>
-                  </tr>
-                </table>
+            <section class="commission-panel" aria-label="Faturamento e comissão">
+              <div class="commission-head">
+                <div><span>Fechamento financeiro</span><h3>Faturamento &amp; comissão</h3><p>Resumo da remuneração calculada para o período selecionado.</p></div>
+                <div class="commission-period"><span>Referência</span><strong id="closeRefMonth">-</strong></div>
               </div>
-
-              <div class="xbox">
-                <table class="xtable">
-                  <tr><th colspan="4" class="center">FATURAMENTO / COMISSÃO</th></tr>
-                  <tr>
-                    <th>TOTAL</th>
-                    <td class="right" id="closeRevenue">R$ 0,00</td>
-                    <th id="closeCommissionPctLabel">1%</th>
-                    <td class="right" id="closeCommissionValue2">R$ 0,00</td>
-                  </tr>
-                </table>
+              <div class="commission-metrics">
+                <div class="commission-metric revenue"><span>Faturamento líquido</span><strong id="closeRevenue">R$ 0,00</strong><small>total do período</small></div>
+                <div class="commission-metric rate"><span>Taxa de comissão</span><strong id="closeCommissionPctLabel">1%</strong><small>aplicada sobre faturamento</small></div>
+                <div class="commission-metric base"><span>Salário base</span><strong id="closeBaseSalary">R$ 0,00</strong><small>valor mensal</small></div>
+                <div class="commission-metric earned"><span>Comissão calculada</span><strong id="closeCommissionValue">R$ 0,00</strong><small>valor a receber</small></div>
               </div>
-            </div>
+            </section>
 
             <div class="close-section-title">PRÊMIO DPA</div>
 
@@ -3624,7 +3617,6 @@ function renderClosing(){
   document.getElementById('closeBaseSalary').textContent=money(base);
   document.getElementById('closeRevenue').textContent=money(revenue);
   document.getElementById('closeCommissionValue').textContent=money(commission);
-  document.getElementById('closeCommissionValue2').textContent=money(commission);
   document.getElementById('closeCommissionPctLabel').textContent=comPct.toLocaleString('pt-BR',{maximumFractionDigits:2})+'%';
   document.getElementById('summarySalary').textContent=money(base);
   document.getElementById('summaryCommission').textContent=money(commission);
