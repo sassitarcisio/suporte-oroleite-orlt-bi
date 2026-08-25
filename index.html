@@ -1164,16 +1164,17 @@ img,svg,canvas{max-width:100%}
 @media(max-width:760px){.goal-table{font-size:11px}.goal-table td{padding:7px 8px!important}.goal-table thead th.yellow{padding:10px 8px}.goal-table .brand{min-width:94px}}
 
 /* PRÊMIO METAS — CARTÕES POR MARCA */
-.goal-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.goal-card{overflow:hidden;border:1px solid #dbe4f0;border-radius:18px;background:#fff;box-shadow:0 10px 26px rgba(15,23,42,.06);transition:transform .18s ease,box-shadow .18s ease}
-.goal-card:hover{transform:translateY(-3px);box-shadow:0 18px 34px rgba(15,23,42,.12)}
-.goal-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 16px 13px;border-bottom:1px solid #e8eef6;background:linear-gradient(135deg,#f8fbff,#eef6ff)}
-.goal-card-kicker{display:block;font-size:9px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;color:#64748b}
-.goal-card h3{margin:4px 0 0;font-size:18px;color:#0f172a;line-height:1}
-.goal-status{display:inline-flex;align-items:center;white-space:nowrap;padding:6px 9px;border-radius:999px;background:#f1f5f9;color:#475569;font-size:10px;font-weight:900}
+.goal-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.goal-card{position:relative;overflow:hidden;border:1px solid #dbe4f0;border-radius:18px;background:#fff;box-shadow:0 10px 26px rgba(15,23,42,.06);transition:transform .18s ease,box-shadow .18s ease}
+.goal-card:before{content:"";position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(90deg,#60a5fa,#2563eb)}
+.goal-card:hover{transform:translateY(-4px);box-shadow:0 20px 38px rgba(15,23,42,.13)}
+.goal-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:17px 15px 14px;border-bottom:1px solid #e8eef6;background:linear-gradient(135deg,#f8fbff,#eef6ff)}
+.goal-card-kicker{display:block;font-size:9px;font-weight:900;letter-spacing:.9px;text-transform:uppercase;color:#64748b}
+.goal-card h3{margin:5px 0 0;font-size:17px;color:#0f172a;line-height:1.05}
+.goal-status{display:inline-flex;align-items:center;white-space:nowrap;padding:6px 8px;border-radius:999px;background:#f1f5f9;color:#475569;font-size:9px;font-weight:900}
 .goal-status.strong{background:#dcfce7;color:#166534}.goal-status.progress{background:#fef3c7;color:#92400e}.goal-status.attention{background:#fee2e2;color:#b91c1c}
 .goal-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}
-.goal-metric{min-width:0;padding:13px;border-right:1px solid #e8eef6}.goal-metric:last-child{border-right:0}
+.goal-metric{min-width:0;padding:13px 11px;border-right:1px solid #e8eef6}.goal-metric:last-child{border-right:0}
 .goal-metric-top{display:flex;align-items:center;justify-content:space-between;gap:7px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.35px;color:#64748b}
 .goal-metric-top b{color:#2563eb;font-size:11px;font-variant-numeric:tabular-nums}
 .goal-values{display:grid;grid-template-columns:1fr;gap:8px;margin-top:11px}
@@ -1184,8 +1185,9 @@ img,svg,canvas{max-width:100%}
 .goal-card .goal-input{width:100%;min-width:0;min-height:29px;border:1px solid #cbd5e1!important;border-radius:8px!important;background:#fff!important;color:#0f172a!important;caret-color:#2563eb!important;padding:5px 7px!important;font:inherit;font-size:12px;font-weight:850;text-align:right;outline:0;box-shadow:none!important}
 .goal-card .goal-input:hover{border-color:#93c5fd!important;background:#f8fbff!important}.goal-card .goal-input:focus{border-color:#2563eb!important;background:#fff!important;box-shadow:0 0 0 3px rgba(37,99,235,.16)!important}.goal-card .goal-input::selection{background:#bfdbfe;color:#0f172a}.goal-card .goal-input::-moz-selection{background:#bfdbfe;color:#0f172a}
 .currency-input{font-variant-numeric:tabular-nums}
-.goal-card.strong{border-color:#bbf7d0}.goal-card.progress{border-color:#fde68a}.goal-card.attention{border-color:#fecaca}
-@media(max-width:1050px){.goal-cards{grid-template-columns:1fr}}
+.goal-card.strong{border-color:#bbf7d0}.goal-card.strong:before{background:linear-gradient(90deg,#4ade80,#16a34a)}.goal-card.progress{border-color:#fde68a}.goal-card.progress:before{background:linear-gradient(90deg,#fbbf24,#f59e0b)}.goal-card.attention{border-color:#fecaca}.goal-card.attention:before{background:linear-gradient(90deg,#fb7185,#e11d48)}
+@media(max-width:1180px){.goal-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.goal-cards{grid-template-columns:1fr}}
 @media(max-width:560px){.goal-card-head{padding:13px}.goal-card h3{font-size:16px}.goal-status{font-size:9px;padding:5px 7px}.goal-metrics{grid-template-columns:1fr}.goal-metric{padding:12px;border-right:0;border-bottom:1px solid #e8eef6}.goal-metric:last-child{border-bottom:0}.goal-values{grid-template-columns:1fr 1fr}}
 
 /* PPP — INTERAÇÃO CLARA */
