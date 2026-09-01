@@ -1,0 +1,16 @@
+C:\Users\Tarcisio\OneDrive - Empresas\Área de Trabalho\VSCODE\OROPOWERBI\src\OroBI.Application\bin\Release\net10.0\OroBI.Application.deps.json
+C:\Users\Tarcisio\OneDrive - Empresas\Área de Trabalho\VSCODE\OROPOWERBI\src\OroBI.Application\bin\Release\net10.0\OroBI.Application.dll
+C:\Users\Tarcisio\OneDrive - Empresas\Área de Trabalho\VSCODE\OROPOWERBI\src\OroBI.Application\bin\Release\net10.0\OroBI.Application.pdb
+C:\Users\Tarcisio\OneDrive - Empresas\Área de Trabalho\VSCODE\OROPOWERBI\src\OroBI.Application\bin\Release\net10.0\OroBI.Domain.dll
+C:\Users\Tarcisio\OneDrive - Empresas\Área de Trabalho\VSCODE\OROPOWERBI\src\OroBI.Application\bin\Release\net10.0\OroBI.Domain.pdb
+C:\Users\Tarcisio\OneDrive - Empresas\Área de Trabalho\VSCODE\OROPOWERBI\src\OroBI.Application\obj\Release\net10.0\OroBI.Application.csproj.AssemblyReference.cache
+C:\Users\Tarcisio\OneDrive - Empresas\Área de Trabalho\VSCODE\OROPOWERBI\src\OroBI.Application\obj\Release\net10.0\OroBI.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Tarcisio\OneDrive - Empresas\Área de Trabalho\VSCODE\OROPOWERBI\src\OroBI.Application\obj\Release\net10.0\OroBI.Application.AssemblyInfoInputs.cache
+C:\Users\Tarcisio\OneDrive - Empresas\Área de Trabalho\VSCODE\OROPOWERBI\src\OroBI.Application\obj\Release\net10.0\OroBI.Application.AssemblyInfo.cs
+C:\Users\Tarcisio\OneDrive - Empresas\Área de Trabalho\VSCODE\OROPOWERBI\src\OroBI.Application\obj\Release\net10.0\OroBI.Application.csproj.CoreCompileInputs.cache
+C:\Users\Tarcisio\OneDrive - Empresas\Área de Trabalho\VSCODE\OROPOWERBI\src\OroBI.Application\obj\Release\net10.0\OroBI.Application.sourcelink.json
+C:\Users\Tarcisio\OneDrive - Empresas\Área de Trabalho\VSCODE\OROPOWERBI\src\OroBI.Application\obj\Release\net10.0\OroBI.Ap.D44D28AB.Up2Date
+C:\Users\Tarcisio\OneDrive - Empresas\Área de Trabalho\VSCODE\OROPOWERBI\src\OroBI.Application\obj\Release\net10.0\OroBI.Application.dll
+C:\Users\Tarcisio\OneDrive - Empresas\Área de Trabalho\VSCODE\OROPOWERBI\src\OroBI.Application\obj\Release\net10.0\refint\OroBI.Application.dll
+C:\Users\Tarcisio\OneDrive - Empresas\Área de Trabalho\VSCODE\OROPOWERBI\src\OroBI.Application\obj\Release\net10.0\OroBI.Application.pdb
+C:\Users\Tarcisio\OneDrive - Empresas\Área de Trabalho\VSCODE\OROPOWERBI\src\OroBI.Application\obj\Release\net10.0\ref\OroBI.Application.dll

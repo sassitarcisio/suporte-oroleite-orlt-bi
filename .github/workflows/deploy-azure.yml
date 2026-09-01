@@ -1,0 +1,43 @@
+name: Deploy Azure
+
+on:
+  workflow_dispatch:
+    inputs:
+      resource_group:
+        description: Azure resource group
+        required: true
+        type: string
+      prefix:
+        description: Lowercase resource prefix
+        required: true
+        type: string
+      api_image:
+        description: Published API image URI
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - uses: azure/setup-azcli@v2
+      - run: az bicep build --file infra/main.bicep
+      - run: >-
+          az deployment group create
+          --resource-group "${{ inputs.resource_group }}"
+          --template-file infra/main.bicep
+          --parameters prefix="${{ inputs.prefix }}"
+          apiImage="${{ inputs.api_image }}"
+          postgresAdministratorPassword="${{ secrets.POSTGRES_ADMINISTRATOR_PASSWORD }}"
+          databaseConnectionString="${{ secrets.OROBI_DATABASE_CONNECTION_STRING }}"

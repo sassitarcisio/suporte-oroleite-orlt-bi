@@ -1,0 +1,48 @@
+import type { FormEvent } from 'react'
+
+export type DashboardSummary = {
+  grossSales: number
+  negativeMovements: number
+  negativePercentage: number
+  netResult: number
+  saleQuantity: number
+  movementCount: number
+}
+
+type DashboardPageProps = {
+  summary: DashboardSummary | null
+  seller: string
+  state: 'idle' | 'loading' | 'ready' | 'error'
+  onSellerChange: (seller: string) => void
+  onSubmit: () => void
+}
+
+const money = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+const number = (value: number) => new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(value)
+
+export function DashboardPage({ summary, seller, state, onSellerChange, onSubmit }: DashboardPageProps) {
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    onSubmit()
+  }
+
+  return <>
+    <section className="hero">
+      <p className="eyebrow">CENTRAL DE RESULTADOS</p>
+      <h1>O pulso da operacao,<br /><em>sem planilhas soltas.</em></h1>
+      <form onSubmit={submit}>
+        <label>VENDEDOR<input value={seller} onChange={event => onSellerChange(event.target.value)} placeholder="Todos os vendedores" /></label>
+        <button>Aplicar recorte</button>
+      </form>
+    </section>
+    {state === 'loading' && <section className="notice">Consultando dados comerciais...</section>}
+    {state === 'error' && <section className="notice error">Nao foi possivel carregar a API.</section>}
+    {summary && state === 'ready' && summary.movementCount === 0 && <section className="notice">Nenhum movimento encontrado para os filtros aplicados.</section>}
+    {summary && state === 'ready' && summary.movementCount > 0 && <section className="metrics">
+      <article className="metric main"><p>Faturamento bruto</p><strong>{money(summary.grossSales)}</strong><span>Somente movimentos de venda</span></article>
+      <article className="metric"><p>Resultado liquido</p><strong>{money(summary.netResult)}</strong><span>Todos os movimentos</span></article>
+      <article className="metric warning"><p>Movimentos negativos</p><strong>{money(summary.negativeMovements)}</strong><span>{number(summary.negativePercentage)}% do bruto</span></article>
+      <article className="metric"><p>Quantidade vendida</p><strong>{number(summary.saleQuantity)}</strong><span>{summary.movementCount} movimentos importados</span></article>
+    </section>}
+  </>
+}

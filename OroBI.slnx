@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/OroBI.Api/OroBI.Api.csproj" />
+    <Project Path="src/OroBI.Application/OroBI.Application.csproj" />
+    <Project Path="src/OroBI.Domain/OroBI.Domain.csproj" />
+    <Project Path="src/OroBI.Infrastructure/OroBI.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/OroBI.Api.IntegrationTests/OroBI.Api.IntegrationTests.csproj" />
+    <Project Path="tests/OroBI.Application.Tests/OroBI.Application.Tests.csproj" />
+    <Project Path="tests/OroBI.Infrastructure.Tests/OroBI.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>

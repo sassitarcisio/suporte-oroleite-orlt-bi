@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: src/OroBI.Web/package-lock.json
+      - uses: azure/setup-azcli@v2
+      - run: dotnet test OroBI.slnx --configuration Release --disable-build-servers -m:1 /p:UseSharedCompilation=false
+      - run: npm ci
+        working-directory: src/OroBI.Web
+      - run: npm run build
+        working-directory: src/OroBI.Web
+      - run: az bicep build --file infra/main.bicep
