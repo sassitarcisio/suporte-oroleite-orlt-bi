@@ -17,7 +17,6 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: src/OroBI.Web/package-lock.json
-      - uses: azure/setup-azcli@v2
       - run: dotnet test OroBI.slnx --configuration Release --disable-build-servers -m:1 /p:UseSharedCompilation=false
       - run: npm ci
         working-directory: src/OroBI.Web

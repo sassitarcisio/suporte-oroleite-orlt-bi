@@ -31,7 +31,6 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      - uses: azure/setup-azcli@v2
       - run: az bicep build --file infra/main.bicep
       - run: >-
           az deployment group create
