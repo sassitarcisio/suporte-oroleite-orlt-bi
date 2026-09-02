@@ -4,6 +4,8 @@ Deploy `infra/main.bicep` at resource-group scope with a unique lowercase `prefi
 
 The template provisions low-cost consumption compute, PostgreSQL Flexible Server B1ms, private import blob storage, Key Vault, Application Insights, and Log Analytics. Before production, restrict PostgreSQL and Key Vault network access to the chosen virtual network and grant the API managed identity `Key Vault Secrets User` and `Storage Blob Data Contributor` through Azure RBAC.
 
+The `main.bicep` deployment grants `Storage Blob Data Contributor` to the API managed identity and configures the private `imports` container through `ImportStorage__BlobServiceUri` and `ImportStorage__ContainerName`. It does not configure a storage account key or SAS token.
+
 ## Deployment Prerequisites
 
 Configure the GitHub `production` environment with these secrets. Do not place their values in repository files or workflow inputs.

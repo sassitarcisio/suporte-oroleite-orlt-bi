@@ -181,20 +181,20 @@ git commit -m "feat: configure blob import storage"
 - Consumes: user-assigned identity `orobi-api-identity`, storage account `orobistore`, and private container `imports`.
 - Produces: a `Storage Blob Data Contributor` assignment at storage-account scope and API environment variables `ImportStorage__BlobServiceUri` and `ImportStorage__ContainerName`.
 
-- [ ] **Step 1: Write the endpoint contract assertion**
+- [x] **Step 1: Write the endpoint contract assertion**
 
 ```csharp
 Assert.True(response.IsSuccessStatusCode, responseBody);
 Assert.Contains("storedFileUri", responseBody, StringComparison.OrdinalIgnoreCase);
 ```
 
-- [ ] **Step 2: Run the endpoint test**
+- [x] **Step 2: Run the endpoint test**
 
 Run: `dotnet test tests/OroBI.Api.IntegrationTests/OroBI.Api.IntegrationTests.csproj --filter FullyQualifiedName~Post_imports_with_valid_power_file_returns_created --no-restore --disable-build-servers -m:1`
 
 Expected: PASS only if the existing response exposes `storedFileUri`; otherwise adjust the response contract before infrastructure changes.
 
-- [ ] **Step 3: Add managed-identity permission and runtime configuration**
+- [x] **Step 3: Add managed-identity permission and runtime configuration**
 
 ```bicep
 var storageBlobDataContributorRoleDefinitionId = 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
@@ -219,7 +219,7 @@ Add the role assignment to API `dependsOn` and append:
 
 Document that Blob uses the managed identity, the container stays private, and no account key is configured.
 
-- [ ] **Step 4: Run complete verification**
+- [x] **Step 4: Run complete verification**
 
 Run: `dotnet test OroBI.slnx --no-restore --disable-build-servers -m:1 --verbosity minimal`
 
@@ -227,7 +227,7 @@ Run: `az bicep build --file infra/main.bicep`
 
 Expected: all .NET test projects pass and Bicep exits with code 0.
 
-- [ ] **Step 5: Commit infrastructure and documentation**
+- [x] **Step 5: Commit infrastructure and documentation**
 
 ```powershell
 git add infra/main.bicep docs/operations/azure-production.md tests/OroBI.Api.IntegrationTests/Imports/ImportEndpointsTests.cs

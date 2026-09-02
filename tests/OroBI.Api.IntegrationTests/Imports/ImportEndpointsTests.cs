@@ -65,6 +65,7 @@ public sealed class ImportEndpointsTests : IClassFixture<WebApplicationFactory<P
         var responseBody = await response.Content.ReadAsStringAsync();
 
         Assert.True(response.StatusCode == HttpStatusCode.Created, $"Status: {response.StatusCode}; Body: {responseBody}");
+        Assert.Contains("storedFileUri", responseBody, StringComparison.OrdinalIgnoreCase);
     }
 }
 

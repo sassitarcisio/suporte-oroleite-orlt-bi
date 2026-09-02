@@ -35,6 +35,7 @@ var keyVaultName = '${prefix}kv'
 var registryName = '${prefix}acr'
 var acrPullRoleDefinitionId = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
 var keyVaultSecretsUserRoleDefinitionId = '4633458b-17de-408a-b874-0445c86b69e6'
+var storageBlobDataContributorRoleDefinitionId = 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
 
 resource registry 'Microsoft.ContainerRegistry/registries@2023-07-01' existing = {
   name: registryName
@@ -136,6 +137,7 @@ resource api 'Microsoft.App/containerApps@2024-03-01' = {
   dependsOn: [
     apiAcrPull
     apiKeyVaultSecretsUser
+    apiStorageBlobDataContributor
   ]
   properties: {
     managedEnvironmentId: environment.id
@@ -170,6 +172,8 @@ resource api 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'ConnectionStrings__OroBi', secretRef: 'database-connection' }
           ] : [], [
             { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: insights.properties.ConnectionString }
+            { name: 'ImportStorage__BlobServiceUri', value: 'https://${storage.name}.blob.${az.environment().suffixes.storage}' }
+            { name: 'ImportStorage__ContainerName', value: importsContainer.name }
             { name: 'Jwt__Issuer', value: 'OroBI' }
             { name: 'Jwt__Audience', value: 'OroBI' }
             { name: 'Jwt__SigningKey', secretRef: 'jwt-signing-key' }
@@ -209,6 +213,16 @@ resource apiKeyVaultSecretsUser 'Microsoft.Authorization/roleAssignments@2022-04
     principalId: apiIdentity.properties.principalId
     principalType: 'ServicePrincipal'
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', keyVaultSecretsUserRoleDefinitionId)
+  }
+}
+
+resource apiStorageBlobDataContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(storage.id, apiIdentity.id, storageBlobDataContributorRoleDefinitionId)
+  scope: storage
+  properties: {
+    principalId: apiIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', storageBlobDataContributorRoleDefinitionId)
   }
 }
 
