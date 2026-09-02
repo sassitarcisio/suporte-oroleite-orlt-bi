@@ -1,4 +1,5 @@
 .azure-cli/
+.worktrees/
 infra/main.json
 infra/acr.json
 infra/key-vault.json
