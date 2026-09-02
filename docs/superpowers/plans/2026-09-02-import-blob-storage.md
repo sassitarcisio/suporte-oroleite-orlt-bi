@@ -34,7 +34,7 @@
 - Consumes: `IImportFileStore.SaveAsync(Stream content, string fileName, string contentType, CancellationToken cancellationToken)`.
 - Produces: `IBlobImportUploader.UploadAsync(string blobName, Stream content, string contentType, CancellationToken cancellationToken)` and `BlobImportFileStore : IImportFileStore`.
 
-- [ ] **Step 1: Write the failing blob-store test**
+- [x] **Step 1: Write the failing blob-store test**
 
 ```csharp
 [Fact]
@@ -54,13 +54,13 @@ public async Task Uploads_private_blob_with_month_partition_safe_name_and_checks
 }
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `dotnet test tests/OroBI.Infrastructure.Tests/OroBI.Infrastructure.Tests.csproj --filter FullyQualifiedName~BlobImportFileStoreTests --no-restore --disable-build-servers -m:1`
 
 Expected: FAIL because `BlobImportFileStore` and `IBlobImportUploader` do not exist.
 
-- [ ] **Step 3: Write the minimal implementation**
+- [x] **Step 3: Write the minimal implementation**
 
 Add these centrally managed package versions and infrastructure package references:
 
@@ -80,13 +80,13 @@ internal interface IBlobImportUploader
 
 `AzureBlobImportUploader` calls `BlobContainerClient.GetBlobClient(blobName).UploadAsync` with `BlobHttpHeaders { ContentType = contentType }` and returns `BlobClient.Uri`. `BlobImportFileStore` buffers the input once, calculates `SHA256.HashData`, resets the buffer, uploads it, and returns `new StoredImportFile(uri.ToString(), Convert.ToHexStringLower(hash))` using `yyyy/MM/<guid>-<safe-file-name>.csv` keys.
 
-- [ ] **Step 4: Run focused tests to verify they pass**
+- [x] **Step 4: Run focused tests to verify they pass**
 
 Run: `dotnet test tests/OroBI.Infrastructure.Tests/OroBI.Infrastructure.Tests.csproj --filter FullyQualifiedName~BlobImportFileStoreTests --no-restore --disable-build-servers -m:1`
 
 Expected: PASS with no network call because the test uses `RecordingBlobImportUploader`.
 
-- [ ] **Step 5: Commit the Blob store**
+- [x] **Step 5: Commit the Blob store**
 
 ```powershell
 git add Directory.Packages.props src/OroBI.Infrastructure/OroBI.Infrastructure.csproj src/OroBI.Infrastructure/Imports/IBlobImportUploader.cs src/OroBI.Infrastructure/Imports/AzureBlobImportUploader.cs src/OroBI.Infrastructure/Imports/BlobImportFileStore.cs tests/OroBI.Infrastructure.Tests/Imports/BlobImportFileStoreTests.cs
