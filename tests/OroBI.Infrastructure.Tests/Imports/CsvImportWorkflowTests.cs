@@ -50,6 +50,44 @@ public sealed class CsvImportWorkflowTests
     }
 
     [Fact]
+    public async Task Accepts_legacy_power_header_and_maps_network_to_group()
+    {
+        var options = new DbContextOptionsBuilder<OroBiDbContext>()
+            .UseInMemoryDatabase(nameof(Accepts_legacy_power_header_and_maps_network_to_group))
+            .Options;
+        await using var db = new OroBiDbContext(options);
+        var workflow = new CsvImportWorkflow(db, new InMemoryImportFileStore());
+        const string csv = "CODCLIENTE;NOME;CODREDE;REDE;CIDADE;UF;DATA;NRODOCUMENTO;VENDEDOR;CODPRODUTO;PRODUTO;MARCA;QTDE;PRECO;PRECOCUSTO;VALTOTAL;TIPO;\n123;Cliente A;28;Atacadao;Sao Paulo;SP;01/08/2026;456;Ana;789;Leite;Nestle;2;10,00;8,00;20,00;Venda;";
+        await using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(csv));
+
+        var result = await workflow.ImportAsync(new ImportSubmission(ImportFileType.Power, "power.csv", "text/csv", stream), CancellationToken.None);
+
+        Assert.Equal(ImportBatchStatus.Completed, result.Status);
+        var movement = await db.CommercialMovements.SingleAsync();
+        Assert.Equal("ATACADAO", movement.Group);
+    }
+
+    [Fact]
+    public async Task Defaults_blank_quantity_to_zero_for_legacy_discount_rows()
+    {
+        var options = new DbContextOptionsBuilder<OroBiDbContext>()
+            .UseInMemoryDatabase(nameof(Defaults_blank_quantity_to_zero_for_legacy_discount_rows))
+            .Options;
+        await using var db = new OroBiDbContext(options);
+        var workflow = new CsvImportWorkflow(db, new InMemoryImportFileStore());
+        const string csv = "DATA;VENDEDOR;MARCA;GRUPO;TIPO;CIDADE;NOME;PRODUTO;VALTOTAL;QTDE;PRECOCUSTO;CODCLIENTE;NRODOCUMENTO\n01/08/2026;Operacao Bauducco;;;DESC BOLETO;Sao Paulo;Cliente A;;-290,87;;;123;456";
+        await using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(csv));
+
+        var result = await workflow.ImportAsync(new ImportSubmission(ImportFileType.Power, "power.csv", "text/csv", stream), CancellationToken.None);
+
+        Assert.Equal(ImportBatchStatus.Completed, result.Status);
+        var movement = await db.CommercialMovements.SingleAsync();
+        Assert.Equal(0m, movement.Quantity);
+        Assert.Equal(0m, movement.UnitCost);
+        Assert.Equal(-290.87m, movement.TotalValue);
+    }
+
+    [Fact]
     public async Task Keeps_valid_rows_when_a_power_row_is_invalid()
     {
         var options = new DbContextOptionsBuilder<OroBiDbContext>()

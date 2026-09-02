@@ -88,6 +88,7 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
 
         var headers = lines[0].Split(';').Select((value, index) => new { Name = value.Trim().ToUpperInvariant(), Index = index })
             .ToDictionary(item => item.Name, item => item.Index, StringComparer.Ordinal);
+        var groupHeader = headers.ContainsKey("GRUPO") ? "GRUPO" : "REDE";
         var culture = CultureInfo.GetCultureInfo("pt-BR");
         var movements = new List<CommercialMovement>();
         var errors = new List<PowerRowError>();
@@ -97,19 +98,21 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
             try
             {
                 var values = item.Line.Split(';');
+                var movementType = Normalize(Value("TIPO"));
+                var isDiscount = movementType == "DESC BOLETO";
                 movements.Add(CommercialMovement.CreateFromImport(
                     batchId,
                     ParseDate(Value("DATA")),
                     Normalize(Value("VENDEDOR")),
                     Normalize(Value("MARCA")),
-                    Normalize(Value("GRUPO")),
-                    Normalize(Value("TIPO")),
+                    Normalize(Value(groupHeader)),
+                    movementType,
                     Normalize(Value("CIDADE")),
                     Value("NOME").Trim(),
                     Value("PRODUTO").Trim(),
                     ParseDecimal("VALTOTAL", Value("VALTOTAL"), NumberStyles.Number | NumberStyles.AllowCurrencySymbol),
-                    ParseDecimal("QTDE", Value("QTDE"), NumberStyles.Number),
-                    ParseDecimal("PRECOCUSTO", Value("PRECOCUSTO"), NumberStyles.Number | NumberStyles.AllowCurrencySymbol),
+                    ParseDecimal("QTDE", Value("QTDE"), NumberStyles.Number, isDiscount),
+                    ParseDecimal("PRECOCUSTO", Value("PRECOCUSTO"), NumberStyles.Number | NumberStyles.AllowCurrencySymbol, isDiscount),
                     Value("CODCLIENTE").Trim(),
                     Value("NRODOCUMENTO").Trim()));
 
@@ -133,8 +136,13 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
             return date;
         }
 
-        decimal ParseDecimal(string header, string value, NumberStyles styles)
+        decimal ParseDecimal(string header, string value, NumberStyles styles, bool blankIsZero = false)
         {
+            if (blankIsZero && string.IsNullOrWhiteSpace(value))
+            {
+                return 0m;
+            }
+
             if (!decimal.TryParse(value, styles, culture, out var number))
             {
                 throw new FormatException($"{header} must be a valid number.");

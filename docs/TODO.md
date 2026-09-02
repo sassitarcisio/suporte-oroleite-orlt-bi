@@ -6,6 +6,7 @@ Este arquivo e o ponto unico de acompanhamento dos prompts do projeto. Ele regis
 
 | Data | Item | Alteracao | Impacto |
 | --- | --- | --- | --- |
+| 2026-09-02 | Proxima prioridade agendada | Retomar a engenharia reversa integral do `index.html` assim que o deploy e o provisionamento dos administradores em curso forem concluídos. | Catalogar módulos, regras e CSVs do legado; criar baselines de paridade antes de ampliar funcionalidades comerciais. |
 | 2026-09-02 | Static Web App OroBI | Criado `orobi-web` em `rg-oroleite-site`, com hostname `lively-sea-0776c9a0f.6.azurestaticapps.net`, sem alterar o legado `orlt-bi`. | A publicacao React depende da configuracao do token no GitHub e do workflow com gate de testes; CORS permanece inalterado ate a SPA estar publicada. |
 | 2026-09-02 | Deploy e migracao Azure | Infraestrutura aplicada com imagem `orobi-api:20260901.2`, referencia de segredo e CORS publicados; job manual de migracao concluiu. | API em execucao, health check `200` e banco migrado. A proxima verificacao e funcional, pela SPA publicada. |
 | 2026-09-02 | Protecao do deploy Azure | `deploy-azure.ps1` passou a exigir imagem, origem CORS e referencia de segredo para qualquer `-Apply`. | O script nao pode mais aplicar defaults que revertam a imagem, removam CORS ou desativem a conexao de banco. |
@@ -68,9 +69,9 @@ Este arquivo e o ponto unico de acompanhamento dos prompts do projeto. Ele regis
 
 ### Proxima prioridade da Fase 1
 
-1. Publicar a SPA React no `orobi-web`, atualizar o CORS da API e executar a verificacao funcional.
-2. Retomar a paridade comercial somente quando valores de referencia aprovados estiverem disponiveis.
-3. Retomar a integracao Firebird somente com o mapa de dados, consulta aprovada e configuracao da VM.
+1. `[~]` Assim que terminar o deploy e o provisionamento dos administradores em curso, analisar integralmente o `index.html` como documentação funcional do legado: módulos, regras, CSVs, campos, filtros e cálculos.
+2. `[ ]` Criar baselines e testes de regressão que comparem os resultados do legado com o backend antes de ampliar módulos comerciais.
+3. `[ ]` Retomar a integração Firebird somente com o mapa de dados, consulta aprovada e configuração da VM.
 
 ## Fase 2 - Adendo
 

@@ -9,7 +9,7 @@ public static class ImportCsvService
         {
             [ImportFileType.Power] =
             [
-                "DATA", "VENDEDOR", "MARCA", "GRUPO", "TIPO", "CIDADE", "NOME", "PRODUTO",
+                "DATA", "VENDEDOR", "MARCA", "TIPO", "CIDADE", "NOME", "PRODUTO",
                 "VALTOTAL", "QTDE", "PRECOCUSTO", "CODCLIENTE", "NRODOCUMENTO"
             ],
             [ImportFileType.Ppp] =
@@ -39,9 +39,14 @@ public static class ImportCsvService
         var errors = RequiredHeaders[fileType]
             .Where(requiredHeader => !providedHeaders.Contains(requiredHeader))
             .Select(requiredHeader => new ImportValidationError($"Required column is missing: {requiredHeader}"))
-            .ToArray();
+            .ToList();
 
-        return errors.Length == 0 ? ImportValidationResult.Valid() : ImportValidationResult.Rejected(errors);
+        if (fileType == ImportFileType.Power && !providedHeaders.Contains("GRUPO") && !providedHeaders.Contains("REDE"))
+        {
+            errors.Add(new ImportValidationError("Required column is missing: GRUPO or REDE"));
+        }
+
+        return errors.Count == 0 ? ImportValidationResult.Valid() : ImportValidationResult.Rejected(errors);
     }
 
     private static ImportValidationResult ValidateGoalValues(string csv)
