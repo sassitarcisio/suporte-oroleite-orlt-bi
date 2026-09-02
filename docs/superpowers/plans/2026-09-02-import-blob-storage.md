@@ -103,7 +103,7 @@ git commit -m "feat: store imports in Azure Blob"
 - Consumes: `IBlobImportUploader`, `BlobImportFileStore`, `LocalImportFileStore`, and configuration keys `ImportStorage:BlobServiceUri`, `ImportStorage:ContainerName`, and `ImportStorage:LocalPath`.
 - Produces: exactly one singleton `IImportFileStore`: Blob-backed when both Blob keys are non-empty, local otherwise.
 
-- [ ] **Step 1: Write the failing registration tests**
+- [x] **Step 1: Write the failing registration tests**
 
 ```csharp
 [Fact]
@@ -132,13 +132,13 @@ public void Uses_local_store_when_blob_configuration_is_absent()
 }
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `dotnet test tests/OroBI.Infrastructure.Tests/OroBI.Infrastructure.Tests.csproj --filter FullyQualifiedName~ServiceCollectionExtensionsTests --no-restore --disable-build-servers -m:1`
 
 Expected: FAIL because current registration always resolves `LocalImportFileStore`.
 
-- [ ] **Step 3: Add explicit configuration-based registration**
+- [x] **Step 3: Add explicit configuration-based registration**
 
 ```csharp
 var blobServiceUri = configuration["ImportStorage:BlobServiceUri"];
@@ -157,13 +157,13 @@ else
 }
 ```
 
-- [ ] **Step 4: Run focused and existing import tests**
+- [x] **Step 4: Run focused and existing import tests**
 
 Run: `dotnet test tests/OroBI.Infrastructure.Tests/OroBI.Infrastructure.Tests.csproj --filter "FullyQualifiedName~ServiceCollectionExtensionsTests|FullyQualifiedName~Imports" --no-restore --disable-build-servers -m:1`
 
 Expected: PASS; Blob selection is configuration-only and current workflow tests keep using their in-memory stores.
 
-- [ ] **Step 5: Commit production selection**
+- [x] **Step 5: Commit production selection**
 
 ```powershell
 git add src/OroBI.Infrastructure/ServiceCollectionExtensions.cs tests/OroBI.Infrastructure.Tests/ServiceCollectionExtensionsTests.cs

@@ -1,3 +1,5 @@
+using Azure.Identity;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +25,8 @@ public static class ServiceCollectionExtensions
             ?? throw new InvalidOperationException("Connection string 'OroBi' is required.");
         var importRootPath = configuration["ImportStorage:LocalPath"]
             ?? Path.Combine(AppContext.BaseDirectory, "imports");
+        var blobServiceUri = configuration["ImportStorage:BlobServiceUri"];
+        var blobContainerName = configuration["ImportStorage:ContainerName"];
 
         services.AddDbContext<OroBiDbContext>(options => options.UseNpgsql(connectionString));
         services.AddIdentityCore<ApplicationUser>(options =>
@@ -34,7 +38,19 @@ public static class ServiceCollectionExtensions
         })
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<OroBiDbContext>();
-        services.AddSingleton<IImportFileStore>(_ => new LocalImportFileStore(importRootPath));
+        if (!string.IsNullOrWhiteSpace(blobServiceUri) && !string.IsNullOrWhiteSpace(blobContainerName))
+        {
+            var containerClient = new BlobServiceClient(new Uri(blobServiceUri), new DefaultAzureCredential())
+                .GetBlobContainerClient(blobContainerName);
+            services.AddSingleton<IBlobImportUploader>(new AzureBlobImportUploader(containerClient));
+            services.AddSingleton<IImportFileStore>(serviceProvider => new BlobImportFileStore(
+                serviceProvider.GetRequiredService<IBlobImportUploader>(),
+                TimeProvider.System));
+        }
+        else
+        {
+            services.AddSingleton<IImportFileStore>(_ => new LocalImportFileStore(importRootPath));
+        }
         services.AddScoped<IImportWorkflow, CsvImportWorkflow>();
         services.AddScoped<ILocalAuthenticationService, LocalAuthenticationService>();
         services.AddScoped<InitialAdminProvisioner>();
