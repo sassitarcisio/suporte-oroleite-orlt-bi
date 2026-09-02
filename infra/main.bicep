@@ -18,6 +18,9 @@ param apiImage string
 @description('Enables the Key Vault database secret on the API after RBAC propagation.')
 param configureRuntimeSecrets bool = false
 
+@description('Enables initial administrator provisioning in the manual migration job.')
+param configureInitialAdministrators bool = false
+
 @description('Allowed browser origin for the published web application.')
 param webOrigin string = ''
 
@@ -238,23 +241,39 @@ resource migrationJob 'Microsoft.App/jobs@2024-03-01' = {
           identity: apiIdentity.id
         }
       ]
-      secrets: [
+      secrets: concat([
         {
           name: 'database-connection'
           keyVaultUrl: '${vault.properties.vaultUri}secrets/orobi-database-connection'
           identity: apiIdentity.id
         }
-      ]
+      ], configureInitialAdministrators ? [
+        {
+          name: 'initial-admin-0-password'
+          keyVaultUrl: '${vault.properties.vaultUri}secrets/orobi-initial-admin-0-password'
+          identity: apiIdentity.id
+        }
+        {
+          name: 'initial-admin-1-password'
+          keyVaultUrl: '${vault.properties.vaultUri}secrets/orobi-initial-admin-1-password'
+          identity: apiIdentity.id
+        }
+      ] : [])
     }
     template: {
       containers: [
         {
           name: 'migrate'
           image: apiImage
-          command: [ 'dotnet', 'OroBI.Api.dll', '--migrate' ]
-          env: [
+          command: configureInitialAdministrators ? [ 'dotnet', 'OroBI.Api.dll', '--migrate', '--provision-admin' ] : [ 'dotnet', 'OroBI.Api.dll', '--migrate' ]
+          env: concat([
             { name: 'ConnectionStrings__OroBi', secretRef: 'database-connection' }
-          ]
+          ], configureInitialAdministrators ? [
+            { name: 'InitialAdmins__0__Email', value: 'tarcisio.sassi@oroleite.com.br' }
+            { name: 'InitialAdmins__0__Password', secretRef: 'initial-admin-0-password' }
+            { name: 'InitialAdmins__1__Email', value: 'jeferson@oroleite.com.br' }
+            { name: 'InitialAdmins__1__Password', secretRef: 'initial-admin-1-password' }
+          ] : [])
           resources: { cpu: json('0.25'), memory: '0.5Gi' }
         }
       ]

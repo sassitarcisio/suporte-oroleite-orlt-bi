@@ -37,6 +37,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IImportFileStore>(_ => new LocalImportFileStore(importRootPath));
         services.AddScoped<IImportWorkflow, CsvImportWorkflow>();
         services.AddScoped<ILocalAuthenticationService, LocalAuthenticationService>();
+        services.AddScoped<InitialAdminProvisioner>();
         services.AddScoped<ISellerClosingQueryService, SellerClosingQueryService>();
         services.AddScoped<IDashboardQueryService, DashboardQueryService>();
         services.AddScoped<ICommercialAnalyticsQueryService, DashboardQueryService>();

@@ -10,12 +10,14 @@ using OroBI.Api.Imports;
 using OroBI.Api.Migrations;
 using OroBI.Api.Analytics;
 using OroBI.Infrastructure;
+using OroBI.Infrastructure.Identity;
 using OroBI.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOroBiInfrastructure(builder.Configuration);
 
-if (args.Contains("--migrate", StringComparer.OrdinalIgnoreCase))
+if (args.Contains("--migrate", StringComparer.OrdinalIgnoreCase) ||
+    args.Contains("--provision-admin", StringComparer.OrdinalIgnoreCase))
 {
     var migrationApp = builder.Build();
     using var scope = migrationApp.Services.CreateScope();
@@ -38,6 +40,15 @@ if (args.Contains("--migrate", StringComparer.OrdinalIgnoreCase))
     }
 
     await dbContext.Database.MigrateAsync();
+
+    if (args.Contains("--provision-admin", StringComparer.OrdinalIgnoreCase))
+    {
+        var administrators = builder.Configuration.GetSection("InitialAdmins")
+            .Get<InitialAdminCredential[]>() ?? [];
+        var provisioner = scope.ServiceProvider.GetRequiredService<InitialAdminProvisioner>();
+        await provisioner.ProvisionAsync(administrators, CancellationToken.None);
+    }
+
     return;
 }
 

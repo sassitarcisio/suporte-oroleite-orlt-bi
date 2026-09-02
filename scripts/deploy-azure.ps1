@@ -5,6 +5,7 @@ param(
     [string]$ApiImage = '',
     [switch]$Apply,
     [switch]$ConfigureRuntimeSecrets,
+    [switch]$ConfigureInitialAdministrators,
     [string]$WebOrigin = ''
 )
 
@@ -31,6 +32,7 @@ $parameters = @{
         prefix = @{ value = $Prefix }
         apiImage = @{ value = $ApiImage }
         configureRuntimeSecrets = @{ value = $ConfigureRuntimeSecrets.IsPresent }
+        configureInitialAdministrators = @{ value = $ConfigureInitialAdministrators.IsPresent }
         webOrigin = @{ value = $WebOrigin }
         postgresAdministratorPassword = @{ reference = @{ keyVault = @{ id = $vaultId }; secretName = 'orobi-postgres-administrator-password' } }
     }

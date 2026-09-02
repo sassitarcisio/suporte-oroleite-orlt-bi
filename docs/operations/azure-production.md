@@ -14,6 +14,20 @@ Configure the GitHub `production` environment with these secrets. Do not place t
 | `AZURE_TENANT_ID` | Tenant that contains the deployment subscription. |
 | `AZURE_SUBSCRIPTION_ID` | Subscription that contains the target resource group. |
 | `POSTGRES_ADMINISTRATOR_PASSWORD` | Stored as `orobi-postgres-administrator-password` by the bootstrap script. |
+
+## Initial administrators
+
+The manual migration job can provision the initial local administrators only when
+`-ConfigureInitialAdministrators` is supplied to `scripts/deploy-azure.ps1`.
+Before enabling it, create these Key Vault secrets without printing their values:
+
+| Key Vault secret | Administrator |
+| --- | --- |
+| `orobi-initial-admin-0-password` | `tarcisio.sassi@oroleite.com.br` |
+| `orobi-initial-admin-1-password` | `jeferson@oroleite.com.br` |
+
+The job creates missing users, grants the `Administrador` role, and never resets
+an existing password. It is safe to run again after provisioning.
 | `OROBI_DATABASE_CONNECTION_STRING` | Stored as `orobi-database-connection` and consumed by the API runtime. |
 
 The Azure identity must have permission to deploy the resource group. Configure GitHub OIDC federated credentials for the `production` environment before triggering the workflow.
