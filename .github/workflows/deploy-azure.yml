@@ -39,4 +39,3 @@ jobs:
           --parameters prefix="${{ inputs.prefix }}"
           apiImage="${{ inputs.api_image }}"
           postgresAdministratorPassword="${{ secrets.POSTGRES_ADMINISTRATOR_PASSWORD }}"
-          databaseConnectionString="${{ secrets.OROBI_DATABASE_CONNECTION_STRING }}"

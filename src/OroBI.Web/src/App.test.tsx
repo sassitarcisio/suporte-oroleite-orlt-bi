@@ -12,7 +12,7 @@ describe('App dashboard', () => {
         ? { roles: ['Administrador'] }
         : url.endsWith('/api/auth/login')
           ? { accessToken: 'new-access-token' }
-        : url.startsWith('/api/closings')
+        : url.includes('/api/closings')
           ? { ppp: { meanPercent: 75, award: 300 }, revenueAward: 250, positivityAward: 100, tradeAward: 100, compensation: { commission: 120, salary: 2120 }, totalAwards: 750 }
           : url.endsWith('/api/sales-trades')
             ? { revenue: 1500, trades: 150, tradeToRevenuePercent: 10 }
@@ -68,7 +68,7 @@ describe('App dashboard', () => {
 
     expect(await screen.findByRole('heading', { name: 'Venda x troca' })).toBeVisible()
     expect(await screen.findByText('R$ 1.500,00')).toBeVisible()
-    const salesTradesRequest = vi.mocked(fetch).mock.calls.find(([url]) => url === '/api/sales-trades')
+    const salesTradesRequest = vi.mocked(fetch).mock.calls.find(([url]) => String(url).endsWith('/api/sales-trades'))
     expect(salesTradesRequest).toBeDefined()
     expect(new Headers(salesTradesRequest?.[1]?.headers).get('Authorization')).toBe('Bearer test-token')
   })
@@ -83,7 +83,7 @@ describe('App dashboard', () => {
     fireEvent.submit(screen.getByRole('button', { name: 'Enviar CSV' }).closest('form')!)
 
     await waitFor(() => expect(screen.queryByText('IMPORTACOES AUDITADAS')).not.toBeInTheDocument())
-    const importRequest = vi.mocked(fetch).mock.calls.find(([url]) => url === '/api/imports')
+    const importRequest = vi.mocked(fetch).mock.calls.find(([url]) => String(url).endsWith('/api/imports'))
     expect(importRequest).toBeDefined()
     expect(importRequest?.[1]).toMatchObject({ method: 'POST' })
     expect(importRequest?.[1]?.body).toBeInstanceOf(FormData)

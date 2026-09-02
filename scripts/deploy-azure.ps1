@@ -2,13 +2,21 @@
 param(
     [string]$ResourceGroup = 'rg-oroleite-site',
     [string]$Prefix = 'orobi',
-    [string]$ApiImage = 'orobiacr.azurecr.io/orobi-api:20260831',
+    [string]$ApiImage = '',
     [switch]$Apply,
     [switch]$ConfigureRuntimeSecrets,
     [string]$WebOrigin = ''
 )
 
 $ErrorActionPreference = 'Stop'
+
+if ($Apply -and (
+    [string]::IsNullOrWhiteSpace($ApiImage) -or
+    [string]::IsNullOrWhiteSpace($WebOrigin) -or
+    -not $ConfigureRuntimeSecrets)) {
+    throw 'Applying infrastructure changes requires -ApiImage, -WebOrigin, and -ConfigureRuntimeSecrets.'
+}
+
 $vaultName = "${Prefix}kv"
 $vaultId = & az.cmd keyvault show --name $vaultName --resource-group $ResourceGroup --query id --output tsv
 if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($vaultId)) {

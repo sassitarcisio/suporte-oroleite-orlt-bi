@@ -8,4 +8,14 @@ Describe 'deploy-azure.ps1' {
         $content | Should Match 'orobi-postgres-administrator-password'
         $content | Should Match 'configureRuntimeSecrets'
     }
+
+    It 'requires explicit runtime settings before applying infrastructure changes' {
+        $content = Get-Content $scriptPath -Raw
+
+        $content | Should Match 'if \(\$Apply -and \('
+        $content | Should Not Match 'orobi-api:20260831'
+        $content | Should Match 'IsNullOrWhiteSpace\(\$ApiImage\)'
+        $content | Should Match 'IsNullOrWhiteSpace\(\$WebOrigin\)'
+        $content | Should Match '-not \$ConfigureRuntimeSecrets'
+    }
 }

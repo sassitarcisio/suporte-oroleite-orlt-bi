@@ -41,6 +41,12 @@ az acr build --registry orobiacr --image orobi-api:20260831 --file src/OroBI.Api
 
 `20260831` is the initial traceable image tag. Use a new release tag for every later publication, then pass `orobiacr.azurecr.io/orobi-api:<tag>` to the deployment workflow as `api_image`.
 
+## React Static Web App
+
+The React SPA is published to the dedicated Static Web App `orobi-web` at `https://lively-sea-0776c9a0f.6.azurestaticapps.net`. The legacy `orlt-bi` Static Web App is a separate application and must not be redeployed by this repository.
+
+Store the `orobi-web` deployment token as `AZURE_STATIC_WEB_APPS_API_TOKEN` in the GitHub `production` environment. The `Deploy OroBI Web` workflow publishes `src/OroBI.Web` and is the only supported deployment path for this SPA.
+
 ## Secure Pre-Deploy
 
 The deploy operator needs `Key Vault Secrets Officer`. Set the two database values in the current secure process environment, then upload them to Key Vault. The API identity receives `Key Vault Secrets User` during the base deployment.
@@ -49,20 +55,20 @@ The deploy operator needs `Key Vault Secrets Officer`. Set the two database valu
 .\scripts\bootstrap-azure-secrets.ps1
 ```
 
-Run the base deployment first. It creates the API identity and its Key Vault role assignment, but does not yet configure the runtime secret.
+Run a `what-if` with the image and origin that will be published.
+
+Set the image and Static Web App origin explicitly. This prevents an `-Apply` invocation from reverting a published image, removing CORS, or disabling the runtime database secret reference.
 
 ```powershell
-.\scripts\deploy-azure.ps1
+$apiImage = 'orobiacr.azurecr.io/orobi-api:<release-tag>'
+$webOrigin = 'https://<static-web-app>.azurestaticapps.net'
+.\scripts\deploy-azure.ps1 -ApiImage $apiImage -WebOrigin $webOrigin
 ```
 
 Run the actual deployment only after reviewing the `what-if` output:
 
 ```powershell
-.\scripts\deploy-azure.ps1 -Apply
+.\scripts\deploy-azure.ps1 -Apply -ApiImage $apiImage -WebOrigin $webOrigin -ConfigureRuntimeSecrets
 ```
 
-After RBAC propagation, activate the runtime Key Vault reference:
-
-```powershell
-.\scripts\deploy-azure.ps1 -Apply -ConfigureRuntimeSecrets
-```
+The script requires `-ApiImage`, `-WebOrigin`, and `-ConfigureRuntimeSecrets` whenever `-Apply` is used. The runtime secret reference is already included in the command above.

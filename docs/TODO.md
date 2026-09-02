@@ -6,6 +6,11 @@ Este arquivo e o ponto unico de acompanhamento dos prompts do projeto. Ele regis
 
 | Data | Item | Alteracao | Impacto |
 | --- | --- | --- | --- |
+| 2026-09-02 | Static Web App OroBI | Criado `orobi-web` em `rg-oroleite-site`, com hostname `lively-sea-0776c9a0f.6.azurestaticapps.net`, sem alterar o legado `orlt-bi`. | A publicacao React depende da configuracao do token no GitHub e do workflow com gate de testes; CORS permanece inalterado ate a SPA estar publicada. |
+| 2026-09-02 | Deploy e migracao Azure | Infraestrutura aplicada com imagem `orobi-api:20260901.2`, referencia de segredo e CORS publicados; job manual de migracao concluiu. | API em execucao, health check `200` e banco migrado. A proxima verificacao e funcional, pela SPA publicada. |
+| 2026-09-02 | Protecao do deploy Azure | `deploy-azure.ps1` passou a exigir imagem, origem CORS e referencia de segredo para qualquer `-Apply`. | O script nao pode mais aplicar defaults que revertam a imagem, removam CORS ou desativem a conexao de banco. |
+| 2026-09-02 | Auditoria de deploy Azure | O workflow deixou de enviar `databaseConnectionString`, parametro inexistente no Bicep; teste operacional protege a regressao. | O deploy passa apenas os parametros declarados e foi validado localmente antes da aplicacao. |
+| 2026-09-02 | Verificacao local | Pester operacional, compilacao Bicep, suites .NET Release, testes e build Web foram reexecutados. | Validacao local atual: 8 + 1 + 2 + 2 testes Pester, 48 testes .NET, 7 testes Web e build Web sem falhas. |
 | 2026-08-31 | Entrega segura de segredos Azure | Bicep separa identidade/RBAC da referencia de segredo; bootstrap grava segredos no Key Vault e deploy usa referencia ARM nao secreta. | Restam valores reais, `what-if`, deploy base e ativacao runtime apos propagacao RBAC. |
 | 2026-08-31 | Verificacao final disponivel | Suites .NET Release, testes Web e build Web executados apos API v1. | Plataforma validada localmente; pendencias restantes sao Azure autenticacao, paridade e Firebird. |
 | 2026-08-31 | Dados Firebird | Confirmada indisponibilidade atual de host, credenciais, consulta e watermark. | Integracao Firebird fica para a etapa final; a plataforma continua CSV/PostgreSQL com API v1. |
@@ -58,11 +63,12 @@ Este arquivo e o ponto unico de acompanhamento dos prompts do projeto. Ele regis
 | `[x]` | PPP, metas e fechamento | Endpoint de fechamento e calculadoras possuem testes de aplicacao e integracao. | Retomar somente com novas regras comerciais. | Plano tecnico, tarefa 6. |
 | `[x]` | SPA React operacional | Cliente HTTP, sessao, dashboard, importacao, analises e fechamento foram separados em modulos; testes cobrem login, importacao, filtros, fechamento e Venda x troca. | Avaliar filtros adicionais por modulo apenas se houver novo requisito comercial. | Plano tecnico, tarefa 7. |
 | `[!]` | Paridade comercial | Documentacao de paridade existe; a suite .NET Release passou. | Adiada por solicitacao do usuario; depende de baselines aprovados do legado. | Plano tecnico, tarefa 8. |
-| `[~]` | Empacotamento Azure | ACR Basic `orobiacr`, imagem `orobi-api:20260831`, Key Vault `orobikv`, bootstrap de segredos e deploy em tres estagios existem. | Definir valores reais, executar `what-if`, deploy base e ativacao runtime apos RBAC. | Plano tecnico, tarefa 8; plano de segredos Azure. |
+| `[x]` | Empacotamento Azure | ACR `orobiacr`, Key Vault `orobikv`, Container App `orobi-api` e job `orobi-migrate` foram aplicados. A revisao `orobi-api--0000007` usa `orobi-api:20260901.2`; a migracao manual concluiu. | Executar verificacao funcional pela SPA antes de nova publicacao. | What-if, deploy aplicado, health check `200` e execucao `orobi-migrate-sgt082o` concluida em 2026-09-02. |
+| `[~]` | Publicacao da SPA Azure | Static Web App dedicado `orobi-web` criado em `lively-sea-0776c9a0f.6.azurestaticapps.net`; o legado `orlt-bi` permanece separado. | Configurar segredo de deployment no GitHub, publicar a SPA React e aplicar o hostname no CORS da API. | Plano `2026-09-02-orobi-web-static-app.md`, tarefa 1. |
 
 ### Proxima prioridade da Fase 1
 
-1. Retomar o deploy Azure com `Key Vault Secrets Officer` efetivo para `tarcisio.sassi@oroleite.com.br` no `orobikv`.
+1. Publicar a SPA React no `orobi-web`, atualizar o CORS da API e executar a verificacao funcional.
 2. Retomar a paridade comercial somente quando valores de referencia aprovados estiverem disponiveis.
 3. Retomar a integracao Firebird somente com o mapa de dados, consulta aprovada e configuracao da VM.
 
@@ -86,6 +92,10 @@ Os itens abaixo foram confirmados pelo indice interno do adendo. O texto integra
 
 | Data | Escopo | Comando ou evidencia | Resultado |
 | --- | --- | --- | --- |
+| 2026-09-02 | Static Web App dedicado | `az staticwebapp create --name orobi-web --resource-group rg-oroleite-site --location eastus2 --sku Free` | Sucesso: `orobi-web` criado em East US 2 com hostname `lively-sea-0776c9a0f.6.azurestaticapps.net`; `orlt-bi` nao foi modificado. |
+| 2026-09-02 | Deploy, health e migracao Azure | `scripts/deploy-azure.ps1 -Apply -ConfigureRuntimeSecrets -ApiImage orobiacr.azurecr.io/orobi-api:20260901.2 -WebOrigin https://orange-island-06ceb30f.7.azurestaticapps.net`; consulta do Container App; `GET /health`; `az containerapp job start` e consulta da execucao | Sucesso: revisao `orobi-api--0000007` em `Succeeded`/`Running`, health `200 {"status":"healthy"}` e job `orobi-migrate-sgt082o` em `Succeeded` apos 31 segundos. |
+| 2026-09-02 | Protecao do script de deploy | `Invoke-Pester tests/Operations/DeployAzure.Tests.ps1`; execucao de `deploy-azure.ps1 -Apply -WhatIf` sem parametros; suite operacional e Bicep | Sucesso: o guard bloqueia configuracao incompleta antes de consultar Azure; 14 testes Pester passaram e o Bicep compilou. |
+| 2026-09-02 | Auditoria e verificacao local | `Invoke-Pester` para bootstrap, deploy, Key Vault e workflows; `az.cmd bicep build --file infra/main.bicep` com `AZURE_CONFIG_DIR` local; `dotnet test OroBI.slnx --configuration Release --no-restore --disable-build-servers -m:1 /p:UseSharedCompilation=false`; testes e build em `src/OroBI.Web` | Sucesso: 8 + 1 + 2 + 2 testes Pester, Bicep compilado, 48 testes .NET, 7 testes Web e build Web sem falhas. O workflow Azure nao envia mais parametro ausente do template. |
 | 2026-08-31 | Segredos Azure | Pester para Bicep, bootstrap e deploy; `az.cmd bicep build --file infra/main.bicep` | Sucesso: 3 + 2 + 1 testes Pester passaram e o Bicep compilou. Valores reais e deploy Azure permanecem pendentes. |
 | 2026-08-31 | Build Web | `npx.cmd vite build --configLoader native` em `src/OroBI.Web` | Sucesso. O loader padrao do Vite falha neste ambiente com `spawn EPERM`. |
 | 2026-08-31 | Tipagem Web | `npx.cmd tsc -b` em `src/OroBI.Web` | Sem erros observados na execucao iniciada; registrar novamente com saida final antes de usar como aceite. |
