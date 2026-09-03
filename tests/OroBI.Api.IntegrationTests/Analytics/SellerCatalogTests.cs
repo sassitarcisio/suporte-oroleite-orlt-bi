@@ -16,7 +16,7 @@ public sealed class SellerCatalogTests
             "RODRIGO KEHL",
             "MARCELO DA ROSA",
             "PAULO RICARDO LOPES",
-            "ELTON CONSTANTE",
+            "RAMON DO NASCIMENTO",
             "TIAGO MARTINS"
         ], SellerCatalog.Names);
     }
