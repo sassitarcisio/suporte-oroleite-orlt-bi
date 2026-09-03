@@ -1,13 +1,4 @@
-.azure-cli/
-.codex/
-.git/
-.github/
-docs/
-infra/
-tests/
-src/OroBI.Web/
-**/bin/
-**/obj/
-**/node_modules/
-*.pdf
-*.csv
+.git
+.worktrees
+**/bin
+**/obj
