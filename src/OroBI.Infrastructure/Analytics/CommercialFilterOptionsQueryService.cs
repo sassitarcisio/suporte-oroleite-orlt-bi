@@ -14,7 +14,7 @@ public sealed class CommercialFilterOptionsQueryService(OroBiDbContext dbContext
         var movementTypes = await dbContext.CommercialMovements.AsNoTracking().Select(item => item.MovementType).Distinct().OrderBy(item => item).ToArrayAsync(cancellationToken);
 
         return new CommercialFilterOptions(
-            brands.Where(item => !string.IsNullOrWhiteSpace(item)).ToArray(),
+            brands.Where(item => !string.IsNullOrWhiteSpace(item) && !item.StartsWith("ZZZ", StringComparison.OrdinalIgnoreCase)).ToArray(),
             groups.Where(item => !string.IsNullOrWhiteSpace(item)).ToArray(),
             cities.Where(item => !string.IsNullOrWhiteSpace(item)).ToArray(),
             movementTypes.Where(item => !string.IsNullOrWhiteSpace(item)).ToArray());
