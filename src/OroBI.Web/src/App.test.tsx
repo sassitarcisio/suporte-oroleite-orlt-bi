@@ -65,6 +65,7 @@ describe('App dashboard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Aplicar recorte' }))
 
     await waitFor(() => expect(window.location.search).toBe('?seller=ANA'))
+    expect(document.querySelector('.dashboard-layout')).toBeInTheDocument()
   })
 
   it('loads registered sellers into the dashboard filter', async () => {
