@@ -41,6 +41,8 @@ describe('App dashboard', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Trocas' }))
 
     expect(await screen.findByRole('heading', { name: 'Visao de trocas' })).toBeVisible()
+    expect(document.querySelector('.analysis-layout')).toBeInTheDocument()
+    expect(document.querySelector('.analysis-metrics')).toBeInTheDocument()
   })
 
   it('opens the responsive navigation menu', async () => {

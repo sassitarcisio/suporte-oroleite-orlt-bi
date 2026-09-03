@@ -29,17 +29,16 @@ export function ClosingsPage({ summary, sellers, state, onSubmit }: ClosingsPage
     onSubmit(seller.trim(), month)
   }
 
-  return <section className="hero">
-    <p className="eyebrow">FECHAMENTO</p>
-    <h1>Fechamento por vendedor</h1>
-    <p>Consulte premios, comissao e salario no periodo selecionado.</p>
-    <form onSubmit={submit}>
+  return <section className="closing-layout">
+    <header className="closing-header"><p className="eyebrow">FECHAMENTO</p><h1>Fechamento por vendedor</h1><p>Consulte premios, comissao e salario no periodo selecionado.</p></header>
+    <form className="closing-query-card" onSubmit={submit}>
+      <div><p className="closing-query-title">Selecione o periodo</p><p className="closing-query-copy">O calculo usa as metas e regras comerciais configuradas para o vendedor.</p></div>
       <label>VENDEDOR<select required value={seller} onChange={event => setSeller(event.target.value)}><option value="" disabled>Selecione um vendedor</option>{sellers.map(registeredSeller => <option key={registeredSeller} value={registeredSeller}>{registeredSeller}</option>)}</select></label>
       <label>MES<input type="month" required value={month} onChange={event => setMonth(event.target.value)} /></label>
       <button disabled={state === 'loading'}>Consultar fechamento</button>
     </form>
     {state === 'loading' && <section className="notice">Calculando fechamento...</section>}
-    {state === 'error' && <section className="notice error">Nao foi possivel localizar um fechamento para os filtros informados.</section>}
+    {state === 'error' && <section className="closing-empty-state"><i className="fa-solid fa-sliders" aria-hidden="true" /><div><h2>Fechamento ainda nao configurado</h2><p>Faltam as regras de salario, comissao ou premio PPP para este vendedor e mes. Cadastre essas regras para liberar o calculo.</p></div></section>}
     {summary && state === 'ready' && <section className="metrics">
       <article className="metric main"><p>Premios totais</p><strong>{money(summary.totalAwards)}</strong><span>PPP, faturamento, positivacao e troca</span></article>
       <article className="metric"><p>Premio PPP</p><strong>{money(summary.ppp.award)}</strong><span>{percent(summary.ppp.meanPercent)} de media</span></article>
