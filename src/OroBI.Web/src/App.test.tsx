@@ -44,6 +44,8 @@ describe('App dashboard', () => {
   it('opens the responsive navigation menu', async () => {
     render(<App />)
 
+    expect(document.querySelector('.executive-layout')).toBeInTheDocument()
+
     const toggle = await screen.findByRole('button', { name: 'Alternar navegacao' })
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
 
@@ -137,7 +139,7 @@ describe('App dashboard', () => {
     fireEvent.change(screen.getByLabelText('SENHA'), { target: { value: 'senha-segura' } })
     fireEvent.click(screen.getByRole('button', { name: 'Entrar' }))
 
-    expect(await screen.findByText('CENTRAL DE RESULTADOS')).toBeVisible()
+    expect(await screen.findByRole('heading', { name: /Visao geral/ })).toBeVisible()
     expect(sessionStorage.getItem('orobi.access-token')).toBe('new-access-token')
   })
 })
