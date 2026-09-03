@@ -17,7 +17,7 @@ export function ImportPage({ file, fileType, state, onBack, onFileChange, onFile
   }
 
   return <>
-    <header className="topbar"><div className="brand"><span>ORO</span> BI <small>OROLEITE</small></div><button className="btn btn-ghost" onClick={onBack}><i className="fa-solid fa-arrow-left" aria-hidden="true" /> Voltar</button></header>
+    <header className="topbar"><div className="brand"><img className="brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /></div><button className="btn btn-ghost" onClick={onBack}><i className="fa-solid fa-arrow-left" aria-hidden="true" /> Voltar</button></header>
     <section className="hero import-hero">
       <p className="eyebrow"><i className="fa-solid fa-shield-halved" aria-hidden="true" /> IMPORTACOES AUDITADAS</p>
       <h1>Carregue a fonte,<br /><em>preserve a rastreabilidade.</em></h1>
