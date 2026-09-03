@@ -12,9 +12,9 @@ public sealed class DashboardCalculatorTests
         var batchId = ImportBatch.Start(ImportFileType.Power, "power.csv", "abc").Id;
         var movements = new[]
         {
-            CommercialMovement.Create(batchId, new DateOnly(2026, 1, 1), "ANA", "VENDA", 100m, 2m),
-            CommercialMovement.Create(batchId, new DateOnly(2026, 1, 1), "ANA", "DEVOLUCAO", -20m, 1m),
-            CommercialMovement.Create(batchId, new DateOnly(2026, 1, 1), "ANA", "TROCA", -10m, 1m)
+            CommercialMovement.CreateFromImport(batchId, new DateOnly(2026, 1, 1), "ANA", "OROLEITE", "LEITES", "VENDA", "GOIANIA", "Mercado A", "Leite", 100m, 2m, 1m, "C1", "D1"),
+            CommercialMovement.CreateFromImport(batchId, new DateOnly(2026, 1, 1), "ANA", "OROLEITE", "LEITES", "DEVOLUCAO", "GOIANIA", "Mercado A", "Leite", -20m, 1m, 1m, "C1", "D2"),
+            CommercialMovement.CreateFromImport(batchId, new DateOnly(2026, 1, 1), "ANA", "OROLEITE", "LEITES", "TROCA", "GOIANIA", "Mercado B", "Leite", -10m, 1m, 1m, "C2", "D2")
         };
 
         var result = DashboardCalculator.Calculate(movements);
@@ -25,6 +25,8 @@ public sealed class DashboardCalculatorTests
         Assert.Equal(30m, result.NegativePercent);
         Assert.Equal(2m, result.SaleQuantity);
         Assert.Equal(3, result.MovementCount);
+        Assert.Equal(2, result.CustomerCount);
+        Assert.Equal(2, result.DocumentCount);
     }
 
     [Fact]

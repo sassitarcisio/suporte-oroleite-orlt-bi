@@ -6,4 +6,6 @@ public sealed record DashboardSummary(
     decimal NegativePercent,
     decimal NetResult,
     decimal SaleQuantity,
-    int MovementCount);
+    int MovementCount,
+    int CustomerCount,
+    int DocumentCount);

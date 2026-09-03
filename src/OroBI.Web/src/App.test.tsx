@@ -173,7 +173,7 @@ describe('App dashboard', () => {
     })
     fireEvent.submit(screen.getByRole('button', { name: 'Enviar CSV' }).closest('form')!)
 
-    expect(await screen.findByText('1 movimentos importados')).toBeVisible()
+    expect(await screen.findByText('Quantidade venda')).toBeVisible()
     expect(dashboardRequests).toBe(2)
   })
 

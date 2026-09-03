@@ -16,8 +16,12 @@ public static class DashboardCalculator
         var netResult = rows.Sum(movement => movement.TotalValue);
         var negativePercent = grossSales == 0m ? 0m : negativeMovements / grossSales * 100m;
         var saleQuantity = rows.Where(movement => movement.MovementType == "VENDA").Sum(movement => movement.Quantity);
+        var customerCount = rows.Select(movement => string.IsNullOrWhiteSpace(movement.CustomerCode) ? movement.CustomerName : movement.CustomerCode)
+            .Where(value => !string.IsNullOrWhiteSpace(value)).Distinct(StringComparer.OrdinalIgnoreCase).Count();
+        var documentCount = rows.Select(movement => movement.DocumentNumber).Where(value => !string.IsNullOrWhiteSpace(value))
+            .Distinct(StringComparer.OrdinalIgnoreCase).Count();
 
-        return new DashboardSummary(grossSales, negativeMovements, negativePercent, netResult, saleQuantity, rows.Length);
+        return new DashboardSummary(grossSales, negativeMovements, negativePercent, netResult, saleQuantity, rows.Length, customerCount, documentCount);
     }
 
     public static DashboardDetails BuildDetails(IEnumerable<CommercialMovement> movements)

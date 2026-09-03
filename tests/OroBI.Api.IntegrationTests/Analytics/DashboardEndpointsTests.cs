@@ -95,7 +95,7 @@ internal sealed class TestDashboardQueryService : IDashboardQueryService
             && filter.MovementTypes is not null
             && filter.MovementTypes.SequenceEqual(["VENDA", "TROCA"]);
 
-        return Task.FromResult(new DashboardSummary(isExpectedFilter ? 123m : 0m, 0m, 0m, 0m, 0m, 0));
+        return Task.FromResult(new DashboardSummary(isExpectedFilter ? 123m : 0m, 0m, 0m, 0m, 0m, 0, 0, 0));
     }
 
     public Task<DashboardDetails> GetDetailsAsync(CommercialFilter filter, CancellationToken cancellationToken) =>
