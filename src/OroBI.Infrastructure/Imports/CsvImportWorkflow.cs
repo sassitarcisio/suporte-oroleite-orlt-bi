@@ -13,6 +13,8 @@ namespace OroBI.Infrastructure.Imports;
 
 public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore fileStore) : IImportWorkflow
 {
+    private static readonly Encoding Windows1252 = CreateWindows1252Encoding();
+
     public async Task<ImportExecutionResult> ImportAsync(ImportSubmission submission, CancellationToken cancellationToken)
     {
         await using var bufferedContent = new MemoryStream();
@@ -74,8 +76,14 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
         }
         catch (DecoderFallbackException)
         {
-            return Encoding.GetEncoding(1252).GetString(bytes);
+            return Windows1252.GetString(bytes);
         }
+    }
+
+    private static Encoding CreateWindows1252Encoding()
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        return Encoding.GetEncoding(1252);
     }
 
     private static PowerParseResult ParsePowerMovements(Guid batchId, string csv)

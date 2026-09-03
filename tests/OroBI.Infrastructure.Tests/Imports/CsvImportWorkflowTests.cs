@@ -50,6 +50,28 @@ public sealed class CsvImportWorkflowTests
     }
 
     [Fact]
+    public async Task Imports_power_csv_encoded_as_windows_1252()
+    {
+        var options = new DbContextOptionsBuilder<OroBiDbContext>()
+            .UseInMemoryDatabase(nameof(Imports_power_csv_encoded_as_windows_1252))
+            .Options;
+        await using var db = new OroBiDbContext(options);
+        var workflow = new CsvImportWorkflow(db, new InMemoryImportFileStore());
+        const string beforeAccent = "DATA;VENDEDOR;MARCA;GRUPO;TIPO;CIDADE;NOME;PRODUTO;VALTOTAL;QTDE;PRECOCUSTO;CODCLIENTE;NRODOCUMENTO\n01/08/2026;Ana;Nestle;Leites;Venda;Sao Paulo;Jos";
+        const string afterAccent = ";Leite;100,00;1;10,00;123;456";
+        var bytes = System.Text.Encoding.ASCII.GetBytes(beforeAccent)
+            .Concat([(byte)0xE9])
+            .Concat(System.Text.Encoding.ASCII.GetBytes(afterAccent))
+            .ToArray();
+        await using var stream = new MemoryStream(bytes);
+
+        var result = await workflow.ImportAsync(new ImportSubmission(ImportFileType.Power, "power.csv", "text/csv", stream), CancellationToken.None);
+
+        Assert.Equal(ImportBatchStatus.Completed, result.Status);
+        Assert.Equal("Jos\u00e9", (await db.CommercialMovements.SingleAsync()).CustomerName);
+    }
+
+    [Fact]
     public async Task Accepts_legacy_power_header_and_maps_network_to_group()
     {
         var options = new DbContextOptionsBuilder<OroBiDbContext>()
