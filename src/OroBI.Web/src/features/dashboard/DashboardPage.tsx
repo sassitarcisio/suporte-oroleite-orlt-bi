@@ -12,6 +12,7 @@ export type DashboardSummary = {
 type DashboardPageProps = {
   summary: DashboardSummary | null
   seller: string
+  sellers: string[]
   state: 'idle' | 'loading' | 'ready' | 'error'
   onSellerChange: (seller: string) => void
   onSubmit: () => void
@@ -20,7 +21,7 @@ type DashboardPageProps = {
 const money = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 const number = (value: number) => Number.isFinite(value) ? new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(value) : '0'
 
-export function DashboardPage({ summary, seller, state, onSellerChange, onSubmit }: DashboardPageProps) {
+export function DashboardPage({ summary, seller, sellers, state, onSellerChange, onSubmit }: DashboardPageProps) {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     onSubmit()
@@ -30,7 +31,7 @@ export function DashboardPage({ summary, seller, state, onSellerChange, onSubmit
     <section className="dashboard-hero">
       <div><p className="eyebrow">CENTRAL DE RESULTADOS</p><h1>Visao geral <em>da operacao.</em></h1><p>Acompanhe os indicadores comerciais consolidados.</p></div>
       <form className="dashboard-filter" onSubmit={submit}>
-        <label>VENDEDOR<input value={seller} onChange={event => onSellerChange(event.target.value)} placeholder="Todos os vendedores" /></label>
+        <label>VENDEDOR<select value={seller} onChange={event => onSellerChange(event.target.value)}><option value="">Todos os vendedores</option>{sellers.map(registeredSeller => <option key={registeredSeller} value={registeredSeller}>{registeredSeller}</option>)}</select></label>
         <button>Aplicar recorte</button>
       </form>
     </section>

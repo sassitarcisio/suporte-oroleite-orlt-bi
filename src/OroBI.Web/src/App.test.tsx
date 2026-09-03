@@ -10,6 +10,8 @@ describe('App dashboard', () => {
       const url = String(input)
       const body = url.endsWith('/api/me')
         ? { roles: ['Administrador'] }
+        : url.endsWith('/api/sellers')
+          ? ['ANA', 'BRUNO']
         : url.endsWith('/api/auth/login')
           ? { accessToken: 'new-access-token' }
         : url.includes('/api/closings')
@@ -57,10 +59,17 @@ describe('App dashboard', () => {
   it('persists the dashboard seller filter in the URL', async () => {
     render(<App />)
 
-    fireEvent.change(await screen.findByPlaceholderText('Todos os vendedores'), { target: { value: 'ANA' } })
+    fireEvent.change(await screen.findByLabelText('VENDEDOR'), { target: { value: 'ANA' } })
     fireEvent.click(screen.getByRole('button', { name: 'Aplicar recorte' }))
 
     await waitFor(() => expect(window.location.search).toBe('?seller=ANA'))
+  })
+
+  it('loads registered sellers into the dashboard filter', async () => {
+    render(<App />)
+
+    expect(await screen.findByRole('option', { name: 'ANA' })).toBeVisible()
+    expect(screen.getByRole('option', { name: 'BRUNO' })).toBeVisible()
   })
 
   it('shows the closing award for the selected seller and month', async () => {
@@ -107,6 +116,7 @@ describe('App dashboard', () => {
     vi.mocked(fetch).mockImplementation((input: RequestInfo | URL) => {
       const url = String(input)
       if (url.endsWith('/api/me')) return Promise.resolve(new Response(JSON.stringify({ roles: ['Administrador'] }), { status: 200 }))
+      if (url.endsWith('/api/sellers')) return Promise.resolve(new Response(JSON.stringify([]), { status: 200 }))
       if (url.endsWith('/api/imports')) return Promise.resolve(new Response(JSON.stringify({}), { status: 201 }))
       if (url.endsWith('/api/dashboard')) {
         dashboardRequests += 1

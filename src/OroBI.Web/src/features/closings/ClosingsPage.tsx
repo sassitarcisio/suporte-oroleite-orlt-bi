@@ -12,6 +12,7 @@ export type ClosingSummary = {
 
 type ClosingsPageProps = {
   summary: ClosingSummary | null
+  sellers: string[]
   state: 'idle' | 'loading' | 'ready' | 'error'
   onSubmit: (seller: string, month: string) => void
 }
@@ -19,7 +20,7 @@ type ClosingsPageProps = {
 const money = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 const percent = (value: number) => new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(value) + '%'
 
-export function ClosingsPage({ summary, state, onSubmit }: ClosingsPageProps) {
+export function ClosingsPage({ summary, sellers, state, onSubmit }: ClosingsPageProps) {
   const [seller, setSeller] = useState('')
   const [month, setMonth] = useState('')
 
@@ -33,7 +34,7 @@ export function ClosingsPage({ summary, state, onSubmit }: ClosingsPageProps) {
     <h1>Fechamento por vendedor</h1>
     <p>Consulte premios, comissao e salario no periodo selecionado.</p>
     <form onSubmit={submit}>
-      <label>VENDEDOR<input required value={seller} onChange={event => setSeller(event.target.value)} /></label>
+      <label>VENDEDOR<select required value={seller} onChange={event => setSeller(event.target.value)}><option value="" disabled>Selecione um vendedor</option>{sellers.map(registeredSeller => <option key={registeredSeller} value={registeredSeller}>{registeredSeller}</option>)}</select></label>
       <label>MES<input type="month" required value={month} onChange={event => setMonth(event.target.value)} /></label>
       <button disabled={state === 'loading'}>Consultar fechamento</button>
     </form>

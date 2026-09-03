@@ -56,6 +56,7 @@ export default function App() {
   const [analysisState, setAnalysisState] = useState<PageState>('idle')
   const [closing, setClosing] = useState<ClosingSummary | null>(null)
   const [closingState, setClosingState] = useState<PageState>('idle')
+  const [sellers, setSellers] = useState<string[]>([])
   const [menuOpen, setMenuOpen] = useState(false)
 
   async function loadDashboard(activeSeller = '') {
@@ -101,6 +102,7 @@ export default function App() {
 
     void loadDashboard()
     void apiRequest<CurrentUser>('/api/me', token).then(user => setRoles(user.roles)).catch(() => setRoles([]))
+    void apiRequest<string[]>('/api/sellers', token).then(result => setSellers(Array.isArray(result) ? result : [])).catch(() => setSellers([]))
   }, [token])
 
   useEffect(() => {
@@ -157,9 +159,9 @@ export default function App() {
   return <main className="executive-layout">
     <aside className={`side-rail ${menuOpen ? 'is-open' : ''}`}><div className="brand"><img className="brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /></div><p className="rail-label">CENTRAL DE RESULTADOS</p><nav id="main-navigation" className="side-navigation" aria-label="Modulos do BI">{navigationItems.map(item => <button className={view === item.view ? 'active' : ''} key={item.view} onClick={() => navigate(item.view)}><i className={`fa-solid ${item.icon}`} aria-hidden="true" /><span>{item.label}</span></button>)}</nav><div className="rail-footer"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Dados sincronizados</div></aside>
     <section className="main-canvas"><header className="command-bar"><button className="menu-toggle" type="button" aria-label="Alternar navegacao" aria-controls="main-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(open => !open)}><i className="fa-solid fa-bars" aria-hidden="true" /></button><div><p>PAINEL EXECUTIVO</p><strong>{navigationItems.find(item => item.view === view)?.label ?? 'Importar'}</strong></div><div className="command-actions">{roles.includes('Administrador') && <button className="btn btn-accent" onClick={() => setView('import')}><i className="fa-solid fa-file-arrow-up" aria-hidden="true" /> Importar</button>}<button className="btn btn-ghost" onClick={() => { clearAccessToken(); setToken('') }} aria-label="Sair"><i className="fa-solid fa-right-from-bracket" aria-hidden="true" /></button></div></header>
-      {view === 'dashboard' && <DashboardPage summary={summary} seller={seller} state={state} onSellerChange={setSeller} onSubmit={() => applyDashboardFilter(seller)} />}
+      {view === 'dashboard' && <DashboardPage summary={summary} seller={seller} sellers={sellers} state={state} onSellerChange={setSeller} onSubmit={() => applyDashboardFilter(seller)} />}
       {page && <AnalyticsPage title={page.title} description={page.description} data={analysis} state={analysisState} />}
-      {view === 'closings' && <ClosingsPage summary={closing} state={closingState} onSubmit={(activeSeller, month) => void loadClosing(activeSeller, month)} />}
+      {view === 'closings' && <ClosingsPage summary={closing} sellers={sellers} state={closingState} onSubmit={(activeSeller, month) => void loadClosing(activeSeller, month)} />}
     </section>
   </main>
 }
