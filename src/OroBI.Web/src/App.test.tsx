@@ -89,6 +89,35 @@ describe('App dashboard', () => {
     expect(importRequest?.[1]?.body).toBeInstanceOf(FormData)
   })
 
+  it('reloads the dashboard after a completed CSV import', async () => {
+    let dashboardRequests = 0
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url.endsWith('/api/me')) return Promise.resolve(new Response(JSON.stringify({ roles: ['Administrador'] }), { status: 200 }))
+      if (url.endsWith('/api/imports')) return Promise.resolve(new Response(JSON.stringify({}), { status: 201 }))
+      if (url.endsWith('/api/dashboard')) {
+        dashboardRequests += 1
+        const summary = dashboardRequests === 1
+          ? { grossSales: 0, negativeMovements: 0, negativePercentage: 0, netResult: 0, saleQuantity: 0, movementCount: 0 }
+          : { grossSales: 100, negativeMovements: 0, negativePercentage: 0, netResult: 100, saleQuantity: 1, movementCount: 1 }
+        return Promise.resolve(new Response(JSON.stringify(summary), { status: 200 }))
+      }
+
+      return Promise.resolve(new Response(JSON.stringify({}), { status: 200 }))
+    })
+    render(<App />)
+
+    expect(await screen.findByText('Nenhum movimento encontrado para os filtros aplicados.')).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Importar' }))
+    fireEvent.change(screen.getByLabelText('ARQUIVO CSV'), {
+      target: { files: [new File(['seller;value'], 'power.csv', { type: 'text/csv' })] },
+    })
+    fireEvent.submit(screen.getByRole('button', { name: 'Enviar CSV' }).closest('form')!)
+
+    expect(await screen.findByText('1 movimentos importados')).toBeVisible()
+    expect(dashboardRequests).toBe(2)
+  })
+
   it('persists a valid login session and opens the dashboard', async () => {
     sessionStorage.clear()
     render(<App />)

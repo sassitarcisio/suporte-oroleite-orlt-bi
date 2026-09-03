@@ -129,6 +129,7 @@ export default function App() {
       setFile(null)
       setState('ready')
       setView('dashboard')
+      await loadDashboard()
     } catch {
       setState('error')
     }
