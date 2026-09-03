@@ -172,6 +172,7 @@ resource api 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'ConnectionStrings__OroBi', secretRef: 'database-connection' }
           ] : [], [
             { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: insights.properties.ConnectionString }
+            { name: 'AZURE_CLIENT_ID', value: apiIdentity.properties.clientId }
             { name: 'ImportStorage__BlobServiceUri', value: 'https://${storage.name}.blob.${az.environment().suffixes.storage}' }
             { name: 'ImportStorage__ContainerName', value: importsContainer.name }
             { name: 'Jwt__Issuer', value: 'OroBI' }

@@ -19,3 +19,12 @@ Describe 'deploy-azure.ps1' {
         $content | Should Match '-not \$ConfigureRuntimeSecrets'
     }
 }
+
+Describe 'main.bicep' {
+    It 'selects the user-assigned identity for Blob authentication' {
+        $templatePath = Join-Path $PSScriptRoot '..\..\infra\main.bicep'
+        $content = Get-Content $templatePath -Raw
+
+        $content | Should Match "name: 'AZURE_CLIENT_ID'.*value: apiIdentity.properties.clientId"
+    }
+}
