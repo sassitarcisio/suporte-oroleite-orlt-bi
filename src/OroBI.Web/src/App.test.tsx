@@ -83,7 +83,8 @@ describe('App dashboard', () => {
     fireEvent.change(screen.getByLabelText('MES'), { target: { value: '2026-08' } })
     fireEvent.click(screen.getByRole('button', { name: 'Consultar fechamento' }))
 
-    expect(await screen.findByText(/750,00/)).toBeVisible()
+    const financialSummary = await screen.findByTestId('closing-financial-summary')
+    expect(financialSummary).toHaveTextContent(/750,00/)
   })
 
   it('loads the sales versus trades analysis from its dedicated endpoint', async () => {

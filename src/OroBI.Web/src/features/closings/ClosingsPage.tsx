@@ -39,13 +39,13 @@ export function ClosingsPage({ summary, sellers, state, onSubmit }: ClosingsPage
     </form>
     {state === 'loading' && <section className="notice">Calculando fechamento...</section>}
     {state === 'error' && <section className="closing-empty-state"><i className="fa-solid fa-sliders" aria-hidden="true" /><div><h2>Fechamento ainda nao configurado</h2><p>Faltam as regras de salario, comissao ou premio PPP para este vendedor e mes. Cadastre essas regras para liberar o calculo.</p></div></section>}
-    {summary && state === 'ready' && <section className="metrics">
+    {summary && state === 'ready' && <><section className="closing-financial-summary" data-testid="closing-financial-summary"><article><p>Salario + comissao</p><strong>{money(summary.compensation.salary)}</strong><span>Comissao: {money(summary.compensation.commission)}</span></article><article><p>Premios no periodo</p><strong>{money(summary.totalAwards)}</strong><span>PPP, faturamento, positivacao e troca</span></article><article><p>Total previsto</p><strong>{money(summary.compensation.salary + summary.totalAwards)}</strong><span>Salario, comissao e premios</span></article></section><section className="metrics">
       <article className="metric main"><p>Premios totais</p><strong>{money(summary.totalAwards)}</strong><span>PPP, faturamento, positivacao e troca</span></article>
       <article className="metric"><p>Premio PPP</p><strong>{money(summary.ppp.award)}</strong><span>{percent(summary.ppp.meanPercent)} de media</span></article>
       <article className="metric"><p>Premio faturamento</p><strong>{money(summary.revenueAward)}</strong></article>
       <article className="metric"><p>Premio positivacao</p><strong>{money(summary.positivityAward)}</strong></article>
       <article className="metric"><p>Premio troca</p><strong>{money(summary.tradeAward)}</strong></article>
       <article className="metric"><p>Comissao</p><strong>{money(summary.compensation.commission)}</strong><span>Salario: {money(summary.compensation.salary)}</span></article>
-    </section>}
+    </section></>}
   </section>
 }
