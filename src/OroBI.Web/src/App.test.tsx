@@ -142,4 +142,13 @@ describe('App dashboard', () => {
     expect(await screen.findByRole('heading', { name: /Visao geral/ })).toBeVisible()
     expect(sessionStorage.getItem('orobi.access-token')).toBe('new-access-token')
   })
+
+  it('presents the Oroleite identity in the redesigned login screen', () => {
+    sessionStorage.clear()
+    render(<App />)
+
+    expect(document.querySelector('.login-layout')).toBeInTheDocument()
+    expect(screen.getByAltText('Oroleite Distribuidora')).toHaveAttribute('src', '/logoOroleite.png')
+    expect(screen.getByRole('heading', { name: /Central de resultados/ })).toBeVisible()
+  })
 })
