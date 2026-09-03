@@ -41,6 +41,17 @@ describe('App dashboard', () => {
     expect(await screen.findByRole('heading', { name: 'Visao de trocas' })).toBeVisible()
   })
 
+  it('opens the responsive navigation menu', async () => {
+    render(<App />)
+
+    const toggle = await screen.findByRole('button', { name: 'Alternar navegacao' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+
+    fireEvent.click(toggle)
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+  })
+
   it('persists the dashboard seller filter in the URL', async () => {
     render(<App />)
 

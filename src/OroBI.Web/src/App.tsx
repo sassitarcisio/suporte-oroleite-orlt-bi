@@ -15,6 +15,14 @@ type CurrentUser = { roles: string[] }
 type PageState = 'idle' | 'loading' | 'ready' | 'error'
 type View = 'dashboard' | 'import' | 'trades' | 'sales-trades' | 'margins' | 'closings'
 
+const navigationItems: Array<{ view: Exclude<View, 'import'>, label: string, icon: string }> = [
+  { view: 'dashboard', label: 'Dashboard', icon: 'fa-chart-pie' },
+  { view: 'trades', label: 'Trocas', icon: 'fa-arrow-right-arrow-left' },
+  { view: 'sales-trades', label: 'Venda x troca', icon: 'fa-scale-balanced' },
+  { view: 'margins', label: 'Margem', icon: 'fa-chart-line' },
+  { view: 'closings', label: 'Fechamento', icon: 'fa-wallet' },
+]
+
 const analysisPages: Partial<Record<View, { endpoint: string, title: string, description: string }>> = {
   trades: { endpoint: '/api/trades', title: 'Visao de trocas', description: 'Acompanhe as trocas fisicas e seu peso sobre as vendas.' },
   'sales-trades': { endpoint: '/api/sales-trades', title: 'Venda x troca', description: 'Compare receita comercial e movimentos de troca.' },
@@ -48,6 +56,7 @@ export default function App() {
   const [analysisState, setAnalysisState] = useState<PageState>('idle')
   const [closing, setClosing] = useState<ClosingSummary | null>(null)
   const [closingState, setClosingState] = useState<PageState>('idle')
+  const [menuOpen, setMenuOpen] = useState(false)
 
   async function loadDashboard(activeSeller = '') {
     if (!token) return
@@ -64,6 +73,11 @@ export default function App() {
   function applyDashboardFilter(activeSeller: string) {
     writeSellerFilter(activeSeller)
     void loadDashboard(activeSeller)
+  }
+
+  function navigate(nextView: Exclude<View, 'import'>) {
+    setView(nextView)
+    setMenuOpen(false)
   }
 
   async function loadClosing(activeSeller: string, month: string) {
@@ -135,14 +149,14 @@ export default function App() {
     }
   }
 
-  if (!token) return <main className="shell login"><section className="login-card"><div className="brand"><span>ORO</span> BI <small>OROLEITE</small></div><p className="eyebrow">ACESSO RESTRITO</p><h1>Entre no centro<br /><em>de resultados.</em></h1><form onSubmit={login}><label>E-MAIL<input type="email" required value={email} onChange={event => setEmail(event.target.value)} /></label><label>SENHA<input type="password" required value={password} onChange={event => setPassword(event.target.value)} /></label><button>Entrar</button></form>{state === 'error' && <p className="notice error">Credenciais invalidas ou API indisponivel.</p>}</section></main>
+  if (!token) return <main className="shell login-shell"><section className="login-card shadow-lg"><div className="brand"><span>ORO</span> BI <small>OROLEITE</small></div><div className="login-copy"><p className="eyebrow"><i className="fa-solid fa-lock" aria-hidden="true" /> ACESSO RESTRITO</p><h1>Entre no centro<br /><em>de resultados.</em></h1><p>Leitura clara para decisoes que movem a operacao.</p></div><form onSubmit={login}><label>E-MAIL<input type="email" required value={email} onChange={event => setEmail(event.target.value)} /></label><label>SENHA<input type="password" required value={password} onChange={event => setPassword(event.target.value)} /></label><button className="btn btn-dark" type="submit">Entrar <i className="fa-solid fa-arrow-right" aria-hidden="true" /></button></form>{state === 'error' && <p className="notice error">Credenciais invalidas ou API indisponivel.</p>}</section></main>
 
   if (view === 'import') return <main className="shell"><ImportPage file={file} fileType={fileType} state={state} onBack={() => setView('dashboard')} onFileChange={setFile} onFileTypeChange={setFileType} onSubmit={() => void upload()} /></main>
 
   const page = analysisPages[view]
-  return <main className="shell">
-    <header><div className="brand"><span>ORO</span> BI <small>OROLEITE</small></div><div>{roles.includes('Administrador') && <button onClick={() => setView('import')}>Importar</button>}<button onClick={() => { clearAccessToken(); setToken('') }}>Sair</button></div></header>
-    <nav aria-label="Modulos do BI"><button onClick={() => setView('dashboard')}>Dashboard</button><button onClick={() => setView('trades')}>Trocas</button><button onClick={() => setView('sales-trades')}>Venda x troca</button><button onClick={() => setView('margins')}>Margem</button><button onClick={() => setView('closings')}>Fechamento</button></nav>
+  return <main className="shell app-shell">
+    <header className="topbar"><div className="brand"><span>ORO</span> BI <small>OROLEITE</small></div><div className="topbar-status d-none d-md-flex"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Dados sincronizados</div><div className="topbar-actions">{roles.includes('Administrador') && <button className="btn btn-accent" onClick={() => setView('import')}><i className="fa-solid fa-file-arrow-up" aria-hidden="true" /> Importar</button>}<button className="btn btn-ghost" onClick={() => { clearAccessToken(); setToken('') }} aria-label="Sair"><i className="fa-solid fa-right-from-bracket" aria-hidden="true" /></button><button className="menu-toggle" type="button" aria-label="Alternar navegacao" aria-controls="main-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(open => !open)}><i className="fa-solid fa-bars" aria-hidden="true" /></button></div></header>
+    <nav id="main-navigation" className={`app-nav ${menuOpen ? 'is-open' : ''}`} aria-label="Modulos do BI">{navigationItems.map(item => <button className={view === item.view ? 'active' : ''} key={item.view} onClick={() => navigate(item.view)}><i className={`fa-solid ${item.icon}`} aria-hidden="true" /><span>{item.label}</span></button>)}</nav>
     {view === 'dashboard' && <DashboardPage summary={summary} seller={seller} state={state} onSellerChange={setSeller} onSubmit={() => applyDashboardFilter(seller)} />}
     {page && <AnalyticsPage title={page.title} description={page.description} data={analysis} state={analysisState} />}
     {view === 'closings' && <ClosingsPage summary={closing} state={closingState} onSubmit={(activeSeller, month) => void loadClosing(activeSeller, month)} />}
