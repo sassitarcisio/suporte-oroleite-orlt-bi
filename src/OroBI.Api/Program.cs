@@ -98,6 +98,8 @@ app.MapImportEndpoints();
 app.MapImportEndpoints("/api/v1");
 app.MapDashboardEndpoints();
 app.MapDashboardEndpoints("/api/v1");
+app.MapDashboardFilterOptionsEndpoints();
+app.MapDashboardFilterOptionsEndpoints("/api/v1");
 app.MapSellerEndpoints();
 app.MapSellerEndpoints("/api/v1");
 app.MapCommercialAnalyticsEndpoints();

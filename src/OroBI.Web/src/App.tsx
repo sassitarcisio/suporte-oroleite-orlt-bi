@@ -6,7 +6,7 @@ import { AnalyticsPage } from './features/analytics/AnalyticsPage'
 import { ClosingsPage } from './features/closings/ClosingsPage'
 import type { ClosingSummary } from './features/closings/ClosingsPage'
 import { DashboardPage } from './features/dashboard/DashboardPage'
-import type { DashboardSummary } from './features/dashboard/DashboardPage'
+import type { DashboardFilterOptions, DashboardFilters, DashboardSummary } from './features/dashboard/DashboardPage'
 import { ImportPage } from './features/imports/ImportPage'
 import './App.css'
 
@@ -41,12 +41,19 @@ function writeSellerFilter(seller: string): void {
   window.history.replaceState({}, '', query ? `${window.location.pathname}?${query}` : window.location.pathname)
 }
 
+const emptyDashboardFilters: DashboardFilters = {
+  startDate: '', endDate: '', seller: readSellerFilter(), brand: '', group: '', city: '', customerContains: '', productContains: '', movementType: '',
+}
+
+const emptyDashboardFilterOptions: DashboardFilterOptions = { brands: [], groups: [], cities: [], movementTypes: [] }
+
 export default function App() {
   const [token, setToken] = useState(readAccessToken)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
-  const [seller, setSeller] = useState(readSellerFilter)
+  const [dashboardFilters, setDashboardFilters] = useState<DashboardFilters>(emptyDashboardFilters)
+  const [dashboardFilterOptions, setDashboardFilterOptions] = useState<DashboardFilterOptions>(emptyDashboardFilterOptions)
   const [state, setState] = useState<PageState>('idle')
   const [view, setView] = useState<View>('dashboard')
   const [fileType, setFileType] = useState('Power')
@@ -59,11 +66,21 @@ export default function App() {
   const [sellers, setSellers] = useState<string[]>([])
   const [menuOpen, setMenuOpen] = useState(false)
 
-  async function loadDashboard(activeSeller = '') {
+  async function loadDashboard(filters = dashboardFilters) {
     if (!token) return
     setState('loading')
     try {
-      const query = activeSeller.trim() ? `?seller=${encodeURIComponent(activeSeller.trim())}` : ''
+      const parameters = new URLSearchParams()
+      if (filters.startDate) parameters.set('startDate', filters.startDate)
+      if (filters.endDate) parameters.set('endDate', filters.endDate)
+      if (filters.seller.trim()) parameters.set('seller', filters.seller.trim())
+      if (filters.brand.trim()) parameters.set('brand', filters.brand.trim())
+      if (filters.group.trim()) parameters.set('group', filters.group.trim())
+      if (filters.city.trim()) parameters.set('city', filters.city.trim())
+      if (filters.customerContains.trim()) parameters.set('customerContains', filters.customerContains.trim())
+      if (filters.productContains.trim()) parameters.set('productContains', filters.productContains.trim())
+      if (filters.movementType.trim()) parameters.append('movementTypes', filters.movementType.trim())
+      const query = parameters.size ? `?${parameters}` : ''
       setSummary(await apiRequest<DashboardSummary>(`/api/dashboard${query}`, token))
       setState('ready')
     } catch {
@@ -71,9 +88,15 @@ export default function App() {
     }
   }
 
-  function applyDashboardFilter(activeSeller: string) {
-    writeSellerFilter(activeSeller)
-    void loadDashboard(activeSeller)
+  function applyDashboardFilter(filters: DashboardFilters) {
+    writeSellerFilter(filters.seller)
+    void loadDashboard(filters)
+  }
+
+  function clearDashboardFilters() {
+    setDashboardFilters(emptyDashboardFilters)
+    writeSellerFilter('')
+    void loadDashboard(emptyDashboardFilters)
   }
 
   function navigate(nextView: Exclude<View, 'import'>) {
@@ -103,6 +126,12 @@ export default function App() {
     void loadDashboard()
     void apiRequest<CurrentUser>('/api/me', token).then(user => setRoles(user.roles)).catch(() => setRoles([]))
     void apiRequest<string[]>('/api/sellers', token).then(result => setSellers(Array.isArray(result) ? result : [])).catch(() => setSellers([]))
+    void apiRequest<DashboardFilterOptions>('/api/dashboard/filter-options', token).then(result => setDashboardFilterOptions({
+      brands: Array.isArray(result.brands) ? result.brands : [],
+      groups: Array.isArray(result.groups) ? result.groups : [],
+      cities: Array.isArray(result.cities) ? result.cities : [],
+      movementTypes: Array.isArray(result.movementTypes) ? result.movementTypes : [],
+    })).catch(() => setDashboardFilterOptions(emptyDashboardFilterOptions))
   }, [token])
 
   useEffect(() => {
@@ -159,7 +188,7 @@ export default function App() {
   return <main className="executive-layout">
     <aside className={`side-rail ${menuOpen ? 'is-open' : ''}`}><div className="brand"><img className="brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /></div><p className="rail-label">CENTRAL DE RESULTADOS</p><nav id="main-navigation" className="side-navigation" aria-label="Modulos do BI">{navigationItems.map(item => <button className={view === item.view ? 'active' : ''} key={item.view} onClick={() => navigate(item.view)}><i className={`fa-solid ${item.icon}`} aria-hidden="true" /><span>{item.label}</span></button>)}</nav><div className="rail-footer"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Dados sincronizados</div></aside>
     <section className="main-canvas"><header className="command-bar"><button className="menu-toggle" type="button" aria-label="Alternar navegacao" aria-controls="main-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(open => !open)}><i className="fa-solid fa-bars" aria-hidden="true" /></button><div><p>PAINEL EXECUTIVO</p><strong>{navigationItems.find(item => item.view === view)?.label ?? 'Importar'}</strong></div><div className="command-actions">{roles.includes('Administrador') && <button className="btn btn-accent" onClick={() => setView('import')}><i className="fa-solid fa-file-arrow-up" aria-hidden="true" /> Importar</button>}<button className="btn btn-ghost" onClick={() => { clearAccessToken(); setToken('') }} aria-label="Sair"><i className="fa-solid fa-right-from-bracket" aria-hidden="true" /></button></div></header>
-      {view === 'dashboard' && <DashboardPage summary={summary} seller={seller} sellers={sellers} state={state} onSellerChange={setSeller} onSubmit={() => applyDashboardFilter(seller)} />}
+      {view === 'dashboard' && <DashboardPage summary={summary} filters={dashboardFilters} options={dashboardFilterOptions} sellers={sellers} state={state} onFiltersChange={setDashboardFilters} onSubmit={() => applyDashboardFilter(dashboardFilters)} onClear={clearDashboardFilters} />}
       {page && <AnalyticsPage title={page.title} description={page.description} data={analysis} state={analysisState} />}
       {view === 'closings' && <ClosingsPage summary={closing} sellers={sellers} state={closingState} onSubmit={(activeSeller, month) => void loadClosing(activeSeller, month)} />}
     </section>

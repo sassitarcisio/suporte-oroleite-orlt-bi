@@ -12,6 +12,8 @@ describe('App dashboard', () => {
         ? { roles: ['Administrador'] }
         : url.endsWith('/api/sellers')
           ? ['ANA', 'BRUNO']
+          : url.endsWith('/api/dashboard/filter-options')
+            ? { brands: ['OROLEITE'], groups: ['LATICINIOS'], cities: ['GOIANIA'], movementTypes: ['VENDA', 'TROCA'] }
         : url.endsWith('/api/auth/login')
           ? { accessToken: 'new-access-token' }
         : url.includes('/api/closings')
@@ -62,10 +64,24 @@ describe('App dashboard', () => {
     render(<App />)
 
     fireEvent.change(await screen.findByLabelText('VENDEDOR'), { target: { value: 'ANA' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Aplicar recorte' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Aplicar filtros' }))
 
     await waitFor(() => expect(window.location.search).toBe('?seller=ANA'))
     expect(document.querySelector('.dashboard-layout')).toBeInTheDocument()
+  })
+
+  it('sends the dashboard operational filters to the API', async () => {
+    render(<App />)
+
+    fireEvent.change(await screen.findByLabelText('DATA INICIAL'), { target: { value: '2026-08-01' } })
+    fireEvent.change(screen.getByLabelText('DATA FINAL'), { target: { value: '2026-08-31' } })
+    fireEvent.change(screen.getByLabelText('MARCA'), { target: { value: 'OROLEITE' } })
+    fireEvent.change(screen.getByLabelText('CIDADE'), { target: { value: 'GOIANIA' } })
+    fireEvent.change(screen.getByLabelText('CLIENTE CONTEM'), { target: { value: 'MERCADO' } })
+    fireEvent.change(screen.getByLabelText('PRODUTO CONTEM'), { target: { value: 'LEITE' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Aplicar filtros' }))
+
+    await waitFor(() => expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).includes('/api/dashboard?startDate=2026-08-01&endDate=2026-08-31&brand=OROLEITE&city=GOIANIA&customerContains=MERCADO&productContains=LEITE'))).toBe(true))
   })
 
   it('loads registered sellers into the dashboard filter', async () => {

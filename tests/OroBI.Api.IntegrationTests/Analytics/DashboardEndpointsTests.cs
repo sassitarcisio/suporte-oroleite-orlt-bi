@@ -28,6 +28,8 @@ public sealed class DashboardEndpointsTests : IClassFixture<WebApplicationFactor
                 }).AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>("Test", _ => { });
                 services.RemoveAll<IDashboardQueryService>();
                 services.AddScoped<IDashboardQueryService, TestDashboardQueryService>();
+                services.RemoveAll<ICommercialFilterOptionsQueryService>();
+                services.AddScoped<ICommercialFilterOptionsQueryService, TestCommercialFilterOptionsQueryService>();
             });
         }).CreateClient();
     }
@@ -44,6 +46,14 @@ public sealed class DashboardEndpointsTests : IClassFixture<WebApplicationFactor
     public async Task Get_versioned_dashboard_returns_ok()
     {
         var response = await _client.GetAsync("/api/v1/dashboard");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Get_dashboard_filter_options_returns_ok()
+    {
+        var response = await _client.GetAsync("/api/dashboard/filter-options");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
@@ -79,4 +89,10 @@ internal sealed class TestDashboardQueryService : IDashboardQueryService
 
         return Task.FromResult(new DashboardSummary(isExpectedFilter ? 123m : 0m, 0m, 0m, 0m, 0m, 0));
     }
+}
+
+internal sealed class TestCommercialFilterOptionsQueryService : ICommercialFilterOptionsQueryService
+{
+    public Task<CommercialFilterOptions> GetAsync(CancellationToken cancellationToken) =>
+        Task.FromResult(new CommercialFilterOptions(["OROLEITE"], ["LATICINIOS"], ["GOIANIA"], ["VENDA"]));
 }
