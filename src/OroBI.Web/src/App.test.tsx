@@ -12,8 +12,10 @@ describe('App dashboard', () => {
         ? { roles: ['Administrador'] }
         : url.endsWith('/api/sellers')
           ? ['ANA', 'BRUNO']
-          : url.endsWith('/api/dashboard/filter-options')
-            ? { brands: ['OROLEITE'], groups: ['LATICINIOS'], cities: ['GOIANIA'], movementTypes: ['VENDA', 'TROCA'] }
+        : url.endsWith('/api/dashboard/filter-options')
+          ? { brands: ['OROLEITE'], groups: ['LATICINIOS'], cities: ['GOIANIA'], movementTypes: ['VENDA', 'TROCA'] }
+          : url.includes('/api/dashboard/details')
+            ? { dailyTrend: [{ date: '2026-08-01', grossSales: 100, netResult: 80, negativeMovements: 20 }], sellerResults: [{ seller: 'ANA', netResult: 80 }] }
         : url.endsWith('/api/auth/login')
           ? { accessToken: 'new-access-token' }
         : url.includes('/api/closings')
@@ -35,6 +37,20 @@ describe('App dashboard', () => {
     render(<App />)
 
     expect(await screen.findByText('Nenhum movimento encontrado para os filtros aplicados.')).toBeVisible()
+  })
+
+  it('renders dashboard charts below the operational filters when data exists', async () => {
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url.endsWith('/api/me')) return Promise.resolve(new Response(JSON.stringify({ roles: ['Administrador'] }), { status: 200 }))
+      if (url.endsWith('/api/sellers')) return Promise.resolve(new Response(JSON.stringify(['ANA']), { status: 200 }))
+      if (url.endsWith('/api/dashboard/filter-options')) return Promise.resolve(new Response(JSON.stringify({ brands: [], groups: [], cities: [], movementTypes: [] }), { status: 200 }))
+      if (url.includes('/api/dashboard/details')) return Promise.resolve(new Response(JSON.stringify({ dailyTrend: [{ date: '2026-08-01', grossSales: 100, netResult: 80, negativeMovements: 20 }], sellerResults: [{ seller: 'ANA', netResult: 80 }] }), { status: 200 }))
+      return Promise.resolve(new Response(JSON.stringify({ grossSales: 100, negativeMovements: 20, negativePercentage: 20, netResult: 80, saleQuantity: 1, movementCount: 1 }), { status: 200 }))
+    })
+    render(<App />)
+
+    expect(await screen.findByTestId('dashboard-charts')).toBeVisible()
   })
 
   it('opens the trades screen from the application navigation', async () => {
@@ -169,7 +185,7 @@ describe('App dashboard', () => {
     fireEvent.change(screen.getByLabelText('SENHA'), { target: { value: 'senha-segura' } })
     fireEvent.click(screen.getByRole('button', { name: 'Entrar' }))
 
-    expect(await screen.findByRole('heading', { name: /Visao geral/ })).toBeVisible()
+    expect(await screen.findByLabelText('DATA INICIAL')).toBeVisible()
     expect(sessionStorage.getItem('orobi.access-token')).toBe('new-access-token')
   })
 

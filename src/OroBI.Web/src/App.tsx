@@ -6,7 +6,7 @@ import { AnalyticsPage } from './features/analytics/AnalyticsPage'
 import { ClosingsPage } from './features/closings/ClosingsPage'
 import type { ClosingSummary } from './features/closings/ClosingsPage'
 import { DashboardPage } from './features/dashboard/DashboardPage'
-import type { DashboardFilterOptions, DashboardFilters, DashboardSummary } from './features/dashboard/DashboardPage'
+import type { DashboardDetails, DashboardFilterOptions, DashboardFilters, DashboardSummary } from './features/dashboard/DashboardPage'
 import { ImportPage } from './features/imports/ImportPage'
 import './App.css'
 
@@ -52,6 +52,7 @@ export default function App() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
+  const [dashboardDetails, setDashboardDetails] = useState<DashboardDetails | null>(null)
   const [dashboardFilters, setDashboardFilters] = useState<DashboardFilters>(emptyDashboardFilters)
   const [dashboardFilterOptions, setDashboardFilterOptions] = useState<DashboardFilterOptions>(emptyDashboardFilterOptions)
   const [state, setState] = useState<PageState>('idle')
@@ -81,7 +82,15 @@ export default function App() {
       if (filters.productContains.trim()) parameters.set('productContains', filters.productContains.trim())
       if (filters.movementType.trim()) parameters.append('movementTypes', filters.movementType.trim())
       const query = parameters.size ? `?${parameters}` : ''
-      setSummary(await apiRequest<DashboardSummary>(`/api/dashboard${query}`, token))
+      const [dashboardSummary, details] = await Promise.all([
+        apiRequest<DashboardSummary>(`/api/dashboard${query}`, token),
+        apiRequest<DashboardDetails>(`/api/dashboard/details${query}`, token),
+      ])
+      setSummary(dashboardSummary)
+      setDashboardDetails({
+        dailyTrend: Array.isArray(details.dailyTrend) ? details.dailyTrend : [],
+        sellerResults: Array.isArray(details.sellerResults) ? details.sellerResults : [],
+      })
       setState('ready')
     } catch {
       setState('error')
@@ -188,7 +197,7 @@ export default function App() {
   return <main className="executive-layout">
     <aside className={`side-rail ${menuOpen ? 'is-open' : ''}`}><div className="brand"><img className="brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /></div><p className="rail-label">CENTRAL DE RESULTADOS</p><nav id="main-navigation" className="side-navigation" aria-label="Modulos do BI">{navigationItems.map(item => <button className={view === item.view ? 'active' : ''} key={item.view} onClick={() => navigate(item.view)}><i className={`fa-solid ${item.icon}`} aria-hidden="true" /><span>{item.label}</span></button>)}</nav><div className="rail-footer"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Dados sincronizados</div></aside>
     <section className="main-canvas"><header className="command-bar"><button className="menu-toggle" type="button" aria-label="Alternar navegacao" aria-controls="main-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(open => !open)}><i className="fa-solid fa-bars" aria-hidden="true" /></button><div><p>PAINEL EXECUTIVO</p><strong>{navigationItems.find(item => item.view === view)?.label ?? 'Importar'}</strong></div><div className="command-actions">{roles.includes('Administrador') && <button className="btn btn-accent" onClick={() => setView('import')}><i className="fa-solid fa-file-arrow-up" aria-hidden="true" /> Importar</button>}<button className="btn btn-ghost" onClick={() => { clearAccessToken(); setToken('') }} aria-label="Sair"><i className="fa-solid fa-right-from-bracket" aria-hidden="true" /></button></div></header>
-      {view === 'dashboard' && <DashboardPage summary={summary} filters={dashboardFilters} options={dashboardFilterOptions} sellers={sellers} state={state} onFiltersChange={setDashboardFilters} onSubmit={() => applyDashboardFilter(dashboardFilters)} onClear={clearDashboardFilters} />}
+      {view === 'dashboard' && <DashboardPage summary={summary} details={dashboardDetails} filters={dashboardFilters} options={dashboardFilterOptions} sellers={sellers} state={state} onFiltersChange={setDashboardFilters} onSubmit={() => applyDashboardFilter(dashboardFilters)} onClear={clearDashboardFilters} />}
       {page && <AnalyticsPage title={page.title} description={page.description} data={analysis} state={analysisState} />}
       {view === 'closings' && <ClosingsPage summary={closing} sellers={sellers} state={closingState} onSubmit={(activeSeller, month) => void loadClosing(activeSeller, month)} />}
     </section>

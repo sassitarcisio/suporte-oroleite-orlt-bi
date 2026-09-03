@@ -59,6 +59,14 @@ public sealed class DashboardEndpointsTests : IClassFixture<WebApplicationFactor
     }
 
     [Fact]
+    public async Task Get_dashboard_details_returns_ok()
+    {
+        var response = await _client.GetAsync("/api/dashboard/details");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Get_dashboard_maps_commercial_filters()
     {
         var response = await _client.GetAsync(
@@ -89,6 +97,9 @@ internal sealed class TestDashboardQueryService : IDashboardQueryService
 
         return Task.FromResult(new DashboardSummary(isExpectedFilter ? 123m : 0m, 0m, 0m, 0m, 0m, 0));
     }
+
+    public Task<DashboardDetails> GetDetailsAsync(CommercialFilter filter, CancellationToken cancellationToken) =>
+        Task.FromResult(new DashboardDetails([], []));
 }
 
 internal sealed class TestCommercialFilterOptionsQueryService : ICommercialFilterOptionsQueryService

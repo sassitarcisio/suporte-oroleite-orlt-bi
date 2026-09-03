@@ -16,6 +16,15 @@ public static class DashboardEndpoints
             return Results.Ok(summary);
         }).RequireAuthorization(AuthorizationPolicies.ManagerOrAdministrator);
 
+        endpoints.MapGet($"{prefix}/dashboard/details", async (
+            [AsParameters] DashboardQueryParameters query,
+            IDashboardQueryService queryService,
+            CancellationToken cancellationToken) =>
+        {
+            var details = await queryService.GetDetailsAsync(query.ToCommercialFilter(), cancellationToken);
+            return Results.Ok(details);
+        }).RequireAuthorization(AuthorizationPolicies.ManagerOrAdministrator);
+
         return endpoints;
     }
 }
