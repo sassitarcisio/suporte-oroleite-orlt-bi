@@ -81,8 +81,9 @@ function filterQuery(filters: DashboardFilters): string {
 
 export default function App() {
   const [token, setToken] = useState(readAccessToken)
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(() => window.localStorage.getItem('orobi:last-email') ?? '')
   const [password, setPassword] = useState('')
+  const [passwordVisible, setPasswordVisible] = useState(false)
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [dashboardDetails, setDashboardDetails] = useState<DashboardDetails | null>(null)
   const [dashboardFilters, setDashboardFilters] = useState<DashboardFilters>(() => createDashboardFilters(readSellerFilter()))
@@ -211,6 +212,7 @@ export default function App() {
       if (!response.ok) throw new Error('Login failed')
       const result = await response.json() as LoginResponse
       saveAccessToken(result.accessToken)
+      window.localStorage.setItem('orobi:last-email', email.trim())
       setToken(result.accessToken)
     } catch {
       setState('error')
@@ -239,7 +241,7 @@ export default function App() {
     if (nextFile && /^VALOR[_ -]?METAS\.csv$/i.test(nextFile.name)) setFileType('GoalValues')
   }
 
-  if (!token) return <main className="shell login-shell"><section className="login-layout shadow-lg"><aside className="login-brand-panel"><img className="login-brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /><div><p className="eyebrow">OROLEITE BI</p><h1 aria-label="Central de resultados">Central de<br /><span>resultados.</span></h1><p>Inteligencia comercial para decisoes mais seguras, todos os dias.</p></div><p className="login-brand-footer"><i className="fa-solid fa-shield-halved" aria-hidden="true" /> Ambiente corporativo protegido</p></aside><section className="login-form-panel"><div className="login-form-heading"><p className="eyebrow">ACESSO RESTRITO</p><h2>Bem-vindo de volta.</h2><p>Informe suas credenciais para acessar os indicadores da operacao.</p></div><form onSubmit={login}><label>E-MAIL<input type="email" required value={email} onChange={event => setEmail(event.target.value)} /></label><label>SENHA<input type="password" required value={password} onChange={event => setPassword(event.target.value)} /></label><button className="btn btn-dark" type="submit" disabled={state === 'loading'}>{state === 'loading' ? 'Entrando...' : 'Entrar'} <i className="fa-solid fa-arrow-right" aria-hidden="true" /></button></form>{state === 'error' && <p className="notice error">Credenciais invalidas ou API indisponivel.</p>}</section></section></main>
+  if (!token) return <main className="shell login-shell"><section className="login-layout shadow-lg"><aside className="login-brand-panel"><img className="login-brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /><div><p className="eyebrow">OROLEITE BI</p><h1 aria-label="Central de resultados">Central de<br /><span>resultados.</span></h1><p>Inteligencia comercial para decisoes mais seguras, todos os dias.</p></div><p className="login-brand-footer"><i className="fa-solid fa-shield-halved" aria-hidden="true" /> Ambiente corporativo protegido</p></aside><section className="login-form-panel"><div className="login-form-heading"><p className="eyebrow">ACESSO RESTRITO</p><h2>Bem-vindo de volta.</h2><p>Informe suas credenciais para acessar os indicadores da operacao.</p></div><form onSubmit={login}><label>E-MAIL<input type="email" autoComplete="username" required value={email} onChange={event => setEmail(event.target.value)} /></label><label>SENHA<span className="password-field"><input type={passwordVisible ? 'text' : 'password'} autoComplete="current-password" required value={password} onChange={event => setPassword(event.target.value)} /><button type="button" className="password-toggle" onClick={() => setPasswordVisible(visible => !visible)} aria-label={passwordVisible ? 'Ocultar senha' : 'Mostrar senha'}><i className={`fa-solid ${passwordVisible ? 'fa-eye-slash' : 'fa-eye'}`} aria-hidden="true" /></button></span></label><button className="btn btn-dark" type="submit" disabled={state === 'loading'}>{state === 'loading' ? 'Entrando...' : 'Entrar'} <i className="fa-solid fa-arrow-right" aria-hidden="true" /></button></form>{state === 'error' && <p className="notice error">Credenciais invalidas ou API indisponivel.</p>}</section></section></main>
 
   if (view === 'import') return <main className="shell import-workspace"><ImportPage file={file} fileType={fileType} state={state} onBack={() => setView('dashboard')} onFileChange={selectImportFile} onFileTypeChange={setFileType} onSubmit={() => void upload()} /></main>
 

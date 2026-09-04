@@ -6,7 +6,7 @@ export type ClosingSummary = {
   revenueAward: number
   positivityAward: number
   tradeAward: number
-  compensation: { commission: number, salary: number }
+  compensation: { commission: number, totalSalary: number }
   totalAwards: number
   brandAwards?: Array<{ brand: string, positivityAward: number, revenueAward: number, tradeAward: number, totalAward: number }>
 }
@@ -49,13 +49,13 @@ export function ClosingsPage({ summary, sellers, state, errorMessage, onSubmit }
     </form>
     {state === 'loading' && <section className="notice">Calculando fechamento...</section>}
     {state === 'error' && <section className="closing-empty-state"><i className="fa-solid fa-triangle-exclamation" aria-hidden="true" /><div><h2>Nao foi possivel consultar o fechamento</h2><p>{errorMessage ?? 'A consulta de fechamento falhou. Tente novamente em alguns instantes.'}</p></div></section>}
-    {summary && state === 'ready' && <><section className="closing-financial-summary" data-testid="closing-financial-summary"><article><p>Salario + comissao</p><strong>{money(summary.compensation.salary)}</strong><span>Comissao: {money(summary.compensation.commission)}</span></article><article><p>Premios no periodo</p><strong>{money(summary.totalAwards)}</strong><span>PPP, faturamento, positivacao e troca</span></article><article><p>Total previsto</p><strong>{money(summary.compensation.salary + summary.totalAwards)}</strong><span>Salario, comissao e premios</span></article></section><section className="metrics">
+    {summary && state === 'ready' && <><section className="closing-financial-summary" data-testid="closing-financial-summary"><article><p>Salario + comissao</p><strong>{money(summary.compensation.totalSalary)}</strong><span>Comissao: {money(summary.compensation.commission)}</span></article><article><p>Premios no periodo</p><strong>{money(summary.totalAwards)}</strong><span>PPP, faturamento, positivacao e troca</span></article><article><p>Total previsto</p><strong>{money(summary.compensation.totalSalary + summary.totalAwards)}</strong><span>Salario, comissao e premios</span></article></section><section className="metrics">
       <article className="metric main"><p>Premios totais</p><strong>{money(summary.totalAwards)}</strong><span>PPP, faturamento, positivacao e troca</span></article>
       <article className="metric"><p>Premio PPP</p><strong>{money(summary.ppp.award)}</strong><span>{percent(summary.ppp.meanPercent)} de media</span></article>
       <article className="metric"><p>Premio faturamento</p><strong>{money(summary.revenueAward)}</strong></article>
       <article className="metric"><p>Premio positivacao</p><strong>{money(summary.positivityAward)}</strong></article>
       <article className="metric"><p>Premio troca</p><strong>{money(summary.tradeAward)}</strong></article>
-      <article className="metric"><p>Comissao</p><strong>{money(summary.compensation.commission)}</strong><span>Salario: {money(summary.compensation.salary)}</span></article>
+      <article className="metric"><p>Comissao</p><strong>{money(summary.compensation.commission)}</strong><span>Salario: {money(summary.compensation.totalSalary - summary.compensation.commission)}</span></article>
     </section>{summary.brandAwards && summary.brandAwards.length > 0 && <section className="closing-brand-awards"><h2>Premios por marca</h2><div className="closing-brand-awards-table"><div className="closing-brand-awards-head"><span>Marca</span><span>Faturamento</span><span>Positivacao</span><span>Troca</span><span>Total</span></div>{summary.brandAwards.map(award => <div className="closing-brand-awards-row" key={award.brand}><strong>{award.brand}</strong><span>{money(award.revenueAward)}</span><span>{money(award.positivityAward)}</span><span>{money(award.tradeAward)}</span><strong>{money(award.totalAward)}</strong></div>)}</div></section>}</>}
   </section>
 }
