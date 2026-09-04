@@ -206,4 +206,25 @@ public sealed class CsvImportWorkflowTests
         Assert.Equal(1000m, record.RevenuePrize);
         Assert.Equal(5.5m, record.TradePercentageGoal);
     }
+
+    [Fact]
+    public async Task Persists_closing_defaults_and_seller_salary_from_goal_values_file()
+    {
+        var options = new DbContextOptionsBuilder<OroBiDbContext>()
+            .UseInMemoryDatabase(nameof(Persists_closing_defaults_and_seller_salary_from_goal_values_file))
+            .Options;
+        await using var db = new OroBiDbContext(options);
+        var workflow = new CsvImportWorkflow(db, new InMemoryImportFileStore());
+        const string csv = "SALARIO;1951,00\nCOMISSAO;1\nPPP;1200,00\nVENDEDOR: ANA;2200,00\nMARCA;FATURAMENTO;POSITIVACAO;TROCA;TROCA_PERCENTUAL\nOROLEITE;1000,00;300,00;200,00;5,5";
+        await using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(csv));
+
+        var result = await workflow.ImportAsync(new ImportSubmission(ImportFileType.GoalValues, "valor-metas.csv", "text/csv", stream), CancellationToken.None);
+
+        Assert.Equal(ImportBatchStatus.Completed, result.Status);
+        var defaults = await db.ImportedClosingDefaults.SingleAsync();
+        Assert.Equal(1951m, defaults.BaseSalary);
+        Assert.Equal(1m, defaults.CommissionPercent);
+        Assert.Equal(1200m, defaults.PppMaximumAward);
+        Assert.Equal(2200m, defaults.SellerSalaries["VENDEDOR: ANA"]);
+    }
 }

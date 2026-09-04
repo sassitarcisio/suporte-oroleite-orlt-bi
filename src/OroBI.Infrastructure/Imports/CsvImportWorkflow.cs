@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OroBI.Application.Abstractions;
 using OroBI.Application.Imports;
 using OroBI.Domain.Commercial;
+using OroBI.Domain.Closings;
 using OroBI.Domain.Imports;
 using OroBI.Domain.Goals;
 using OroBI.Domain.Ppp;
@@ -50,11 +51,15 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
                 : new GoalParseResult([], []);
             var parsedGoalValues = submission.FileType == ImportFileType.GoalValues
                 ? ParseGoalValueRecords(batch.Id, csv)
-                : new GoalValueParseResult([], []);
+                : new GoalValueParseResult([], [], null);
             dbContext.CommercialMovements.AddRange(parsedPower.Movements);
             dbContext.PppRecords.AddRange(parsedPpp.Records);
             dbContext.GoalRecords.AddRange(parsedGoals.Records);
             dbContext.GoalValueRecords.AddRange(parsedGoalValues.Records);
+            if (parsedGoalValues.Defaults is not null)
+            {
+                dbContext.ImportedClosingDefaults.Add(parsedGoalValues.Defaults);
+            }
             foreach (var error in parsedPower.Errors.Concat(parsedPpp.Errors).Concat(parsedGoals.Errors).Concat(parsedGoalValues.Errors))
             {
                 dbContext.ImportErrors.Add(ImportError.Create(batch.Id, error.LineNumber, error.Message));
@@ -238,13 +243,26 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
 
     private static GoalValueParseResult ParseGoalValueRecords(Guid batchId, string csv)
     {
-        const string header = "MARCA;FATURAMENTO;POSITIVACAO;TROCA;TROCA_PERCENTUAL";
         var lines = csv.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
-        var headerIndex = Array.FindIndex(lines, line => string.Equals(line.Trim().TrimStart('\uFEFF'), header, StringComparison.OrdinalIgnoreCase));
-        if (headerIndex < 0 || headerIndex == lines.Length - 1) return new([], []);
+        var headerIndex = Array.FindIndex(lines, line => string.Equals(line.Split(';')[0].Trim().TrimStart('\uFEFF'), "MARCA", StringComparison.OrdinalIgnoreCase));
+        if (headerIndex < 0 || headerIndex == lines.Length - 1) return new([], [], null);
         var records = new List<GoalValueRecord>();
         var errors = new List<PowerRowError>();
         var culture = CultureInfo.GetCultureInfo("pt-BR");
+        decimal? baseSalary = null, commissionPercent = null, pppMaximumAward = null;
+        var sellerSalaries = new Dictionary<string, decimal>(StringComparer.Ordinal);
+
+        foreach (var line in lines.Take(headerIndex))
+        {
+            var values = line.Split(';');
+            if (values.Length < 2) continue;
+            var key = Normalize(values[0]);
+            if (!decimal.TryParse(values[1].Trim().Replace("R$", string.Empty, StringComparison.OrdinalIgnoreCase).Replace("%", string.Empty, StringComparison.Ordinal), NumberStyles.Number | NumberStyles.AllowCurrencySymbol, culture, out var value)) continue;
+            if (key is "SALARIO" or "SALÁRIO") baseSalary = value;
+            else if (key is "COMISSAO" or "COMISSÃO") commissionPercent = value;
+            else if (key == "PPP") pppMaximumAward = value;
+            else if (key.StartsWith("VENDEDOR:", StringComparison.Ordinal) || key.StartsWith("SUPERVISOR:", StringComparison.Ordinal)) sellerSalaries[key] = value;
+        }
         foreach (var item in lines.Skip(headerIndex + 1).Select((line, index) => new { Line = line, LineNumber = headerIndex + index + 2 }))
         {
             try
@@ -262,7 +280,7 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
             }
             catch (FormatException exception) { errors.Add(new(item.LineNumber, exception.Message)); }
         }
-        return new(records, errors);
+        return new(records, errors, ImportedClosingDefaults.Create(batchId, baseSalary, commissionPercent, pppMaximumAward, sellerSalaries));
     }
 
     private sealed record PowerRowError(int LineNumber, string Message);
@@ -273,5 +291,5 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
 
     private sealed record GoalParseResult(List<GoalRecord> Records, List<PowerRowError> Errors);
 
-    private sealed record GoalValueParseResult(List<GoalValueRecord> Records, List<PowerRowError> Errors);
+    private sealed record GoalValueParseResult(List<GoalValueRecord> Records, List<PowerRowError> Errors, ImportedClosingDefaults? Defaults);
 }

@@ -21,6 +21,7 @@ public sealed class OroBiDbContext(DbContextOptions<OroBiDbContext> options)
     public DbSet<GoalValueRecord> GoalValueRecords => Set<GoalValueRecord>();
     public DbSet<PppRecord> PppRecords => Set<PppRecord>();
     public DbSet<SellerClosingConfiguration> SellerClosingConfigurations => Set<SellerClosingConfiguration>();
+    public DbSet<ImportedClosingDefaults> ImportedClosingDefaults => Set<ImportedClosingDefaults>();
     public DbSet<SynchronizationCheckpoint> SynchronizationCheckpoints => Set<SynchronizationCheckpoint>();
     public DbSet<SynchronizationRun> SynchronizationRuns => Set<SynchronizationRun>();
 
@@ -63,6 +64,16 @@ public sealed class OroBiDbContext(DbContextOptions<OroBiDbContext> options)
             entity.Property(configuration => configuration.CommissionPercent).HasPrecision(9, 4);
             entity.Property(configuration => configuration.PppMaximumAward).HasPrecision(18, 2);
             entity.HasIndex(configuration => new { configuration.Seller, configuration.Year, configuration.Month }).IsUnique();
+        });
+
+        modelBuilder.Entity<ImportedClosingDefaults>(entity =>
+        {
+            entity.HasKey(configuration => configuration.Id);
+            entity.Property(configuration => configuration.BaseSalary).HasPrecision(18, 2);
+            entity.Property(configuration => configuration.CommissionPercent).HasPrecision(9, 4);
+            entity.Property(configuration => configuration.PppMaximumAward).HasPrecision(18, 2);
+            entity.Property(configuration => configuration.SellerSalariesJson).HasColumnType("jsonb");
+            entity.HasIndex(configuration => configuration.ImportBatchId).IsUnique();
         });
 
         modelBuilder.Entity<SynchronizationCheckpoint>(entity =>
