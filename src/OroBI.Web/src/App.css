@@ -34,3 +34,6 @@
 
 .side-rail .brand-logo{background:transparent;padding:0;border-radius:0}
 .import-workspace .topbar .brand-logo{width:138px;height:78px;background:transparent;padding:0;border-radius:0}
+
+/* Shared typography hierarchy; dimensions and component layout remain unchanged. */
+.side-navigation button{font-weight:var(--font-weight-medium)}.rail-label,.eyebrow,.command-bar p,label{font-weight:var(--font-weight-medium)}.dashboard-kpi p,.analysis-card p,.metric p,.closing-financial-summary p,.closing-brand-awards-head{font-weight:var(--font-weight-semibold)}.command-bar strong,.dashboard-hero h1,.hero h1,.login-brand-panel h1,.login-form-heading h2,.analysis-header h1,.closing-header h1,.dashboard-kpi strong,.analysis-card strong,.metric strong,.closing-financial-summary strong{font-weight:var(--font-weight-bold)}.dashboard-kpi strong,.analysis-card strong,.metric strong,.closing-financial-summary strong,.seller-chart li strong,.closing-brand-awards-row strong:not(:first-child){letter-spacing:-.3px;font-variant-numeric:tabular-nums}.dashboard-kpi p{line-height:1.3}.dashboard-kpi strong{line-height:1.1}
