@@ -106,6 +106,39 @@ describe('App dashboard', () => {
     await waitFor(() => expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).includes('/api/dashboard?startDate=2026-08-01&endDate=2026-08-31&brand=OROLEITE&city=GOIANIA&customerContains=MERCADO&productContains=LEITE'))).toBe(true))
   })
 
+  it('clears every dashboard filter and reloads the unfiltered dashboard', async () => {
+    render(<App />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Filtros' }))
+    fireEvent.change(await screen.findByLabelText('DATA INICIAL'), { target: { value: '2026-08-01' } })
+    fireEvent.change(screen.getByLabelText('DATA FINAL'), { target: { value: '2026-08-31' } })
+    fireEvent.change(screen.getByLabelText('VENDEDOR'), { target: { value: 'ANA' } })
+    fireEvent.change(screen.getByLabelText('MARCA'), { target: { value: 'OROLEITE' } })
+    fireEvent.change(screen.getByLabelText('CLIENTE CONTEM'), { target: { value: 'MERCADO' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Limpar filtros' }))
+
+    expect(window.location.search).toBe('')
+    await waitFor(() => expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).endsWith('/api/dashboard'))).toBe(true))
+    expect(document.querySelector('#dashboard-filter-panel')).not.toBeInTheDocument()
+  })
+
+  it('clears a seller loaded from the dashboard URL', async () => {
+    window.history.replaceState({}, '', '/?seller=ANA')
+    vi.resetModules()
+    const { default: AppFromUrl } = await import('./App')
+
+    render(<AppFromUrl />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Filtros' }))
+    expect(await screen.findByLabelText('VENDEDOR')).toHaveValue('ANA')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Limpar filtros' }))
+    expect(window.location.search).toBe('')
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Filtros' }))
+    expect(await screen.findByLabelText('VENDEDOR')).toHaveValue('')
+  })
+
   it('loads registered sellers into the dashboard filter', async () => {
     render(<App />)
 

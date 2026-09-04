@@ -49,7 +49,7 @@ function writeSellerFilter(seller: string): void {
 }
 
 const emptyDashboardFilters: DashboardFilters = {
-  startDate: '', endDate: '', seller: readSellerFilter(), brand: '', group: '', city: '', customerContains: '', productContains: '', movementType: '',
+  startDate: '', endDate: '', seller: '', brand: '', group: '', city: '', customerContains: '', productContains: '', movementType: '',
 }
 
 const emptyDashboardFilterOptions: DashboardFilterOptions = { brands: [], groups: [], cities: [], movementTypes: [] }
@@ -74,7 +74,7 @@ export default function App() {
   const [password, setPassword] = useState('')
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [dashboardDetails, setDashboardDetails] = useState<DashboardDetails | null>(null)
-  const [dashboardFilters, setDashboardFilters] = useState<DashboardFilters>(emptyDashboardFilters)
+  const [dashboardFilters, setDashboardFilters] = useState<DashboardFilters>(() => ({ ...emptyDashboardFilters, seller: readSellerFilter() }))
   const [dashboardFilterOptions, setDashboardFilterOptions] = useState<DashboardFilterOptions>(emptyDashboardFilterOptions)
   const [state, setState] = useState<PageState>('idle')
   const [view, setView] = useState<View>('dashboard')
@@ -116,9 +116,10 @@ export default function App() {
   }
 
   function clearDashboardFilters() {
-    setDashboardFilters(emptyDashboardFilters)
+    const clearedFilters = { ...emptyDashboardFilters }
+    setDashboardFilters(clearedFilters)
     writeSellerFilter('')
-    void loadDashboard(emptyDashboardFilters)
+    void loadDashboard(clearedFilters)
   }
 
   function navigate(nextView: Exclude<View, 'import'>) {
