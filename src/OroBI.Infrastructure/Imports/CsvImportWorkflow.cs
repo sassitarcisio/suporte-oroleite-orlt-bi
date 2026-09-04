@@ -165,7 +165,12 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
         }
     }
 
-    private static string Normalize(string value) => value.Trim().TrimStart('\uFEFF').ToUpperInvariant();
+    private static string Normalize(string value)
+    {
+        var normalized = value.Trim().TrimStart('\uFEFF');
+        if (normalized.StartsWith("\u00EF\u00BB\u00BF", StringComparison.Ordinal)) normalized = normalized[3..];
+        return normalized.ToUpperInvariant();
+    }
 
     private static PppParseResult ParsePppRecords(Guid batchId, string csv)
     {

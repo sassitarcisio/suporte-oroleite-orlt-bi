@@ -266,4 +266,21 @@ public sealed class CsvImportWorkflowTests
         var defaults = await db.ImportedClosingDefaults.SingleAsync();
         Assert.Equal(1000m, defaults.PppMaximumAward);
     }
+
+    [Fact]
+    public async Task Persists_ppp_default_when_goal_values_file_has_windows1252_bom_artifact()
+    {
+        var options = new DbContextOptionsBuilder<OroBiDbContext>()
+            .UseInMemoryDatabase(nameof(Persists_ppp_default_when_goal_values_file_has_windows1252_bom_artifact))
+            .Options;
+        await using var db = new OroBiDbContext(options);
+        var workflow = new CsvImportWorkflow(db, new InMemoryImportFileStore());
+        const string csv = "\u00EF\u00BB\u00BFPPP;R$ 1.000,00;;;\nSALARIO;R$ 1.951,00;COMISSAO;1%\nMARCA;FATURAMENTO;POSITIVACAO;TROCA;TROCA_PERCENTUAL\nNESTLE;200;200;200;2%";
+        await using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(csv));
+
+        await workflow.ImportAsync(new ImportSubmission(ImportFileType.GoalValues, "VALOR_METAS.csv", "text/csv", stream), CancellationToken.None);
+
+        var defaults = await db.ImportedClosingDefaults.SingleAsync();
+        Assert.Equal(1000m, defaults.PppMaximumAward);
+    }
 }
