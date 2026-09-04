@@ -164,6 +164,17 @@ describe('App dashboard', () => {
     expect(screen.getByText('Escolha o arquivo de origem').closest('label')).toHaveAttribute('for', 'import-file')
   })
 
+  it('selects goal values when the current VALOR_METAS file is chosen', async () => {
+    render(<App />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Importar' }))
+    fireEvent.change(screen.getByLabelText('ARQUIVO CSV'), {
+      target: { files: [new File(['MARCA;FATURAMENTO'], 'VALOR_METAS.csv', { type: 'text/csv' })] },
+    })
+
+    expect(screen.getByLabelText('TIPO')).toHaveValue('GoalValues')
+  })
+
   it('reloads the dashboard after a completed CSV import', async () => {
     let dashboardRequests = 0
     vi.mocked(fetch).mockImplementation((input: RequestInfo | URL) => {
