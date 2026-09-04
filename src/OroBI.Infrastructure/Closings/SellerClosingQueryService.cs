@@ -79,11 +79,12 @@ public sealed class SellerClosingQueryService(OroBiDbContext dbContext) : ISelle
     private async Task<SellerClosingSummary?> GetDeividClosingAsync(int year, int month, decimal? baseSalary, OroBI.Domain.Closings.ImportedClosingDefaults? importedDefaults, CancellationToken cancellationToken)
     {
         if (baseSalary is null) return null;
+        var importedTeam = DeividTeam.Select(SellerAliasCatalog.ResolveImportedName).ToHashSet(StringComparer.Ordinal);
         var movements = await dbContext.CommercialMovements.AsNoTracking()
             .Where(item => item.MovementDate.Year == year && item.MovementDate.Month == month && item.MovementType != "BONIFICACAO")
             .ToListAsync(cancellationToken);
-        var ownRevenue = movements.Where(item => item.Seller == "DEIVID MANNES").Sum(item => item.TotalValue);
-        var teamRevenue = movements.Where(item => DeividTeam.Contains(item.Seller)).Sum(item => item.TotalValue);
+        var ownRevenue = movements.Where(item => item.Seller == SellerAliasCatalog.ResolveImportedName("DEIVID MANNES")).Sum(item => item.TotalValue);
+        var teamRevenue = movements.Where(item => importedTeam.Contains(item.Seller)).Sum(item => item.TotalValue);
         var networkRevenue = movements.Where(item => item.Seller != "OPERACAO BAUDUCCO" && (item.Group == "BISTEK" || item.Group == "GIASSI")).Sum(item => item.TotalValue);
         var totalRevenue = movements.Sum(item => item.TotalValue);
         var trade = movements.Where(item => item.MovementType is "TROCA" or "TROCA DEV").Sum(item => decimal.Abs(item.TotalValue));
@@ -112,7 +113,7 @@ public sealed class SellerClosingQueryService(OroBiDbContext dbContext) : ISelle
                 0m,
                 pppMaximumAward.Value,
                 teamPpp.Where(item => item.Seller == teamSeller).Select(item => ((decimal)item.CustomerCount, (decimal)item.ItemsPerSegment, (decimal)item.GroupsPlaced)).ToArray(),
-                BuildBrandInputs(values, teamGoals.Where(item => item.Seller == teamSeller), movements.Where(item => item.Seller == teamSeller))));
+                BuildBrandInputs(values, teamGoals.Where(item => item.Seller == teamSeller), movements.Where(item => item.Seller == SellerAliasCatalog.ResolveImportedName(teamSeller)))));
             return standard.TotalAwards;
         }).ToArray();
 

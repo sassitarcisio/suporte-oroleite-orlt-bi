@@ -63,8 +63,8 @@ public sealed class SpecialClosingQueryServiceTests
             GoalValueRecord.Create(valuesBatch.Id, "NESTLE", 100m, 50m, 25m, 2m),
             GoalRecord.Create(goalsBatch.Id, "ANDERSON GONCALVES SOUZA", 8, 2026, "FATURAMENTO", "Marca NESTLE / Valor", 100m, 100m),
             GoalRecord.Create(goalsBatch.Id, "ANDERSON GONCALVES SOUZA", 8, 2026, "POSITIVACAO", "Marca NESTLE / Positivacao", 100m, 100m),
-            Movement(movementsBatch.Id, "DEIVID MANNES", "VENDA", 10000m),
-            Movement(movementsBatch.Id, "ANDERSON GONCALVES SOUZA", "VENDA", 200000m),
+            Movement(movementsBatch.Id, "SUPERVISOR: DEIVID MANNES", "VENDA", 10000m),
+            Movement(movementsBatch.Id, "VENDEDOR: ANDERSON GONCALVES SOUZA", "VENDA", 200000m),
             Movement(movementsBatch.Id, "OUTRO VENDEDOR", "VENDA", 50000m, "BISTEK"),
             Movement(movementsBatch.Id, "OPERACAO BAUDUCCO", "VENDA", 1000000m));
         await db.SaveChangesAsync();
