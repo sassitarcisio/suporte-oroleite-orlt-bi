@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OroBI.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using OroBI.Infrastructure.Persistence;
 namespace OroBI.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(OroBiDbContext))]
-    partial class OroBiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260904172341_CreateImportedClosingDefaultsTable")]
+    partial class CreateImportedClosingDefaultsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
