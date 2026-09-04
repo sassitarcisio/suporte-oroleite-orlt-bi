@@ -16,6 +16,7 @@ type ClosingsPageProps = {
   sellers: string[]
   state: 'idle' | 'loading' | 'ready' | 'error'
   errorMessage: string | null
+  initialSeller?: string
   onSubmit: (seller: string, month: string) => void
 }
 
@@ -30,8 +31,8 @@ const referenceMonths = Array.from({ length: 24 }, (_, index) => {
   return { value, label: label.charAt(0).toUpperCase() + label.slice(1) }
 })
 
-export function ClosingsPage({ summary, sellers, state, errorMessage, onSubmit }: ClosingsPageProps) {
-  const [seller, setSeller] = useState('')
+export function ClosingsPage({ summary, sellers, state, errorMessage, initialSeller = '', onSubmit }: ClosingsPageProps) {
+  const [seller, setSeller] = useState(initialSeller)
   const [month, setMonth] = useState('')
 
   function submit(event: FormEvent<HTMLFormElement>) {

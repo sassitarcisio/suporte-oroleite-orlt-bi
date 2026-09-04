@@ -252,7 +252,7 @@ export default function App() {
       {view === 'dashboard' && <DashboardPage summary={summary} details={dashboardDetails} filters={dashboardFilters} options={dashboardFilterOptions} sellers={sellers} state={state} onFiltersChange={setDashboardFilters} onSubmit={() => applyDashboardFilter(dashboardFilters)} onClear={clearDashboardFilters} />}
       {page && !(['trades', 'sales-trades'] as View[]).includes(view) && <AnalyticsPage title={page.title} description={page.description} data={analysis} state={analysisState} />}
       {(view === 'trades' || view === 'sales-trades') && <TradeAnalysisPage mode={view} data={tradeAnalysis} state={analysisState} />}
-      {(['closings', 'closing-rh', 'closing-supervisor', 'closing-valdir'] as View[]).includes(view) && <ClosingsPage summary={closing} sellers={sellers} state={closingState} errorMessage={closingError} onSubmit={(activeSeller, month) => void loadClosing(activeSeller, month)} />}
+      {(['closings', 'closing-rh', 'closing-supervisor', 'closing-valdir'] as View[]).includes(view) && <ClosingsPage key={view} summary={closing} sellers={sellers} state={closingState} errorMessage={closingError} initialSeller={view === 'closing-supervisor' ? 'DEIVID MANNES' : view === 'closing-valdir' ? 'VALDIR ZACARIAS' : ''} onSubmit={(activeSeller, month) => void loadClosing(activeSeller, month)} />}
     </section>
   </main>
 }
