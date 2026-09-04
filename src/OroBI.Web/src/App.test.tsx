@@ -21,9 +21,9 @@ describe('App dashboard', () => {
           ? { accessToken: 'new-access-token' }
         : url.includes('/api/closings')
           ? { ppp: { meanPercent: 75, award: 300 }, revenueAward: 250, positivityAward: 100, tradeAward: 100, compensation: { commission: 120, salary: 2120 }, totalAwards: 750, brandAwards: [{ brand: 'NESTLE', positivityAward: 100, revenueAward: 100, tradeAward: 25, totalAward: 225 }] }
-          : url.endsWith('/api/trade-analysis')
+          : url.includes('/api/trade-analysis')
             ? { filteredMovementCount: 100, grossSales: 1500, netRevenue: 1350, totalTradeValue: 150, tradeToRevenuePercent: 11.11, tradeDevValue: 120, tradeValue: 30, tradeQuantity: 25, tradeMovementCount: 10, customerCount: 3, productCount: 4, brandCount: 2, dailyTrend: [{ date: '2026-08-01', value: 150 }], sellerRanking: [{ name: 'ANA', value: 150 }], customerRanking: [{ name: 'CLIENTE A', value: 150 }], productRanking: [{ name: 'PRODUTO A', value: 150 }], brandRanking: [{ name: 'MARCA A', value: 150 }] }
-          : url.endsWith('/api/sales-trades')
+          : url.includes('/api/sales-trades')
             ? { revenue: 1500, trades: 150, tradeToRevenuePercent: 10 }
           : { grossSales: 0, negativeMovements: 0, negativePercentage: 0, netResult: 0, saleQuantity: 0, movementCount: 0 }
 
@@ -92,6 +92,19 @@ describe('App dashboard', () => {
     expect(document.querySelector('.dashboard-layout')).toBeInTheDocument()
   })
 
+  it('defaults dashboard dates to the previous calendar month', () => {
+    const now = new Date()
+    const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    const firstDay = previousMonth.toISOString().slice(0, 10)
+    const lastDay = new Date(previousMonth.getFullYear(), previousMonth.getMonth() + 1, 0).toISOString().slice(0, 10)
+
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Filtros' }))
+
+    expect(screen.getByLabelText('DATA INICIAL')).toHaveValue(firstDay)
+    expect(screen.getByLabelText('DATA FINAL')).toHaveValue(lastDay)
+  })
+
   it('sends the dashboard operational filters to the API', async () => {
     render(<App />)
 
@@ -119,7 +132,7 @@ describe('App dashboard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Limpar filtros' }))
 
     expect(window.location.search).toBe('')
-    await waitFor(() => expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).endsWith('/api/dashboard'))).toBe(true))
+    await waitFor(() => expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).startsWith('/api/dashboard?startDate='))).toBe(true))
     expect(document.querySelector('#dashboard-filter-panel')).not.toBeInTheDocument()
   })
 
@@ -190,7 +203,7 @@ describe('App dashboard', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Analise Venda x Troca' }))
 
     expect(await screen.findByRole('heading', { name: 'Analise venda x troca' })).toBeVisible()
-    const salesTradesRequest = vi.mocked(fetch).mock.calls.find(([url]) => String(url).endsWith('/api/trade-analysis'))
+    const salesTradesRequest = vi.mocked(fetch).mock.calls.find(([url]) => String(url).startsWith('/api/trade-analysis?startDate='))
     expect(salesTradesRequest).toBeDefined()
     expect(new Headers(salesTradesRequest?.[1]?.headers).get('Authorization')).toBe('Bearer test-token')
   })
@@ -200,7 +213,7 @@ describe('App dashboard', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Analise Venda x Troca' }))
 
-    await waitFor(() => expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).endsWith('/api/trade-analysis'))).toBe(true))
+    await waitFor(() => expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).startsWith('/api/trade-analysis?startDate='))).toBe(true))
     expect(await screen.findByText('Clientes com troca')).toBeVisible()
   })
 
@@ -247,7 +260,7 @@ describe('App dashboard', () => {
       if (url.endsWith('/api/me')) return Promise.resolve(new Response(JSON.stringify({ roles: ['Administrador'] }), { status: 200 }))
       if (url.endsWith('/api/sellers')) return Promise.resolve(new Response(JSON.stringify([]), { status: 200 }))
       if (url.endsWith('/api/imports')) return Promise.resolve(new Response(JSON.stringify({}), { status: 201 }))
-      if (url.endsWith('/api/dashboard')) {
+      if (url.startsWith('/api/dashboard?') && !url.includes('/details')) {
         dashboardRequests += 1
         const summary = dashboardRequests === 1
           ? { grossSales: 0, negativeMovements: 0, negativePercentage: 0, netResult: 0, saleQuantity: 0, movementCount: 0 }

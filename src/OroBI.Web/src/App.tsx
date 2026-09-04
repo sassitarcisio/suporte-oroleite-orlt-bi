@@ -54,6 +54,17 @@ const emptyDashboardFilters: DashboardFilters = {
 
 const emptyDashboardFilterOptions: DashboardFilterOptions = { brands: [], groups: [], cities: [], movementTypes: [] }
 
+function toDateInputValue(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
+
+function createDashboardFilters(seller = ''): DashboardFilters {
+  const today = new Date()
+  const previousMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1)
+  const previousMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0)
+  return { ...emptyDashboardFilters, startDate: toDateInputValue(previousMonth), endDate: toDateInputValue(previousMonthEnd), seller }
+}
+
 function filterQuery(filters: DashboardFilters): string {
   const parameters = new URLSearchParams()
   if (filters.startDate) parameters.set('startDate', filters.startDate)
@@ -74,7 +85,7 @@ export default function App() {
   const [password, setPassword] = useState('')
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [dashboardDetails, setDashboardDetails] = useState<DashboardDetails | null>(null)
-  const [dashboardFilters, setDashboardFilters] = useState<DashboardFilters>(() => ({ ...emptyDashboardFilters, seller: readSellerFilter() }))
+  const [dashboardFilters, setDashboardFilters] = useState<DashboardFilters>(() => createDashboardFilters(readSellerFilter()))
   const [dashboardFilterOptions, setDashboardFilterOptions] = useState<DashboardFilterOptions>(emptyDashboardFilterOptions)
   const [state, setState] = useState<PageState>('idle')
   const [view, setView] = useState<View>('dashboard')
@@ -116,7 +127,7 @@ export default function App() {
   }
 
   function clearDashboardFilters() {
-    const clearedFilters = { ...emptyDashboardFilters }
+    const clearedFilters = createDashboardFilters()
     setDashboardFilters(clearedFilters)
     writeSellerFilter('')
     void loadDashboard(clearedFilters)
