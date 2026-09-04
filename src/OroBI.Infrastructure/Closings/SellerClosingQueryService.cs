@@ -22,13 +22,7 @@ public sealed class SellerClosingQueryService(OroBiDbContext dbContext) : ISelle
         var importedSeller = SellerAliasCatalog.ResolveImportedName(requestedSeller);
         var configuration = await dbContext.SellerClosingConfigurations.AsNoTracking()
             .SingleOrDefaultAsync(item => item.Seller == requestedSeller && item.Year == year && item.Month == month, cancellationToken);
-        var importedDefaults = await dbContext.ImportedClosingDefaults.AsNoTracking()
-            .Join(dbContext.ImportBatches.AsNoTracking(), defaults => defaults.ImportBatchId, batch => batch.Id, (defaults, batch) => new { defaults, batch })
-            .Where(item => item.batch.FileType == ImportFileType.GoalValues &&
-                (item.batch.Status == ImportBatchStatus.Completed || item.batch.Status == ImportBatchStatus.CompletedWithErrors))
-            .OrderByDescending(item => item.batch.StartedAtUtc)
-            .Select(item => item.defaults)
-            .FirstOrDefaultAsync(cancellationToken);
+        var importedDefaults = await GetImportedDefaultsAsync(cancellationToken);
         if (requestedSeller == "VALDIR ZACARIAS")
         {
             return await GetValdirClosingAsync(year, month, configuration?.BaseSalary ?? ImportedSellerSalary(importedDefaults, requestedSeller), cancellationToken);
@@ -61,6 +55,29 @@ public sealed class SellerClosingQueryService(OroBiDbContext dbContext) : ISelle
             BrandAwards = standard.BrandAwards
         };
     }
+
+    public async Task<ClosingConfigurationStatus> GetConfigurationStatusAsync(string seller, int year, int month, CancellationToken cancellationToken)
+    {
+        var requestedSeller = seller.Trim().ToUpperInvariant();
+        var importedSeller = SellerAliasCatalog.ResolveImportedName(requestedSeller);
+        var configuration = await dbContext.SellerClosingConfigurations.AsNoTracking()
+            .SingleOrDefaultAsync(item => item.Seller == requestedSeller && item.Year == year && item.Month == month, cancellationToken);
+        var importedDefaults = await GetImportedDefaultsAsync(cancellationToken);
+        if (importedDefaults is null) return new(false, false, false, false);
+
+        var hasSalary = configuration is not null || ImportedSellerSalary(importedDefaults, requestedSeller) is not null ||
+            ImportedSellerSalary(importedDefaults, importedSeller) is not null || importedDefaults.BaseSalary is not null;
+        return new(true, hasSalary, configuration is not null || importedDefaults.CommissionPercent is not null, configuration is not null || importedDefaults.PppMaximumAward is not null);
+    }
+
+    private Task<OroBI.Domain.Closings.ImportedClosingDefaults?> GetImportedDefaultsAsync(CancellationToken cancellationToken) =>
+        dbContext.ImportedClosingDefaults.AsNoTracking()
+            .Join(dbContext.ImportBatches.AsNoTracking(), defaults => defaults.ImportBatchId, batch => batch.Id, (defaults, batch) => new { defaults, batch })
+            .Where(item => item.batch.FileType == ImportFileType.GoalValues &&
+                (item.batch.Status == ImportBatchStatus.Completed || item.batch.Status == ImportBatchStatus.CompletedWithErrors))
+            .OrderByDescending(item => item.batch.StartedAtUtc)
+            .Select(item => item.defaults)
+            .FirstOrDefaultAsync(cancellationToken);
 
     private async Task<SellerClosingSummary?> GetValdirClosingAsync(int year, int month, decimal? baseSalary, CancellationToken cancellationToken)
     {

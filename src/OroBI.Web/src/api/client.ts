@@ -5,7 +5,11 @@ export async function apiRequest<T>(path: string, token: string, init: RequestIn
   headers.set('Authorization', `Bearer ${token}`)
 
   const response = await fetch(`${apiBaseUrl}${path}`, { ...init, headers })
-  if (!response.ok) throw new Error(`API request failed: ${response.status}`)
+  if (!response.ok) {
+    const error = await response.json().catch(() => null) as { error?: unknown } | null
+    const message = typeof error?.error === 'string' ? error.error : `API request failed: ${response.status}`
+    throw new Error(message)
+  }
   return response.json() as Promise<T>
 }
 

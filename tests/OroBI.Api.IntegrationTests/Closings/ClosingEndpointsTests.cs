@@ -41,12 +41,22 @@ public sealed class ClosingEndpointsTests : IClassFixture<WebApplicationFactory<
         Assert.Contains("brandAwards", body, StringComparison.Ordinal);
         Assert.Contains("NESTLE", body, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public async Task Get_closing_describes_the_missing_configuration_when_no_result_is_available()
+    {
+        var response = await _client.GetAsync("/api/closings?seller=SEM_CONFIG&month=2026-08");
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.True(response.StatusCode == HttpStatusCode.NotFound, body);
+        Assert.Contains("VALOR_METAS", body, StringComparison.Ordinal);
+    }
 }
 
 internal sealed class TestSellerClosingQueryService : ISellerClosingQueryService
 {
     public Task<SellerClosingSummary?> GetAsync(string seller, int year, int month, CancellationToken cancellationToken) =>
-        Task.FromResult<SellerClosingSummary?>(new SellerClosingSummary(
+        Task.FromResult<SellerClosingSummary?>(seller == "SEM_CONFIG" ? null : new SellerClosingSummary(
             new PppSummary(75m, 300m),
             100m,
             50m,
@@ -56,4 +66,7 @@ internal sealed class TestSellerClosingQueryService : ISellerClosingQueryService
         {
             BrandAwards = [new ClosingBrandAward("NESTLE", 50m, 100m, 25m)]
         });
+
+    public Task<ClosingConfigurationStatus> GetConfigurationStatusAsync(string seller, int year, int month, CancellationToken cancellationToken) =>
+        Task.FromResult(new ClosingConfigurationStatus(false, false, false, false));
 }

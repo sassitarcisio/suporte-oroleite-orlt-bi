@@ -149,9 +149,12 @@ export default function App() {
       setClosing(await apiRequest<ClosingSummary>(`/api/closings?${query}`, token))
       setClosingState('ready')
     } catch (error) {
-      const status = error instanceof Error ? error.message.match(/(\d{3})$/)?.[1] : undefined
-      setClosingError(status
-        ? `A API retornou erro ${status}. Tente novamente em alguns instantes.`
+      const message = error instanceof Error ? error.message : undefined
+      const status = message?.match(/(\d{3})$/)?.[1]
+      setClosingError(message && !status
+        ? message
+        : status
+          ? `A API retornou erro ${status}. Tente novamente em alguns instantes.`
         : 'Nao foi possivel comunicar com a API. Verifique sua conexao e tente novamente.')
       setClosingState('error')
     }

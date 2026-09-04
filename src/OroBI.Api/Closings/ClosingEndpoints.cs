@@ -24,7 +24,9 @@ public static class ClosingEndpoints
         {
             if (!DateOnly.TryParseExact($"{month}-01", "yyyy-MM-dd", out var period)) return Results.BadRequest(new { error = "month must use yyyy-MM." });
             var result = await service.GetAsync(seller, period.Year, period.Month, cancellationToken);
-            return result is null ? Results.NotFound() : Results.Ok(result);
+            if (result is not null) return Results.Ok(result);
+            var status = await service.GetConfigurationStatusAsync(seller, period.Year, period.Month, cancellationToken);
+            return Results.NotFound(new { error = status.ErrorMessage });
         }).RequireAuthorization(AuthorizationPolicies.SellerScope);
         return endpoints;
     }

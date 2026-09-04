@@ -184,7 +184,7 @@ describe('App dashboard', () => {
       const url = String(input)
       if (url.endsWith('/api/me')) return Promise.resolve(new Response(JSON.stringify({ roles: ['Administrador'] }), { status: 200 }))
       if (url.endsWith('/api/sellers')) return Promise.resolve(new Response(JSON.stringify(['ANA']), { status: 200 }))
-      if (url.includes('/api/closings?')) return Promise.resolve(new Response('', { status: 500 }))
+      if (url.includes('/api/closings?')) return Promise.resolve(new Response(JSON.stringify({ error: 'Nenhum arquivo VALOR_METAS concluido foi encontrado para configurar o fechamento.' }), { status: 404 }))
       return Promise.resolve(new Response(JSON.stringify({ grossSales: 0, negativeMovements: 0, negativePercentage: 0, netResult: 0, saleQuantity: 0, movementCount: 0 }), { status: 200 }))
     })
     render(<App />)
@@ -195,7 +195,7 @@ describe('App dashboard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Consultar fechamento' }))
 
     expect(await screen.findByRole('heading', { name: 'Nao foi possivel consultar o fechamento' })).toBeVisible()
-    expect(screen.getByText('A API retornou erro 500. Tente novamente em alguns instantes.')).toBeVisible()
+    expect(screen.getByText('Nenhum arquivo VALOR_METAS concluido foi encontrado para configurar o fechamento.')).toBeVisible()
   })
 
   it('loads the sales versus trades analysis from its dedicated endpoint', async () => {
