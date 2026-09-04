@@ -19,7 +19,7 @@ describe('App dashboard', () => {
         : url.endsWith('/api/auth/login')
           ? { accessToken: 'new-access-token' }
         : url.includes('/api/closings')
-          ? { ppp: { meanPercent: 75, award: 300 }, revenueAward: 250, positivityAward: 100, tradeAward: 100, compensation: { commission: 120, salary: 2120 }, totalAwards: 750 }
+          ? { ppp: { meanPercent: 75, award: 300 }, revenueAward: 250, positivityAward: 100, tradeAward: 100, compensation: { commission: 120, salary: 2120 }, totalAwards: 750, brandAwards: [{ brand: 'NESTLE', positivityAward: 100, revenueAward: 100, tradeAward: 25, totalAward: 225 }] }
           : url.endsWith('/api/sales-trades')
             ? { revenue: 1500, trades: 150, tradeToRevenuePercent: 10 }
           : { grossSales: 0, negativeMovements: 0, negativePercentage: 0, netResult: 0, saleQuantity: 0, movementCount: 0 }
@@ -121,6 +121,8 @@ describe('App dashboard', () => {
 
     const financialSummary = await screen.findByTestId('closing-financial-summary')
     expect(financialSummary).toHaveTextContent(/750,00/)
+    expect(screen.getByRole('heading', { name: 'Premios por marca' })).toBeVisible()
+    expect(screen.getByText('NESTLE')).toBeVisible()
   })
 
   it('loads the sales versus trades analysis from its dedicated endpoint', async () => {

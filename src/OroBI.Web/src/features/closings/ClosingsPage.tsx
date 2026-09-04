@@ -8,6 +8,7 @@ export type ClosingSummary = {
   tradeAward: number
   compensation: { commission: number, salary: number }
   totalAwards: number
+  brandAwards?: Array<{ brand: string, positivityAward: number, revenueAward: number, tradeAward: number, totalAward: number }>
 }
 
 type ClosingsPageProps = {
@@ -46,6 +47,6 @@ export function ClosingsPage({ summary, sellers, state, onSubmit }: ClosingsPage
       <article className="metric"><p>Premio positivacao</p><strong>{money(summary.positivityAward)}</strong></article>
       <article className="metric"><p>Premio troca</p><strong>{money(summary.tradeAward)}</strong></article>
       <article className="metric"><p>Comissao</p><strong>{money(summary.compensation.commission)}</strong><span>Salario: {money(summary.compensation.salary)}</span></article>
-    </section></>}
+    </section>{summary.brandAwards && summary.brandAwards.length > 0 && <section className="closing-brand-awards"><h2>Premios por marca</h2><div className="closing-brand-awards-table"><div className="closing-brand-awards-head"><span>Marca</span><span>Faturamento</span><span>Positivacao</span><span>Troca</span><span>Total</span></div>{summary.brandAwards.map(award => <div className="closing-brand-awards-row" key={award.brand}><strong>{award.brand}</strong><span>{money(award.revenueAward)}</span><span>{money(award.positivityAward)}</span><span>{money(award.tradeAward)}</span><strong>{money(award.totalAward)}</strong></div>)}</div></section>}</>}
   </section>
 }

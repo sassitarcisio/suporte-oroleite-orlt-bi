@@ -33,4 +33,7 @@ public sealed record SellerClosingSummary(
     decimal PositivityAward,
     decimal TradeAward,
     CompensationSummary Compensation,
-    decimal TotalAwards);
+    decimal TotalAwards)
+{
+    public IReadOnlyCollection<ClosingBrandAward> BrandAwards { get; init; } = [];
+}
