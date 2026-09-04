@@ -4,7 +4,8 @@ public static class SellerAliasCatalog
 {
     private static readonly IReadOnlyDictionary<string, string> ImportedNames = new Dictionary<string, string>(StringComparer.Ordinal)
     {
-        ["MARCELO DA ROSA"] = "MARCELO IVONEI DA ROSA"
+        ["MARCELO DA ROSA"] = "MARCELO IVONEI DA ROSA",
+        ["RODRIGO KEHL"] = "RODRIGO"
     };
 
     public static string ResolveImportedName(string seller)
