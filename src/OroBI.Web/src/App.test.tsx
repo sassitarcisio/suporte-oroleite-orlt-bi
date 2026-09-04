@@ -238,7 +238,7 @@ describe('App dashboard', () => {
       if (url.endsWith('/api/me')) return Promise.resolve(new Response(JSON.stringify({ roles: ['Administrador'] }), { status: 200 }))
       if (url.endsWith('/api/sellers')) return Promise.resolve(new Response(JSON.stringify([]), { status: 200 }))
       if (url.endsWith('/api/imports')) return Promise.resolve(new Response(JSON.stringify({}), { status: 201 }))
-      if (url.startsWith('/api/dashboard?') && !url.includes('/details')) {
+      if (url.includes('/api/dashboard?') && !url.includes('/details')) {
         dashboardRequests += 1
         const summary = dashboardRequests === 1
           ? { grossSales: 0, negativeMovements: 0, negativePercentage: 0, netResult: 0, saleQuantity: 0, movementCount: 0 }
