@@ -7,6 +7,12 @@ namespace OroBI.Infrastructure.Closings;
 
 public sealed class SellerClosingQueryService(OroBiDbContext dbContext) : ISellerClosingQueryService
 {
+    private static readonly string[] DeividTeam =
+    [
+        "ANDERSON GONCALVES SOUZA", "MARCELO IVONEI DA ROSA", "MARCIO FERNANDES",
+        "MARCIO LUIZ DA ROSA", "PAULO RICARDO LOPES", "RAMON DO NASCIMENTO", "RODRIGO KEHL"
+    ];
+
     public async Task<SellerClosingSummary?> GetAsync(string seller, int year, int month, CancellationToken cancellationToken)
     {
         var normalizedSeller = seller.Trim().ToUpperInvariant();
@@ -19,7 +25,16 @@ public sealed class SellerClosingQueryService(OroBiDbContext dbContext) : ISelle
             .OrderByDescending(item => item.batch.StartedAtUtc)
             .Select(item => item.defaults)
             .FirstOrDefaultAsync(cancellationToken);
-        var baseSalary = configuration?.BaseSalary ?? (importedDefaults is not null && importedDefaults.SellerSalaries.TryGetValue(normalizedSeller, out var sellerSalary) ? sellerSalary : importedDefaults?.BaseSalary);
+        if (normalizedSeller == "VALDIR ZACARIAS")
+        {
+            return await GetValdirClosingAsync(year, month, configuration?.BaseSalary ?? ImportedSellerSalary(importedDefaults, normalizedSeller), cancellationToken);
+        }
+        if (normalizedSeller == "DEIVID MANNES")
+        {
+            return await GetDeividClosingAsync(year, month, configuration?.BaseSalary ?? ImportedSellerSalary(importedDefaults, normalizedSeller), cancellationToken);
+        }
+
+        var baseSalary = configuration?.BaseSalary ?? ImportedSellerSalary(importedDefaults, normalizedSeller) ?? importedDefaults?.BaseSalary;
         var commissionPercent = configuration?.CommissionPercent ?? importedDefaults?.CommissionPercent;
         var pppMaximumAward = configuration?.PppMaximumAward ?? importedDefaults?.PppMaximumAward;
         if (baseSalary is null || commissionPercent is null || pppMaximumAward is null) return null;
@@ -48,5 +63,56 @@ public sealed class SellerClosingQueryService(OroBiDbContext dbContext) : ISelle
         var commissionableRevenue = movements.Where(item => item.MovementType != "BONIFICACAO").Sum(item => item.TotalValue);
         var standard = StandardClosingCalculator.Calculate(new StandardClosingInput(commissionableRevenue, baseSalary.Value, commissionPercent.Value, pppMaximumAward.Value, ppp.Select(item => ((decimal)item.CustomerCount, (decimal)item.ItemsPerSegment, (decimal)item.GroupsPlaced)).ToArray(), brands));
         return new SellerClosingSummary(standard.Ppp, standard.BrandAwards.Sum(item => item.RevenueAward), standard.BrandAwards.Sum(item => item.PositivityAward), standard.BrandAwards.Sum(item => item.TradeAward), standard.Compensation, standard.TotalAwards);
+    }
+
+    private async Task<SellerClosingSummary?> GetValdirClosingAsync(int year, int month, decimal? baseSalary, CancellationToken cancellationToken)
+    {
+        if (baseSalary is null) return null;
+        var movements = await dbContext.CommercialMovements.AsNoTracking()
+            .Where(item => item.MovementDate.Year == year && item.MovementDate.Month == month &&
+                item.Seller != "OPERACAO BAUDUCCO" && item.MovementType != "BONIFICACAO")
+            .ToListAsync(cancellationToken);
+        var commissionableRevenue = movements.Sum(item => item.TotalValue);
+        var trade = movements.Where(item => item.MovementType is "TROCA" or "TROCA DEV").Sum(item => decimal.Abs(item.TotalValue));
+        var tradePercent = decimal.Abs(commissionableRevenue) == 0m ? 0m : trade / decimal.Abs(commissionableRevenue) * 100m;
+        var special = SpecialClosingCalculator.CalculateValdir(new ValdirClosingInput(baseSalary.Value, commissionableRevenue, tradePercent));
+        return new SellerClosingSummary(new PppSummary(0m, 0m), 0m, 0m, special.TradeAward, new CompensationSummary(special.Commission, special.SalaryAndCommission), special.TotalAwards);
+    }
+
+    private async Task<SellerClosingSummary?> GetDeividClosingAsync(int year, int month, decimal? baseSalary, CancellationToken cancellationToken)
+    {
+        if (baseSalary is null) return null;
+        var movements = await dbContext.CommercialMovements.AsNoTracking()
+            .Where(item => item.MovementDate.Year == year && item.MovementDate.Month == month && item.MovementType != "BONIFICACAO")
+            .ToListAsync(cancellationToken);
+        var ownRevenue = movements.Where(item => item.Seller == "DEIVID MANNES").Sum(item => item.TotalValue);
+        var teamRevenue = movements.Where(item => DeividTeam.Contains(item.Seller)).Sum(item => item.TotalValue);
+        var networkRevenue = movements.Where(item => item.Seller != "OPERACAO BAUDUCCO" && (item.Group == "BISTEK" || item.Group == "GIASSI")).Sum(item => item.TotalValue);
+        var totalRevenue = movements.Sum(item => item.TotalValue);
+        var trade = movements.Where(item => item.MovementType is "TROCA" or "TROCA DEV").Sum(item => decimal.Abs(item.TotalValue));
+        var tradePercent = decimal.Abs(totalRevenue) == 0m ? 0m : trade / decimal.Abs(totalRevenue) * 100m;
+        var teamAwards = new List<decimal>();
+        foreach (var teamSeller in DeividTeam)
+        {
+            var summary = await GetAsync(teamSeller, year, month, cancellationToken);
+            teamAwards.Add(summary?.TotalAwards ?? 0m);
+        }
+
+        var special = SpecialClosingCalculator.CalculateDeivid(new DeividClosingInput(baseSalary.Value, ownRevenue, teamRevenue, networkRevenue, teamAwards.Average(), tradePercent));
+        return new SellerClosingSummary(new PppSummary(0m, 0m), special.TeamAward, 0m, special.TradeAward, new CompensationSummary(special.Commission, special.SalaryAndCommission), special.TotalAwards);
+    }
+
+    private static decimal? ImportedSellerSalary(OroBI.Domain.Closings.ImportedClosingDefaults? importedDefaults, string seller)
+    {
+        if (importedDefaults is null) return null;
+        foreach (var entry in importedDefaults.SellerSalaries)
+        {
+            var normalizedKey = entry.Key.Trim().ToUpperInvariant();
+            var separatorIndex = normalizedKey.IndexOf(':');
+            var candidate = separatorIndex >= 0 ? normalizedKey[(separatorIndex + 1)..].Trim() : normalizedKey;
+            if (candidate == seller) return entry.Value;
+        }
+
+        return null;
     }
 }
