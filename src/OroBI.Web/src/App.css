@@ -45,3 +45,8 @@
 
 /* Monetary KPIs keep every digit visible on dense dashboard grids. */
 .dashboard-kpi strong.currency-value,.analysis-card strong.currency-value,.trade-kpi strong.compact-currency-value,.closing-financial-summary strong,.metric strong{overflow:visible;text-overflow:clip;font-size:clamp(17px,1.15vw,22px);line-height:1.08;letter-spacing:-.45px;white-space:nowrap}
+
+/* Net margin exposes nine KPIs; keep larger analysis sets in a balanced grid. */
+.analysis-metrics-7,.analysis-metrics-8,.analysis-metrics-9,.analysis-metrics-10{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:1000px){.analysis-metrics-7,.analysis-metrics-8,.analysis-metrics-9,.analysis-metrics-10{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.analysis-metrics-7,.analysis-metrics-8,.analysis-metrics-9,.analysis-metrics-10{grid-template-columns:1fr}}
