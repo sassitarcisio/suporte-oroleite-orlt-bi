@@ -51,6 +51,7 @@ describe('App dashboard', () => {
     render(<App />)
 
     expect(await screen.findByTestId('dashboard-charts')).toBeVisible()
+    expect(document.querySelector('.dashboard-workspace')).toBeInTheDocument()
   })
 
   it('opens the trades screen from the application navigation', async () => {
