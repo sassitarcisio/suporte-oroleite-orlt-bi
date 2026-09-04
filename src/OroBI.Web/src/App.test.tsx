@@ -156,6 +156,14 @@ describe('App dashboard', () => {
     expect(importRequest?.[1]?.body).toBeInstanceOf(FormData)
   })
 
+  it('makes the whole import dropzone activate the file input', async () => {
+    render(<App />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Importar' }))
+
+    expect(screen.getByText('Escolha o arquivo de origem').closest('label')).toHaveAttribute('for', 'import-file')
+  })
+
   it('reloads the dashboard after a completed CSV import', async () => {
     let dashboardRequests = 0
     vi.mocked(fetch).mockImplementation((input: RequestInfo | URL) => {

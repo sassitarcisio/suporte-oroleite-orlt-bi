@@ -23,7 +23,7 @@ export function ImportPage({ file, fileType, state, onBack, onFileChange, onFile
       <h1>Carregue a fonte,<br /><em>preserve a rastreabilidade.</em></h1>
       <form className="import-form" onSubmit={submit}>
         <label>TIPO<select value={fileType} onChange={event => onFileTypeChange(event.target.value)}><option>Power</option><option>Ppp</option><option>Goals</option><option>GoalValues</option></select></label>
-        <div className="file-picker"><label htmlFor="import-file">ARQUIVO CSV</label><input id="import-file" type="file" accept=".csv,text/csv" required onChange={event => onFileChange(event.target.files?.[0] ?? null)} /><span>{file?.name ?? 'Escolha o arquivo de origem'}</span></div>
+        <div className="file-picker"><label className="file-dropzone" htmlFor="import-file"><span className="file-picker-label">ARQUIVO CSV</span><input id="import-file" aria-label="ARQUIVO CSV" type="file" accept=".csv,text/csv" required onChange={event => onFileChange(event.target.files?.[0] ?? null)} /><span className="file-picker-name">{file?.name ?? 'Escolha o arquivo de origem'}</span></label></div>
         <button className="btn btn-dark" disabled={state === 'loading'}>{state === 'loading' ? 'Processando...' : 'Enviar CSV'} <i className={`fa-solid ${state === 'loading' ? 'fa-spinner fa-spin' : 'fa-arrow-up-from-bracket'}`} aria-hidden="true" /></button>
       </form>
       {state === 'error' && <p className="notice error">A importacao falhou. Verifique seu perfil e o arquivo.</p>}
