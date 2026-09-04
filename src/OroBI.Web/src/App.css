@@ -31,3 +31,5 @@
 .side-navigation button,.btn{font-weight:500}.rail-label,.eyebrow,.command-bar p,label{font-weight:600}.dashboard-kpi p,.analysis-card p,.metric p,.closing-financial-summary p{font-weight:600}.dashboard-kpi strong,.analysis-card strong,.metric strong,.closing-financial-summary strong{font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.035em}.dashboard-workspace .dashboard-kpi strong{letter-spacing:-.03em}.dashboard-kpi.primary strong{letter-spacing:-.045em}
 
 .command-bar strong,.dashboard-hero h1,.hero h1,.login-brand-panel h1,.login-form-heading h2,.analysis-header h1,.closing-header h1{font-weight:700}.analysis-card-top,.closing-query-title,.closing-empty-state h2,.dashboard-chart-card header p,.dashboard-filter-bar p,.dashboard-filter-bar button,.dashboard-filter-actions button,.closing-brand-awards-head{font-weight:600}.analysis-status,.login-brand-footer,.seller-chart li>span{font-weight:500}.dashboard-filter-bar strong{font-weight:600}.closing-brand-awards-row strong:not(:first-child),.seller-chart li strong{font-weight:700;font-variant-numeric:tabular-nums}
+
+.side-rail .brand-logo{background:transparent;padding:0;border-radius:0}
