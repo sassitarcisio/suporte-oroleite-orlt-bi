@@ -13,20 +13,25 @@ import './App.css'
 type LoginResponse = { accessToken: string }
 type CurrentUser = { roles: string[] }
 type PageState = 'idle' | 'loading' | 'ready' | 'error'
-type View = 'dashboard' | 'import' | 'trades' | 'sales-trades' | 'margins' | 'closings'
+type View = 'dashboard' | 'import' | 'trades' | 'sales-trades' | 'margins' | 'net-margin' | 'closings' | 'closing-rh' | 'closing-supervisor' | 'closing-valdir'
 
 const navigationItems: Array<{ view: Exclude<View, 'import'>, label: string, icon: string }> = [
   { view: 'dashboard', label: 'Dashboard', icon: 'fa-chart-pie' },
-  { view: 'trades', label: 'Trocas', icon: 'fa-arrow-right-arrow-left' },
-  { view: 'sales-trades', label: 'Venda x troca', icon: 'fa-scale-balanced' },
-  { view: 'margins', label: 'Margem', icon: 'fa-chart-line' },
-  { view: 'closings', label: 'Fechamento', icon: 'fa-wallet' },
+  { view: 'trades', label: 'Visao de Trocas', icon: 'fa-arrow-right-arrow-left' },
+  { view: 'sales-trades', label: 'Analise Venda x Troca', icon: 'fa-scale-balanced' },
+  { view: 'margins', label: 'Margem de Produtos', icon: 'fa-chart-line' },
+  { view: 'net-margin', label: 'Margem Liquida', icon: 'fa-coins' },
+  { view: 'closings', label: 'Fechamento por vendedor', icon: 'fa-wallet' },
+  { view: 'closing-rh', label: 'Fechamento RH', icon: 'fa-users' },
+  { view: 'closing-supervisor', label: 'Fechamento supervisor', icon: 'fa-user-tie' },
+  { view: 'closing-valdir', label: 'Fechamento Valdir', icon: 'fa-building' },
 ]
 
 const analysisPages: Partial<Record<View, { endpoint: string, title: string, description: string }>> = {
   trades: { endpoint: '/api/trades', title: 'Visao de trocas', description: 'Acompanhe as trocas fisicas e seu peso sobre as vendas.' },
   'sales-trades': { endpoint: '/api/sales-trades', title: 'Venda x troca', description: 'Compare receita comercial e movimentos de troca.' },
   margins: { endpoint: '/api/margins', title: 'Margem de produtos', description: 'Leia receita, custo, lucro bruto e margem da operacao.' },
+  'net-margin': { endpoint: '/api/net-margin', title: 'Margem liquida', description: 'Acompanhe venda liquida, custos e perdas da operacao.' },
 }
 
 function readSellerFilter(): string {
@@ -204,7 +209,7 @@ export default function App() {
     <section className={`main-canvas ${view === 'dashboard' ? 'dashboard-workspace' : 'analysis-workspace'}`}><header className="command-bar"><button className="menu-toggle" type="button" aria-label="Alternar navegacao" aria-controls="main-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(open => !open)}><i className="fa-solid fa-bars" aria-hidden="true" /></button><div><p>PAINEL EXECUTIVO</p><strong>{navigationItems.find(item => item.view === view)?.label ?? 'Importar'}</strong></div><div className="command-actions">{roles.includes('Administrador') && <button className="btn btn-accent" onClick={() => setView('import')}><i className="fa-solid fa-file-arrow-up" aria-hidden="true" /> Importar</button>}<button className="btn btn-ghost" onClick={() => { clearAccessToken(); setToken('') }} aria-label="Sair"><i className="fa-solid fa-right-from-bracket" aria-hidden="true" /></button></div></header>
       {view === 'dashboard' && <DashboardPage summary={summary} details={dashboardDetails} filters={dashboardFilters} options={dashboardFilterOptions} sellers={sellers} state={state} onFiltersChange={setDashboardFilters} onSubmit={() => applyDashboardFilter(dashboardFilters)} onClear={clearDashboardFilters} />}
       {page && <AnalyticsPage title={page.title} description={page.description} data={analysis} state={analysisState} />}
-      {view === 'closings' && <ClosingsPage summary={closing} sellers={sellers} state={closingState} onSubmit={(activeSeller, month) => void loadClosing(activeSeller, month)} />}
+      {(['closings', 'closing-rh', 'closing-supervisor', 'closing-valdir'] as View[]).includes(view) && <ClosingsPage summary={closing} sellers={sellers} state={closingState} onSubmit={(activeSeller, month) => void loadClosing(activeSeller, month)} />}
     </section>
   </main>
 }

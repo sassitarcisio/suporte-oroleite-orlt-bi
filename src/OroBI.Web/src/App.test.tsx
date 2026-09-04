@@ -57,7 +57,7 @@ describe('App dashboard', () => {
   it('opens the trades screen from the application navigation', async () => {
     render(<App />)
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Trocas' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Visao de Trocas' }))
 
     expect(await screen.findByRole('heading', { name: 'Visao de trocas' })).toBeVisible()
     expect(document.querySelector('.analysis-layout')).toBeInTheDocument()
@@ -115,7 +115,7 @@ describe('App dashboard', () => {
   it('shows the closing award for the selected seller and month', async () => {
     render(<App />)
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Fechamento' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Fechamento por vendedor' }))
     fireEvent.change(screen.getByLabelText('VENDEDOR'), { target: { value: 'ANA' } })
     fireEvent.change(screen.getByLabelText('MES'), { target: { value: '2026-08' } })
     fireEvent.click(screen.getByRole('button', { name: 'Consultar fechamento' }))
@@ -130,7 +130,7 @@ describe('App dashboard', () => {
   it('loads the sales versus trades analysis from its dedicated endpoint', async () => {
     render(<App />)
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Venda x troca' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Analise Venda x Troca' }))
 
     expect(await screen.findByRole('heading', { name: 'Venda x troca' })).toBeVisible()
     expect(await screen.findByText('R$ 1.500,00')).toBeVisible()

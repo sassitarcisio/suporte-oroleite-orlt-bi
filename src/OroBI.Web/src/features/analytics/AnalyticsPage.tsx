@@ -15,10 +15,19 @@ const labels: Record<string, string> = {
   cost: 'Custo',
   grossProfit: 'Lucro bruto',
   marginPercent: 'Margem',
+  grossSales: 'Vendas brutas',
+  returns: 'Devolucoes',
+  netSales: 'Venda liquida',
+  netCost: 'Custo liquido',
+  tradeLosses: 'Perdas em trocas',
+  boletoDiscounts: 'Desconto de boleto',
+  liquidProfit: 'Lucro liquido',
+  liquidMarginPercent: 'Margem liquida',
+  productCount: 'Produtos',
 }
 
-const moneyKeys = new Set(['revenue', 'trades', 'cost', 'grossProfit'])
-const percentKeys = new Set(['tradeToSalesPercent', 'tradeToRevenuePercent', 'marginPercent'])
+const moneyKeys = new Set(['revenue', 'trades', 'cost', 'grossProfit', 'grossSales', 'returns', 'netSales', 'netCost', 'tradeLosses', 'boletoDiscounts', 'liquidProfit'])
+const percentKeys = new Set(['tradeToSalesPercent', 'tradeToRevenuePercent', 'marginPercent', 'liquidMarginPercent'])
 const icons: Record<string, string> = {
   physicalTrades: 'fa-arrow-right-arrow-left',
   tradeToSalesPercent: 'fa-chart-pie',

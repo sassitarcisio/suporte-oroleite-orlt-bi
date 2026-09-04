@@ -19,7 +19,7 @@ public static class CommercialFilters
 
         if (!string.IsNullOrWhiteSpace(filter.Seller))
         {
-            var seller = filter.Seller.Trim().ToUpperInvariant();
+            var seller = SellerAliasCatalog.ResolveImportedName(filter.Seller);
             query = query.Where(movement => movement.Seller == seller);
         }
 

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OroBI.Application.Analytics;
 using OroBI.Application.Closings;
 using OroBI.Domain.Commercial;
 using OroBI.Domain.Goals;
@@ -17,9 +18,10 @@ public sealed class SellerClosingQueryService(OroBiDbContext dbContext) : ISelle
 
     public async Task<SellerClosingSummary?> GetAsync(string seller, int year, int month, CancellationToken cancellationToken)
     {
-        var normalizedSeller = seller.Trim().ToUpperInvariant();
+        var requestedSeller = seller.Trim().ToUpperInvariant();
+        var importedSeller = SellerAliasCatalog.ResolveImportedName(requestedSeller);
         var configuration = await dbContext.SellerClosingConfigurations.AsNoTracking()
-            .SingleOrDefaultAsync(item => item.Seller == normalizedSeller && item.Year == year && item.Month == month, cancellationToken);
+            .SingleOrDefaultAsync(item => item.Seller == requestedSeller && item.Year == year && item.Month == month, cancellationToken);
         var importedDefaults = await dbContext.ImportedClosingDefaults.AsNoTracking()
             .Join(dbContext.ImportBatches.AsNoTracking(), defaults => defaults.ImportBatchId, batch => batch.Id, (defaults, batch) => new { defaults, batch })
             .Where(item => item.batch.FileType == ImportFileType.GoalValues &&
@@ -27,25 +29,25 @@ public sealed class SellerClosingQueryService(OroBiDbContext dbContext) : ISelle
             .OrderByDescending(item => item.batch.StartedAtUtc)
             .Select(item => item.defaults)
             .FirstOrDefaultAsync(cancellationToken);
-        if (normalizedSeller == "VALDIR ZACARIAS")
+        if (requestedSeller == "VALDIR ZACARIAS")
         {
-            return await GetValdirClosingAsync(year, month, configuration?.BaseSalary ?? ImportedSellerSalary(importedDefaults, normalizedSeller), cancellationToken);
+            return await GetValdirClosingAsync(year, month, configuration?.BaseSalary ?? ImportedSellerSalary(importedDefaults, requestedSeller), cancellationToken);
         }
-        if (normalizedSeller == "DEIVID MANNES")
+        if (requestedSeller == "DEIVID MANNES")
         {
-            return await GetDeividClosingAsync(year, month, configuration?.BaseSalary ?? ImportedSellerSalary(importedDefaults, normalizedSeller), importedDefaults, cancellationToken);
+            return await GetDeividClosingAsync(year, month, configuration?.BaseSalary ?? ImportedSellerSalary(importedDefaults, requestedSeller), importedDefaults, cancellationToken);
         }
 
-        var baseSalary = configuration?.BaseSalary ?? ImportedSellerSalary(importedDefaults, normalizedSeller) ?? importedDefaults?.BaseSalary;
+        var baseSalary = configuration?.BaseSalary ?? ImportedSellerSalary(importedDefaults, requestedSeller) ?? ImportedSellerSalary(importedDefaults, importedSeller) ?? importedDefaults?.BaseSalary;
         var commissionPercent = configuration?.CommissionPercent ?? importedDefaults?.CommissionPercent;
         var pppMaximumAward = configuration?.PppMaximumAward ?? importedDefaults?.PppMaximumAward;
         if (baseSalary is null || commissionPercent is null || pppMaximumAward is null) return null;
         var movements = await dbContext.CommercialMovements.AsNoTracking()
-            .Where(item => item.Seller == normalizedSeller && item.MovementDate.Year == year && item.MovementDate.Month == month).ToListAsync(cancellationToken);
+            .Where(item => item.Seller == importedSeller && item.MovementDate.Year == year && item.MovementDate.Month == month).ToListAsync(cancellationToken);
         var goals = await dbContext.GoalRecords.AsNoTracking()
-            .Where(item => item.Seller == normalizedSeller && item.Year == year && item.Month == month).ToListAsync(cancellationToken);
+            .Where(item => item.Seller == importedSeller && item.Year == year && item.Month == month).ToListAsync(cancellationToken);
         var ppp = await dbContext.PppRecords.AsNoTracking()
-            .Where(item => item.Seller == normalizedSeller && item.Year == year && item.Month == month).ToListAsync(cancellationToken);
+            .Where(item => item.Seller == importedSeller && item.Year == year && item.Month == month).ToListAsync(cancellationToken);
         var values = importedDefaults is null
             ? new List<OroBI.Domain.Goals.GoalValueRecord>()
             : await dbContext.GoalValueRecords.AsNoTracking()
