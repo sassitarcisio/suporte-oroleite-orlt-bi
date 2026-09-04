@@ -9,6 +9,8 @@ public static class CommercialAnalyticsEndpoints
     {
         endpoints.MapGet($"{prefix}/trades", async ([AsParameters] DashboardQueryParameters query, ICommercialAnalyticsQueryService service, CancellationToken cancellationToken) =>
             Results.Ok(await service.GetTradesAsync(query.ToCommercialFilter(), cancellationToken))).RequireAuthorization(AuthorizationPolicies.ManagerOrAdministrator);
+        endpoints.MapGet($"{prefix}/trade-analysis", async ([AsParameters] DashboardQueryParameters query, ICommercialAnalyticsQueryService service, CancellationToken cancellationToken) =>
+            Results.Ok(await service.GetTradeAnalysisAsync(query.ToCommercialFilter(), cancellationToken))).RequireAuthorization(AuthorizationPolicies.ManagerOrAdministrator);
         endpoints.MapGet($"{prefix}/sales-trades", async ([AsParameters] DashboardQueryParameters query, ICommercialAnalyticsQueryService service, CancellationToken cancellationToken) =>
             Results.Ok(await service.GetSalesTradesAsync(query.ToCommercialFilter(), cancellationToken))).RequireAuthorization(AuthorizationPolicies.ManagerOrAdministrator);
         endpoints.MapGet($"{prefix}/margins", async ([AsParameters] DashboardQueryParameters query, ICommercialAnalyticsQueryService service, CancellationToken cancellationToken) =>

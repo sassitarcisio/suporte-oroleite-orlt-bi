@@ -20,6 +20,8 @@ describe('App dashboard', () => {
           ? { accessToken: 'new-access-token' }
         : url.includes('/api/closings')
           ? { ppp: { meanPercent: 75, award: 300 }, revenueAward: 250, positivityAward: 100, tradeAward: 100, compensation: { commission: 120, salary: 2120 }, totalAwards: 750, brandAwards: [{ brand: 'NESTLE', positivityAward: 100, revenueAward: 100, tradeAward: 25, totalAward: 225 }] }
+          : url.endsWith('/api/trade-analysis')
+            ? { filteredMovementCount: 100, grossSales: 1500, netRevenue: 1350, totalTradeValue: 150, tradeToRevenuePercent: 11.11, tradeDevValue: 120, tradeValue: 30, tradeQuantity: 25, tradeMovementCount: 10, customerCount: 3, productCount: 4, brandCount: 2, dailyTrend: [{ date: '2026-08-01', value: 150 }], sellerRanking: [{ name: 'ANA', value: 150 }], customerRanking: [{ name: 'CLIENTE A', value: 150 }], productRanking: [{ name: 'PRODUTO A', value: 150 }], brandRanking: [{ name: 'MARCA A', value: 150 }] }
           : url.endsWith('/api/sales-trades')
             ? { revenue: 1500, trades: 150, tradeToRevenuePercent: 10 }
           : { grossSales: 0, negativeMovements: 0, negativePercentage: 0, netResult: 0, saleQuantity: 0, movementCount: 0 }
@@ -60,8 +62,8 @@ describe('App dashboard', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Visao de Trocas' }))
 
     expect(await screen.findByRole('heading', { name: 'Visao de trocas' })).toBeVisible()
-    expect(document.querySelector('.analysis-layout')).toBeInTheDocument()
-    expect(document.querySelector('.analysis-metrics')).toBeInTheDocument()
+    expect(document.querySelector('.trade-analysis-layout')).toBeInTheDocument()
+    expect(document.querySelector('.trade-kpis')).toBeInTheDocument()
     expect(document.querySelector('.analysis-workspace')).toBeInTheDocument()
   })
 
@@ -132,11 +134,19 @@ describe('App dashboard', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Analise Venda x Troca' }))
 
-    expect(await screen.findByRole('heading', { name: 'Venda x troca' })).toBeVisible()
-    expect(await screen.findByText('R$ 1.500,00')).toBeVisible()
-    const salesTradesRequest = vi.mocked(fetch).mock.calls.find(([url]) => String(url).endsWith('/api/sales-trades'))
+    expect(await screen.findByRole('heading', { name: 'Analise venda x troca' })).toBeVisible()
+    const salesTradesRequest = vi.mocked(fetch).mock.calls.find(([url]) => String(url).endsWith('/api/trade-analysis'))
     expect(salesTradesRequest).toBeDefined()
     expect(new Headers(salesTradesRequest?.[1]?.headers).get('Authorization')).toBe('Bearer test-token')
+  })
+
+  it('loads the detailed trade analysis for sales versus trades', async () => {
+    render(<App />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Analise Venda x Troca' }))
+
+    await waitFor(() => expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).endsWith('/api/trade-analysis'))).toBe(true))
+    expect(await screen.findByText('Clientes com troca')).toBeVisible()
   })
 
   it('uploads a CSV from the administrator import screen', async () => {

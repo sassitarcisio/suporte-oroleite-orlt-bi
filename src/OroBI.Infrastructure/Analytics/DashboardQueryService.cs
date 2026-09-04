@@ -17,6 +17,9 @@ public sealed class DashboardQueryService(OroBiDbContext dbContext) : IDashboard
     public async Task<TradeSummary> GetTradesAsync(CommercialFilter filter, CancellationToken cancellationToken) =>
         TradeCalculator.Calculate(await GetMovementsAsync(filter, cancellationToken));
 
+    public async Task<TradeAnalysisReport> GetTradeAnalysisAsync(CommercialFilter filter, CancellationToken cancellationToken) =>
+        TradeAnalysisCalculator.Calculate(await GetMovementsAsync(filter, cancellationToken));
+
     public async Task<SalesTradeSummary> GetSalesTradesAsync(CommercialFilter filter, CancellationToken cancellationToken) =>
         SalesTradeCalculator.Calculate(await GetMovementsAsync(filter, cancellationToken));
 
