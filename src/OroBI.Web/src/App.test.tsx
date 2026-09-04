@@ -62,6 +62,7 @@ describe('App dashboard', () => {
     expect(await screen.findByRole('heading', { name: 'Visao de trocas' })).toBeVisible()
     expect(document.querySelector('.analysis-layout')).toBeInTheDocument()
     expect(document.querySelector('.analysis-metrics')).toBeInTheDocument()
+    expect(document.querySelector('.analysis-workspace')).toBeInTheDocument()
   })
 
   it('opens the responsive navigation menu', async () => {
@@ -123,6 +124,7 @@ describe('App dashboard', () => {
     expect(financialSummary).toHaveTextContent(/750,00/)
     expect(screen.getByRole('heading', { name: 'Premios por marca' })).toBeVisible()
     expect(screen.getByText('NESTLE')).toBeVisible()
+    expect(document.querySelector('.analysis-workspace')).toBeInTheDocument()
   })
 
   it('loads the sales versus trades analysis from its dedicated endpoint', async () => {
@@ -141,6 +143,7 @@ describe('App dashboard', () => {
     render(<App />)
 
     fireEvent.click(await screen.findByRole('button', { name: 'Importar' }))
+    expect(document.querySelector('.import-workspace')).toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('ARQUIVO CSV'), {
       target: { files: [new File(['seller;value'], 'power.csv', { type: 'text/csv' })] },
     })
