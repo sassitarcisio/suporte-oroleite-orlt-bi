@@ -79,6 +79,7 @@ describe('App dashboard', () => {
   it('persists the dashboard seller filter in the URL', async () => {
     render(<App />)
 
+    fireEvent.click(await screen.findByRole('button', { name: 'Filtros' }))
     fireEvent.change(await screen.findByLabelText('VENDEDOR'), { target: { value: 'ANA' } })
     fireEvent.click(screen.getByRole('button', { name: 'Aplicar filtros' }))
 
@@ -89,6 +90,7 @@ describe('App dashboard', () => {
   it('sends the dashboard operational filters to the API', async () => {
     render(<App />)
 
+    fireEvent.click(await screen.findByRole('button', { name: 'Filtros' }))
     fireEvent.change(await screen.findByLabelText('DATA INICIAL'), { target: { value: '2026-08-01' } })
     fireEvent.change(screen.getByLabelText('DATA FINAL'), { target: { value: '2026-08-31' } })
     fireEvent.change(screen.getByLabelText('MARCA'), { target: { value: 'OROLEITE' } })
@@ -103,6 +105,7 @@ describe('App dashboard', () => {
   it('loads registered sellers into the dashboard filter', async () => {
     render(<App />)
 
+    fireEvent.click(await screen.findByRole('button', { name: 'Filtros' }))
     expect(await screen.findByRole('option', { name: 'ANA' })).toBeVisible()
     expect(screen.getByRole('option', { name: 'BRUNO' })).toBeVisible()
   })
@@ -185,7 +188,7 @@ describe('App dashboard', () => {
     fireEvent.change(screen.getByLabelText('SENHA'), { target: { value: 'senha-segura' } })
     fireEvent.click(screen.getByRole('button', { name: 'Entrar' }))
 
-    expect(await screen.findByLabelText('DATA INICIAL')).toBeVisible()
+    expect(await screen.findByRole('button', { name: 'Filtros' })).toBeVisible()
     expect(sessionStorage.getItem('orobi.access-token')).toBe('new-access-token')
   })
 

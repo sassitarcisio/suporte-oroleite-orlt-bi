@@ -1,4 +1,4 @@
-import type { FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 
 export type DashboardSummary = {
   grossSales: number
@@ -57,13 +57,21 @@ function trendPoints(points: DashboardDetails['dailyTrend'], pick: (point: Dashb
 }
 
 export function DashboardPage({ summary, filters, options, details, sellers, state, onFiltersChange, onSubmit, onClear }: DashboardPageProps) {
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const activeFilters = [filters.startDate, filters.endDate, filters.seller, filters.brand, filters.group, filters.city, filters.customerContains, filters.productContains, filters.movementType].filter(Boolean).length
+
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     onSubmit()
+    setFiltersOpen(false)
   }
 
   return <section className="dashboard-layout">
-    <form className="dashboard-filter" onSubmit={submit}>
+    <section className="dashboard-filter-bar" aria-label="Resumo de filtros">
+      <div><p>RECORTE ATUAL</p><strong>{activeFilters === 0 ? 'Visao consolidada' : `${activeFilters} filtro${activeFilters === 1 ? '' : 's'} aplicado${activeFilters === 1 ? '' : 's'}`}</strong></div>
+      <button type="button" aria-expanded={filtersOpen} aria-controls="dashboard-filter-panel" onClick={() => setFiltersOpen(open => !open)}><i className="fa-solid fa-sliders" aria-hidden="true" /> Filtros <i className={`fa-solid fa-chevron-${filtersOpen ? 'up' : 'down'}`} aria-hidden="true" /></button>
+    </section>
+    {filtersOpen && <form className="dashboard-filter" id="dashboard-filter-panel" onSubmit={submit}>
       <div className="dashboard-filter-grid">
         <label>DATA INICIAL<input type="date" value={filters.startDate} onChange={event => onFiltersChange({ ...filters, startDate: event.target.value })} /></label>
         <label>DATA FINAL<input type="date" value={filters.endDate} onChange={event => onFiltersChange({ ...filters, endDate: event.target.value })} /></label>
@@ -75,8 +83,8 @@ export function DashboardPage({ summary, filters, options, details, sellers, sta
         <label>CLIENTE CONTEM<input value={filters.customerContains} placeholder="Ex.: Mercado, Koch" onChange={event => onFiltersChange({ ...filters, customerContains: event.target.value })} /></label>
         <label>PRODUTO CONTEM<input value={filters.productContains} placeholder="Ex.: Leite, Queijo" onChange={event => onFiltersChange({ ...filters, productContains: event.target.value })} /></label>
       </div>
-      <div className="dashboard-filter-actions"><button type="submit">Aplicar filtros</button><button className="dashboard-filter-clear" type="button" onClick={onClear}>Limpar filtros</button></div>
-    </form>
+      <div className="dashboard-filter-actions"><button type="submit">Aplicar filtros</button><button className="dashboard-filter-clear" type="button" onClick={() => { onClear(); setFiltersOpen(false) }}>Limpar filtros</button></div>
+    </form>}
     {state === 'loading' && <section className="notice">Consultando dados comerciais...</section>}
     {state === 'error' && <section className="notice error">Nao foi possivel carregar a API.</section>}
     {summary && state === 'ready' && summary.movementCount === 0 && <section className="notice">Nenhum movimento encontrado para os filtros aplicados.</section>}
