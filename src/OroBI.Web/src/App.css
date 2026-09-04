@@ -42,3 +42,6 @@
 
 /* Native calendar indicators inherit the dark dashboard color scheme. */
 .dashboard-workspace .dashboard-filter-grid input[type="date"]{color-scheme:dark}
+
+/* Monetary KPIs keep every digit visible on dense dashboard grids. */
+.dashboard-kpi strong.currency-value,.analysis-card strong.currency-value,.trade-kpi strong.compact-currency-value,.closing-financial-summary strong,.metric strong{overflow:visible;text-overflow:clip;font-size:clamp(17px,1.15vw,22px);line-height:1.08;letter-spacing:-.45px;white-space:nowrap}

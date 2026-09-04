@@ -1,6 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
+import { TradeAnalysisPage } from './features/analytics/TradeAnalysisPage'
 
 describe('App dashboard', () => {
   beforeEach(() => {
@@ -137,6 +138,27 @@ describe('App dashboard', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Filtros' }))
     expect(await screen.findByLabelText('VENDEDOR')).toHaveValue('')
+  })
+
+  it('uses compact currency rendering for long trade KPI values', () => {
+    render(<TradeAnalysisPage mode="sales-trades" state="ready" data={{
+      filteredMovementCount: 1,
+      grossSales: 6349887.34,
+      netRevenue: 6180226.98,
+      totalTradeValue: 239884.77,
+      tradeToRevenuePercent: 3.88,
+      tradeDevValue: 235441.7,
+      tradeValue: 4443.07,
+      tradeQuantity: 44715,
+      tradeMovementCount: 5368,
+      customerCount: 214,
+      productCount: 207,
+      brandCount: 19,
+      dailyTrend: [], sellerRanking: [], customerRanking: [], productRanking: [], brandRanking: [],
+    }} />)
+
+    const revenueCard = screen.getByText('Faturamento liquido').closest('article')
+    expect(within(revenueCard!).getByText('R$ 6.180.226,98')).toHaveClass('compact-currency-value')
   })
 
   it('loads registered sellers into the dashboard filter', async () => {
