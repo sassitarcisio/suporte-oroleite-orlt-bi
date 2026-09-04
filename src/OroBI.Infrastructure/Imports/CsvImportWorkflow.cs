@@ -275,7 +275,7 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
             if (!decimal.TryParse(values[1].Trim().Replace("R$", string.Empty, StringComparison.OrdinalIgnoreCase).Replace("%", string.Empty, StringComparison.Ordinal), NumberStyles.Number | NumberStyles.AllowCurrencySymbol, culture, out var value)) continue;
             if (key is "SALARIO" or "SALÁRIO") baseSalary = value;
             else if (key is "COMISSAO" or "COMISSÃO") commissionPercent = value;
-            else if (key == "PPP") pppMaximumAward = value;
+            else if (key.EndsWith("PPP", StringComparison.Ordinal)) pppMaximumAward = value;
             else if (key.StartsWith("VENDEDOR:", StringComparison.Ordinal) || key.StartsWith("SUPERVISOR:", StringComparison.Ordinal)) sellerSalaries[key] = value;
         }
         foreach (var item in lines.Skip(headerIndex + 1).Select((line, index) => new { Line = line, LineNumber = headerIndex + index + 2 }))
