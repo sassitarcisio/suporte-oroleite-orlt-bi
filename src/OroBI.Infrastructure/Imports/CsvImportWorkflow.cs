@@ -165,7 +165,7 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
         }
     }
 
-    private static string Normalize(string value) => value.Trim().ToUpperInvariant();
+    private static string Normalize(string value) => value.Trim().TrimStart('\uFEFF').ToUpperInvariant();
 
     private static PppParseResult ParsePppRecords(Guid batchId, string csv)
     {

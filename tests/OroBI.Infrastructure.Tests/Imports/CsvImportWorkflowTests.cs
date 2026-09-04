@@ -249,4 +249,21 @@ public sealed class CsvImportWorkflowTests
         Assert.Equal(2883.2m, defaults.SellerSalaries["SUPERVISOR: DEIVID MANNES"]);
         Assert.Equal(2662.5m, defaults.SellerSalaries["VALDIR ZACARIAS"]);
     }
+
+    [Fact]
+    public async Task Persists_ppp_default_when_goal_values_file_starts_with_utf8_bom()
+    {
+        var options = new DbContextOptionsBuilder<OroBiDbContext>()
+            .UseInMemoryDatabase(nameof(Persists_ppp_default_when_goal_values_file_starts_with_utf8_bom))
+            .Options;
+        await using var db = new OroBiDbContext(options);
+        var workflow = new CsvImportWorkflow(db, new InMemoryImportFileStore());
+        const string csv = "\uFEFFPPP;R$ 1.000,00;;;\nSALARIO;R$ 1.951,00;COMISSAO;1%\nMARCA;FATURAMENTO;POSITIVACAO;TROCA;TROCA_PERCENTUAL\nNESTLE;200;200;200;2%";
+        await using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(csv));
+
+        await workflow.ImportAsync(new ImportSubmission(ImportFileType.GoalValues, "VALOR_METAS.csv", "text/csv", stream), CancellationToken.None);
+
+        var defaults = await db.ImportedClosingDefaults.SingleAsync();
+        Assert.Equal(1000m, defaults.PppMaximumAward);
+    }
 }
