@@ -15,6 +15,7 @@ type ClosingsPageProps = {
   summary: ClosingSummary | null
   sellers: string[]
   state: 'idle' | 'loading' | 'ready' | 'error'
+  errorMessage: string | null
   onSubmit: (seller: string, month: string) => void
 }
 
@@ -29,7 +30,7 @@ const referenceMonths = Array.from({ length: 24 }, (_, index) => {
   return { value, label: label.charAt(0).toUpperCase() + label.slice(1) }
 })
 
-export function ClosingsPage({ summary, sellers, state, onSubmit }: ClosingsPageProps) {
+export function ClosingsPage({ summary, sellers, state, errorMessage, onSubmit }: ClosingsPageProps) {
   const [seller, setSeller] = useState('')
   const [month, setMonth] = useState('')
 
@@ -47,7 +48,7 @@ export function ClosingsPage({ summary, sellers, state, onSubmit }: ClosingsPage
       <button disabled={state === 'loading'}>Consultar fechamento</button>
     </form>
     {state === 'loading' && <section className="notice">Calculando fechamento...</section>}
-    {state === 'error' && <section className="closing-empty-state"><i className="fa-solid fa-sliders" aria-hidden="true" /><div><h2>Fechamento ainda nao configurado</h2><p>Faltam as regras de salario, comissao ou premio PPP para este vendedor e mes. Cadastre essas regras para liberar o calculo.</p></div></section>}
+    {state === 'error' && <section className="closing-empty-state"><i className="fa-solid fa-triangle-exclamation" aria-hidden="true" /><div><h2>Nao foi possivel consultar o fechamento</h2><p>{errorMessage ?? 'A consulta de fechamento falhou. Tente novamente em alguns instantes.'}</p></div></section>}
     {summary && state === 'ready' && <><section className="closing-financial-summary" data-testid="closing-financial-summary"><article><p>Salario + comissao</p><strong>{money(summary.compensation.salary)}</strong><span>Comissao: {money(summary.compensation.commission)}</span></article><article><p>Premios no periodo</p><strong>{money(summary.totalAwards)}</strong><span>PPP, faturamento, positivacao e troca</span></article><article><p>Total previsto</p><strong>{money(summary.compensation.salary + summary.totalAwards)}</strong><span>Salario, comissao e premios</span></article></section><section className="metrics">
       <article className="metric main"><p>Premios totais</p><strong>{money(summary.totalAwards)}</strong><span>PPP, faturamento, positivacao e troca</span></article>
       <article className="metric"><p>Premio PPP</p><strong>{money(summary.ppp.award)}</strong><span>{percent(summary.ppp.meanPercent)} de media</span></article>

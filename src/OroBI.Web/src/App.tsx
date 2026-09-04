@@ -97,6 +97,7 @@ export default function App() {
   const [analysisState, setAnalysisState] = useState<PageState>('idle')
   const [closing, setClosing] = useState<ClosingSummary | null>(null)
   const [closingState, setClosingState] = useState<PageState>('idle')
+  const [closingError, setClosingError] = useState<string | null>(null)
   const [sellers, setSellers] = useState<string[]>([])
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -142,11 +143,16 @@ export default function App() {
     if (!token || !activeSeller || !month) return
     setClosingState('loading')
     setClosing(null)
+    setClosingError(null)
     try {
       const query = new URLSearchParams({ seller: activeSeller, month })
       setClosing(await apiRequest<ClosingSummary>(`/api/closings?${query}`, token))
       setClosingState('ready')
-    } catch {
+    } catch (error) {
+      const status = error instanceof Error ? error.message.match(/(\d{3})$/)?.[1] : undefined
+      setClosingError(status
+        ? `A API retornou erro ${status}. Tente novamente em alguns instantes.`
+        : 'Nao foi possivel comunicar com a API. Verifique sua conexao e tente novamente.')
       setClosingState('error')
     }
   }
@@ -241,7 +247,7 @@ export default function App() {
       {view === 'dashboard' && <DashboardPage summary={summary} details={dashboardDetails} filters={dashboardFilters} options={dashboardFilterOptions} sellers={sellers} state={state} onFiltersChange={setDashboardFilters} onSubmit={() => applyDashboardFilter(dashboardFilters)} onClear={clearDashboardFilters} />}
       {page && !(['trades', 'sales-trades'] as View[]).includes(view) && <AnalyticsPage title={page.title} description={page.description} data={analysis} state={analysisState} />}
       {(view === 'trades' || view === 'sales-trades') && <TradeAnalysisPage mode={view} data={tradeAnalysis} state={analysisState} />}
-      {(['closings', 'closing-rh', 'closing-supervisor', 'closing-valdir'] as View[]).includes(view) && <ClosingsPage summary={closing} sellers={sellers} state={closingState} onSubmit={(activeSeller, month) => void loadClosing(activeSeller, month)} />}
+      {(['closings', 'closing-rh', 'closing-supervisor', 'closing-valdir'] as View[]).includes(view) && <ClosingsPage summary={closing} sellers={sellers} state={closingState} errorMessage={closingError} onSubmit={(activeSeller, month) => void loadClosing(activeSeller, month)} />}
     </section>
   </main>
 }

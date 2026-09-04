@@ -179,6 +179,25 @@ describe('App dashboard', () => {
     expect(document.querySelector('.analysis-workspace')).toBeInTheDocument()
   })
 
+  it('shows an API failure instead of a missing closing configuration', async () => {
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url.endsWith('/api/me')) return Promise.resolve(new Response(JSON.stringify({ roles: ['Administrador'] }), { status: 200 }))
+      if (url.endsWith('/api/sellers')) return Promise.resolve(new Response(JSON.stringify(['ANA']), { status: 200 }))
+      if (url.includes('/api/closings?')) return Promise.resolve(new Response('', { status: 500 }))
+      return Promise.resolve(new Response(JSON.stringify({ grossSales: 0, negativeMovements: 0, negativePercentage: 0, netResult: 0, saleQuantity: 0, movementCount: 0 }), { status: 200 }))
+    })
+    render(<App />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Fechamento por vendedor' }))
+    fireEvent.change(screen.getByLabelText('VENDEDOR'), { target: { value: 'ANA' } })
+    fireEvent.change(screen.getByLabelText('MES'), { target: { value: '2026-08' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Consultar fechamento' }))
+
+    expect(await screen.findByRole('heading', { name: 'Nao foi possivel consultar o fechamento' })).toBeVisible()
+    expect(screen.getByText('A API retornou erro 500. Tente novamente em alguns instantes.')).toBeVisible()
+  })
+
   it('loads the sales versus trades analysis from its dedicated endpoint', async () => {
     render(<App />)
 
