@@ -20,6 +20,14 @@ type ClosingsPageProps = {
 
 const money = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 const percent = (value: number) => new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(value) + '%'
+const referenceMonths = Array.from({ length: 24 }, (_, index) => {
+  const date = new Date()
+  date.setDate(1)
+  date.setMonth(date.getMonth() - index)
+  const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+  const label = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(date)
+  return { value, label: label.charAt(0).toUpperCase() + label.slice(1) }
+})
 
 export function ClosingsPage({ summary, sellers, state, onSubmit }: ClosingsPageProps) {
   const [seller, setSeller] = useState('')
@@ -35,7 +43,7 @@ export function ClosingsPage({ summary, sellers, state, onSubmit }: ClosingsPage
     <form className="closing-query-card" onSubmit={submit}>
       <div><p className="closing-query-title">Selecione o periodo</p><p className="closing-query-copy">O calculo usa as metas e regras comerciais configuradas para o vendedor.</p></div>
       <label>VENDEDOR<select required value={seller} onChange={event => setSeller(event.target.value)}><option value="" disabled>Selecione um vendedor</option>{sellers.map(registeredSeller => <option key={registeredSeller} value={registeredSeller}>{registeredSeller}</option>)}</select></label>
-      <label>MES<input type="month" required value={month} onChange={event => setMonth(event.target.value)} /></label>
+      <label>MES<select required value={month} onChange={event => setMonth(event.target.value)}><option value="" disabled>Selecione o mes</option>{referenceMonths.map(reference => <option key={reference.value} value={reference.value}>{reference.label}</option>)}</select></label>
       <button disabled={state === 'loading'}>Consultar fechamento</button>
     </form>
     {state === 'loading' && <section className="notice">Calculando fechamento...</section>}

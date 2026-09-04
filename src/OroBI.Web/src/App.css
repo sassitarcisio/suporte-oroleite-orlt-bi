@@ -33,3 +33,4 @@
 .command-bar strong,.dashboard-hero h1,.hero h1,.login-brand-panel h1,.login-form-heading h2,.analysis-header h1,.closing-header h1{font-weight:700}.analysis-card-top,.closing-query-title,.closing-empty-state h2,.dashboard-chart-card header p,.dashboard-filter-bar p,.dashboard-filter-bar button,.dashboard-filter-actions button,.closing-brand-awards-head{font-weight:600}.analysis-status,.login-brand-footer,.seller-chart li>span{font-weight:500}.dashboard-filter-bar strong{font-weight:600}.closing-brand-awards-row strong:not(:first-child),.seller-chart li strong{font-weight:700;font-variant-numeric:tabular-nums}
 
 .side-rail .brand-logo{background:transparent;padding:0;border-radius:0}
+.import-workspace .topbar .brand-logo{width:138px;height:78px;background:transparent;padding:0;border-radius:0}
