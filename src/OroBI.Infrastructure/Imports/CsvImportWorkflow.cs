@@ -256,6 +256,16 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
         {
             var values = line.Split(';');
             if (values.Length < 2) continue;
+            if (Normalize(values[0]) == "NOME:" && values.Length >= 3 && TryReadAmount(values[2], out var sellerSalary))
+            {
+                sellerSalaries[Normalize(values[1])] = sellerSalary;
+                continue;
+            }
+
+            if (values.Length >= 4 && Normalize(values[2]) == "COMISSAO" && TryReadAmount(values[3], out var inlineCommission))
+            {
+                commissionPercent = inlineCommission;
+            }
             var key = Normalize(values[0]);
             if (!decimal.TryParse(values[1].Trim().Replace("R$", string.Empty, StringComparison.OrdinalIgnoreCase).Replace("%", string.Empty, StringComparison.Ordinal), NumberStyles.Number | NumberStyles.AllowCurrencySymbol, culture, out var value)) continue;
             if (key is "SALARIO" or "SALÁRIO") baseSalary = value;
@@ -281,6 +291,14 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
             catch (FormatException exception) { errors.Add(new(item.LineNumber, exception.Message)); }
         }
         return new(records, errors, ImportedClosingDefaults.Create(batchId, baseSalary, commissionPercent, pppMaximumAward, sellerSalaries));
+
+        bool TryReadAmount(string raw, out decimal value)
+        {
+            var normalized = raw.Trim()
+                .Replace("R$", string.Empty, StringComparison.OrdinalIgnoreCase)
+                .Replace("%", string.Empty, StringComparison.Ordinal);
+            return decimal.TryParse(normalized, NumberStyles.Number | NumberStyles.AllowCurrencySymbol, culture, out value);
+        }
     }
 
     private sealed record PowerRowError(int LineNumber, string Message);
