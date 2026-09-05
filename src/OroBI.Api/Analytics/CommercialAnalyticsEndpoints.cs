@@ -14,8 +14,22 @@ public static class CommercialAnalyticsEndpoints
         endpoints.MapGet($"{prefix}/sales-trades", async ([AsParameters] DashboardQueryParameters query, ICommercialAnalyticsQueryService service, CancellationToken cancellationToken) =>
             Results.Ok(await service.GetSalesTradesAsync(query.ToCommercialFilter(), cancellationToken))).RequireAuthorization(AuthorizationPolicies.ManagerOrAdministrator);
         endpoints.MapGet($"{prefix}/margins", async ([AsParameters] DashboardQueryParameters query, ICommercialAnalyticsQueryService service, CancellationToken cancellationToken) =>
+        {
+            var report = await service.GetMarginsAsync(query.ToCommercialFilter(), cancellationToken);
+            return Results.Ok(new { report.Revenue, report.Cost, report.GrossProfit, report.MarginPercent });
+        }).RequireAuthorization(AuthorizationPolicies.ManagerOrAdministrator);
+        endpoints.MapGet($"{prefix}/margins/details", async ([AsParameters] DashboardQueryParameters query, ICommercialAnalyticsQueryService service, CancellationToken cancellationToken) =>
             Results.Ok(await service.GetMarginsAsync(query.ToCommercialFilter(), cancellationToken))).RequireAuthorization(AuthorizationPolicies.ManagerOrAdministrator);
         endpoints.MapGet($"{prefix}/net-margin", async ([AsParameters] DashboardQueryParameters query, ICommercialAnalyticsQueryService service, CancellationToken cancellationToken) =>
+        {
+            var report = await service.GetNetMarginAsync(query.ToCommercialFilter(), cancellationToken);
+            return Results.Ok(new
+            {
+                report.GrossSales, report.Returns, report.NetSales, report.NetCost, report.TradeLosses,
+                report.BoletoDiscounts, report.LiquidProfit, report.LiquidMarginPercent, report.ProductCount
+            });
+        }).RequireAuthorization(AuthorizationPolicies.ManagerOrAdministrator);
+        endpoints.MapGet($"{prefix}/net-margin/details", async ([AsParameters] DashboardQueryParameters query, ICommercialAnalyticsQueryService service, CancellationToken cancellationToken) =>
             Results.Ok(await service.GetNetMarginAsync(query.ToCommercialFilter(), cancellationToken))).RequireAuthorization(AuthorizationPolicies.ManagerOrAdministrator);
         return endpoints;
     }
