@@ -20,6 +20,10 @@
   .seller-portal .portal-content{min-height:0;overflow-y:auto}
 }
 
+.seller-portal .portal-metric{align-items:center;justify-content:center;text-align:center}
+.seller-portal .portal-metric>p,.seller-portal .portal-metric>strong,.seller-portal .portal-metric>small{max-width:100%}
+.seller-portal .portal-metric>small{margin-top:0}
+.seller-portal .portal-metric-icon{display:grid;place-items:center;flex-shrink:0;width:36px;height:36px;border-radius:50%;background:#f2c94c12;color:var(--portal-gold);font-size:17px}
 .seller-portal .portal-customer-title{overflow-wrap:anywhere}
 .seller-portal .portal-customer-days{display:grid;gap:22px}
 .seller-portal .portal-customer-day{min-width:0;border:1px solid var(--portal-line);border-radius:16px;overflow:hidden;background:var(--portal-panel)}

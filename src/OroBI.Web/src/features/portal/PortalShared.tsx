@@ -5,7 +5,7 @@ import { apiRequest } from '../../api/client'
 import type { PortalSale } from './portalTypes'
 
 export function Empty({ children }: { children: ReactNode }) { return <div className="portal-empty"><i className="fa-regular fa-folder-open" aria-hidden="true" /><p>{children}</p></div> }
-export function Metric({ label, value, hint, primary = false }: { label: string; value: string; hint?: string; primary?: boolean }) { return <article className={`portal-metric ${primary ? 'portal-metric-primary' : ''}`}><p>{label}</p><strong>{value}</strong>{hint && <small>{hint}</small>}</article> }
+export function Metric({ label, value, icon, hint, primary = false }: { label: string; value: string; icon: string; hint?: string; primary?: boolean }) { return <article className={`portal-metric ${primary ? 'portal-metric-primary' : ''}`}><span className="portal-metric-icon" aria-hidden="true"><i className={`fa-solid ${icon}`} /></span><p>{label}</p><strong>{value}</strong>{hint && <small>{hint}</small>}</article> }
 export function Resource<T>({ token, path, children }: { token: string; path: string; children: (data: T) => ReactNode }) {
   return <ResourceRequest<T> key={`${token}:${path}`} token={token} path={path}>{children}</ResourceRequest>
 }
