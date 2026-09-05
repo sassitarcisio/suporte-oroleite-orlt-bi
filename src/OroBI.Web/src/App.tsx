@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { apiRequest, apiBaseUrl } from './api/client'
 import { clearAccessToken, readAccessToken, saveAccessToken } from './auth/session'
-import { AnalyticsPage } from './features/analytics/AnalyticsPage'
+import { MarginAnalysisPage } from './features/analytics/MarginAnalysisPage'
+import type { MarginReport, NetMarginReport } from './features/analytics/marginTypes'
 import { TradeAnalysisPage } from './features/analytics/TradeAnalysisPage'
 import type { TradeAnalysis } from './features/analytics/TradeAnalysisPage'
 import { ClosingsPage } from './features/closings/ClosingsPage'
@@ -13,6 +14,7 @@ import { DashboardPage } from './features/dashboard/DashboardPage'
 import type { DashboardDetails, DashboardFilterOptions, DashboardFilters, DashboardSummary } from './features/dashboard/DashboardPage'
 import { ImportPage } from './features/imports/ImportPage'
 import './App.css'
+import './ExecutiveGold.css'
 
 type LoginResponse = { accessToken: string }
 type CurrentUser = { roles: string[] }
@@ -35,13 +37,6 @@ const navigationItems: Array<{ view: Exclude<View, 'import'>, label: string, ico
   { view: 'closing-supervisor', label: 'Fechamento supervisor', icon: 'fa-user-tie' },
   { view: 'closing-valdir', label: 'Fechamento Valdir', icon: 'fa-building' },
 ]
-
-const analysisPages: Partial<Record<View, { endpoint: string, title: string, description: string }>> = {
-  trades: { endpoint: '/api/trades', title: 'Visao de trocas', description: 'Acompanhe as trocas fisicas e seu peso sobre as vendas.' },
-  'sales-trades': { endpoint: '/api/sales-trades', title: 'Venda x troca', description: 'Compare receita comercial e movimentos de troca.' },
-  margins: { endpoint: '/api/margins', title: 'Margem de produtos', description: 'Leia receita, custo, lucro bruto e margem da operacao.' },
-  'net-margin': { endpoint: '/api/net-margin', title: 'Margem liquida', description: 'Acompanhe venda liquida, custos e perdas da operacao.' },
-}
 
 function readSellerFilter(): string {
   return new URLSearchParams(window.location.search).get('seller') ?? ''
@@ -100,7 +95,10 @@ export default function App() {
   const [fileType, setFileType] = useState('Power')
   const [file, setFile] = useState<File | null>(null)
   const [roles, setRoles] = useState<string[]>([])
-  const [analysis, setAnalysis] = useState<Record<string, number> | null>(null)
+  const [marginData, setMarginData] = useState<MarginReport | NetMarginReport | null>(null)
+  const [marginState, setMarginState] = useState<PageState>('idle')
+  const [marginFilters, setMarginFilters] = useState<DashboardFilters>(createDashboardFilters)
+  const marginRequestId = useRef(0)
   const [tradeAnalysis, setTradeAnalysis] = useState<TradeAnalysis | null>(null)
   const [analysisState, setAnalysisState] = useState<PageState>('idle')
   const [closing, setClosing] = useState<ClosingSummary | null>(null)
@@ -157,9 +155,13 @@ export default function App() {
     const specialSeller = specialClosingSellers[nextView]
     if (specialSeller) void loadClosing(specialSeller, createDashboardFilters().startDate.slice(0, 7))
     if (nextView === 'closing-rh') void loadPayroll(createDashboardFilters().startDate.slice(0, 7), 'MARCIO LUIZ DA ROSA')
+    if (nextView === 'margins' || nextView === 'net-margin') void loadMargins(nextView, marginFilters)
   }
 
   function clearClosingRequests() {
+    marginRequestId.current += 1
+    setMarginData(null)
+    setMarginState('idle')
     closingRequestId.current += 1
     payrollRequestId.current += 1
     setPayroll(null)
@@ -170,6 +172,23 @@ export default function App() {
     setClosing(null)
     setClosingState('idle')
     setClosingError(null)
+  }
+
+  async function loadMargins(page: 'margins' | 'net-margin', filters: DashboardFilters) {
+    if (!token) return
+    const requestId = ++marginRequestId.current
+    const applied = { ...filters, movementType: '' }
+    setMarginFilters(applied)
+    setMarginData(null)
+    setMarginState('loading')
+    try {
+      const result = await apiRequest<MarginReport | NetMarginReport>(`/api/${page}/details?${filterQuery(applied)}`, token)
+      if (requestId !== marginRequestId.current) return
+      setMarginData(result)
+      setMarginState('ready')
+    } catch {
+      if (requestId === marginRequestId.current) setMarginState('error')
+    }
   }
 
   async function loadPayroll(month: string, coverageSeller: string) {
@@ -263,17 +282,6 @@ export default function App() {
   }, [token])
 
   useEffect(() => {
-    const page = analysisPages[view]
-    if (!page || !token || view === 'trades' || view === 'sales-trades') return
-
-    setAnalysis(null)
-    setAnalysisState('loading')
-    void apiRequest<Record<string, number>>(page.endpoint, token)
-      .then(result => { setAnalysis(result); setAnalysisState('ready') })
-      .catch(() => setAnalysisState('error'))
-  }, [token, view])
-
-  useEffect(() => {
     if (!token || (view !== 'trades' && view !== 'sales-trades')) return
 
     setTradeAnalysis(null)
@@ -329,12 +337,11 @@ export default function App() {
 
   if (view === 'import') return <main className="shell import-workspace"><ImportPage file={file} fileType={fileType} state={state} onBack={() => setView('dashboard')} onFileChange={selectImportFile} onFileTypeChange={setFileType} onSubmit={() => void upload()} /></main>
 
-  const page = analysisPages[view]
   return <main className="executive-layout">
     <aside className={`side-rail ${menuOpen ? 'is-open' : ''}`}><div className="brand"><img className="brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /></div><p className="rail-label">CENTRAL DE RESULTADOS</p><nav id="main-navigation" className="side-navigation" aria-label="Modulos do BI">{navigationItems.map(item => <button className={view === item.view ? 'active' : ''} key={item.view} onClick={() => navigate(item.view)}><i className={`fa-solid ${item.icon}`} aria-hidden="true" /><span>{item.label}</span></button>)}</nav><div className="rail-footer"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Dados sincronizados</div></aside>
     <section className={`main-canvas ${view === 'dashboard' ? 'dashboard-workspace' : 'analysis-workspace'}`}><header className="command-bar"><button className="menu-toggle" type="button" aria-label="Alternar navegacao" aria-controls="main-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(open => !open)}><i className="fa-solid fa-bars" aria-hidden="true" /></button><div><p>PAINEL EXECUTIVO</p><strong>{navigationItems.find(item => item.view === view)?.label ?? 'Importar'}</strong></div><div className="command-actions">{roles.includes('Administrador') && <button className="btn btn-accent" onClick={() => { clearClosingRequests(); setView('import') }}><i className="fa-solid fa-file-arrow-up" aria-hidden="true" /> Importar</button>}<button className="btn btn-ghost" onClick={() => { clearClosingRequests(); clearAccessToken(); setToken(''); setView('dashboard') }} aria-label="Sair"><i className="fa-solid fa-right-from-bracket" aria-hidden="true" /></button></div></header>
       {view === 'dashboard' && <DashboardPage summary={summary} details={dashboardDetails} filters={dashboardFilters} options={dashboardFilterOptions} sellers={sellers} state={state} onFiltersChange={setDashboardFilters} onSubmit={() => applyDashboardFilter(dashboardFilters)} onClear={clearDashboardFilters} />}
-      {page && !(['trades', 'sales-trades'] as View[]).includes(view) && <AnalyticsPage title={page.title} description={page.description} data={analysis} state={analysisState} />}
+      {(view === 'margins' || view === 'net-margin') && <MarginAnalysisPage key={view} mode={view === 'margins' ? 'products' : 'net'} data={marginData} state={marginState} filters={marginFilters} options={dashboardFilterOptions} sellers={sellers} onSubmit={filters => void loadMargins(view, filters)} />}
       {(view === 'trades' || view === 'sales-trades') && <TradeAnalysisPage mode={view} data={tradeAnalysis} state={analysisState} />}
       {view === 'closing-rh' && <><PayrollClosingPage summary={payroll} state={payrollState} errorMessage={payrollError} initialMonth={createDashboardFilters().startDate.slice(0, 7)} onSubmit={(month, coverage) => void loadPayroll(month, coverage)} onExport={() => void exportPayroll()} exporting={exporting} />{exportError && <p className="notice error" role="alert">{exportError}</p>}</>}
       {(['closings', 'closing-supervisor', 'closing-valdir'] as View[]).includes(view) && <ClosingsPage key={view} title={navigationItems.find(item => item.view === view)?.label} summary={closing} sellers={sellers} state={closingState} errorMessage={closingError} initialSeller={specialClosingSellers[view]} initialMonth={specialClosingSellers[view] ? createDashboardFilters().startDate.slice(0, 7) : ''} onSubmit={(activeSeller, month) => void loadClosing(activeSeller, month)} />}

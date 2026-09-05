@@ -1,0 +1,461 @@
+/* Screen theme: statement styles retain their own light, readable print palette. */
+@media screen {
+  :root {
+    --gold-main: #160F0A;
+    --gold-sidebar: #21150C;
+    --gold-card: #291B10;
+    --gold-highlight: #342315;
+    --gold-border: #574020;
+    --gold-dark: #9B6A16;
+    --gold: #D6A62E;
+    --gold-light: #F2C94C;
+    --gold-text: #F7F1E7;
+    --gold-secondary: #C9BCA8;
+    --negative: #E9685A;
+    --bg-main: var(--gold-main);
+    --bg-sidebar: var(--gold-sidebar);
+    --bg-card: var(--gold-card);
+    --bg-card-highlight: var(--gold-highlight);
+    --border-color: var(--gold-border);
+    --text-primary: var(--gold-text);
+    --text-secondary: var(--gold-secondary);
+    --font-family: Inter, 'Segoe UI', Arial, sans-serif;
+    --ink: var(--gold-text);
+    --rail: var(--gold-sidebar);
+    --rail-deep: var(--gold-main);
+    --paper: var(--gold-main);
+    --surface: var(--gold-card);
+    --line: var(--gold-border);
+    --orange: var(--gold);
+    --muted: var(--gold-secondary);
+    --lime: var(--gold-light);
+    color: var(--gold-text);
+    background: var(--gold-main);
+    color-scheme: dark;
+    font-family: Inter, 'Segoe UI', Arial, sans-serif;
+  }
+
+  .executive-layout,
+  .main-canvas,
+  .main-canvas.dashboard-workspace,
+  .main-canvas.analysis-workspace,
+  .shell.import-workspace {
+    background: var(--gold-main);
+    color: var(--gold-text);
+  }
+
+  .main-canvas,
+  .main-canvas.dashboard-workspace,
+  .main-canvas.analysis-workspace {
+    padding: 16px clamp(18px, 2.25vw, 38px) 40px;
+  }
+
+  .side-rail {
+    padding: 22px 16px;
+    border-right: 1px solid var(--gold-border);
+    background: var(--gold-sidebar);
+    color: var(--gold-text);
+  }
+  .rail-label { margin: 26px 12px 13px; color: var(--gold-secondary); }
+  .side-navigation { gap: 5px; }
+  .side-navigation button { padding: 12px; border-radius: 7px; color: var(--gold-secondary); }
+  .side-navigation button i { color: var(--gold-dark); }
+  .side-navigation button:hover,
+  .side-navigation button.active { background: var(--gold-highlight); color: var(--gold-light); }
+  .side-navigation button.active { box-shadow: inset 3px 0 var(--gold); }
+  .side-navigation button.active i,
+  .side-navigation button:hover i { color: var(--gold); }
+  .rail-footer { border-color: var(--gold-border); color: var(--gold-secondary); }
+  .rail-footer i { color: var(--gold); }
+
+  .main-canvas .command-bar,
+  .analysis-workspace:has(.valdir-closing) .command-bar {
+    min-height: 40px;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-color: var(--gold-border);
+    background: var(--gold-main);
+  }
+  .main-canvas .command-bar p { color: var(--gold-secondary); font-size: 9px; }
+  .main-canvas .command-bar strong { color: var(--gold-text); font-size: 15px; letter-spacing: -.2px; }
+  .command-actions .btn { min-height: 36px; padding: 9px 12px; }
+  .main-canvas .btn-ghost,
+  .import-workspace .btn-ghost,
+  .menu-toggle {
+    border: 1px solid var(--gold-border);
+    background: var(--gold-card);
+    color: var(--gold-text);
+  }
+  .btn-accent,
+  .import-workspace .btn-dark,
+  .dashboard-workspace .dashboard-filter-bar button,
+  .dashboard-workspace .dashboard-filter-actions button,
+  .analysis-workspace .closing-query-card button,
+  .hero form button {
+    background: var(--gold);
+    color: var(--gold-main);
+    font-weight: 600;
+  }
+  .btn-accent:hover,
+  .import-workspace .btn-dark:hover,
+  .dashboard-workspace .dashboard-filter-bar button:hover,
+  .dashboard-workspace .dashboard-filter-actions button:hover,
+  .analysis-workspace .closing-query-card button:hover { background: var(--gold-light); color: var(--gold-main); }
+  .main-canvas .btn-ghost:hover,
+  .import-workspace .btn-ghost:hover,
+  .menu-toggle:hover { background: var(--gold-highlight); color: var(--gold-light); }
+  button:focus-visible,
+  a:focus-visible,
+  summary:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px; }
+
+  .main-canvas .dashboard-layout,
+  .main-canvas .analysis-layout,
+  .main-canvas .closing-layout,
+  .main-canvas .trade-analysis-layout { max-width: none; padding: 18px 0 36px; }
+  .dashboard-hero,
+  .hero,
+  .import-workspace .hero { padding: 20px 0 28px; }
+  .analysis-header,
+  .closing-header { margin-bottom: 20px; gap: 16px; }
+  .dashboard-hero h1,
+  .hero h1,
+  .import-workspace .hero h1,
+  .main-canvas .analysis-header h1,
+  .main-canvas .closing-header h1 {
+    max-width: none;
+    margin: 6px 0 8px;
+    color: var(--gold-text);
+    font-size: clamp(28px, 2.3vw, 34px);
+    line-height: 1.15;
+    letter-spacing: -.8px;
+    white-space: normal;
+  }
+  .hero h1 em,
+  .import-workspace .hero h1 em { color: var(--gold-light); }
+  .eyebrow,
+  .analysis-workspace .eyebrow,
+  .import-workspace .hero .eyebrow { color: var(--gold); }
+  .main-canvas .analysis-header > div > p:last-child,
+  .main-canvas .closing-header > p:last-child { color: var(--gold-secondary); font-size: 13px; }
+  .analysis-workspace .analysis-status,
+  .analysis-workspace .analysis-status i { color: var(--gold); }
+
+  label,
+  .analysis-workspace label,
+  .import-workspace label,
+  .dashboard-workspace .dashboard-filter-grid label { color: var(--gold-secondary); }
+  input,
+  select,
+  .analysis-workspace input,
+  .analysis-workspace select,
+  .import-workspace select,
+  .dashboard-workspace .dashboard-filter-grid input,
+  .dashboard-workspace .dashboard-filter-grid select {
+    border-color: var(--gold-border);
+    background: var(--gold-main);
+    color: var(--gold-text);
+    color-scheme: dark;
+  }
+  input::placeholder { color: var(--gold-secondary); opacity: .7; }
+  input:focus,
+  select:focus { border-color: var(--gold); box-shadow: 0 0 0 2px #D6A62E26; }
+  .dashboard-workspace .dashboard-filter,
+  .dashboard-workspace .dashboard-filter-bar,
+  .import-workspace .import-form {
+    border-color: var(--gold-border);
+    background: var(--gold-card);
+    box-shadow: none;
+  }
+  .dashboard-workspace .dashboard-filter-bar { border-left-color: var(--gold); }
+  .dashboard-workspace .dashboard-filter-bar p { color: var(--gold-secondary); }
+  .dashboard-workspace .dashboard-filter-bar strong { color: var(--gold-text); }
+  .dashboard-workspace .dashboard-filter-actions .dashboard-filter-clear {
+    border: 1px solid var(--gold-border);
+    background: var(--gold-highlight);
+    color: var(--gold-text);
+  }
+  .import-workspace .topbar { padding: 8px 0 14px; border-color: var(--gold-border); }
+  .import-workspace .file-picker .file-picker-label { color: var(--gold-secondary); }
+  .import-workspace .file-picker .file-picker-name { border-color: var(--gold-dark); color: var(--gold-secondary); }
+
+  .dashboard-workspace .dashboard-kpi,
+  .dashboard-workspace .dashboard-kpi:is(.primary, .petrol, .negative, .percentage, .neutral, .gold),
+  .analysis-workspace .analysis-card,
+  .trade-kpi,
+  .analysis-workspace .metric,
+  .analysis-workspace .closing-financial-summary article {
+    border-color: var(--gold-border);
+    border-radius: 12px;
+    background: var(--gold-card);
+    box-shadow: none;
+  }
+  .dashboard-workspace .dashboard-kpi.primary,
+  .analysis-workspace .analysis-card.primary,
+  .trade-kpi.primary,
+  .analysis-workspace .metric.main {
+    border-color: var(--gold-dark);
+    background: var(--gold-highlight);
+  }
+  .dashboard-workspace .dashboard-kpi { min-height: 146px; height: auto; padding: 18px; gap: 13px; }
+  .dashboard-workspace .dashboard-kpi::after { border-color: var(--gold-border); }
+  .dashboard-workspace .dashboard-kpi p,
+  .dashboard-workspace .dashboard-kpi span,
+  .analysis-workspace .analysis-card-top,
+  .analysis-workspace .analysis-card-note,
+  .analysis-workspace .analysis-card.primary .analysis-card-top,
+  .analysis-workspace .analysis-card.primary .analysis-card-note,
+  .analysis-workspace .metric span,
+  .analysis-workspace .closing-financial-summary :is(p, span),
+  .trade-kpi p,
+  .trade-kpi span { color: var(--gold-secondary); }
+  .dashboard-workspace .dashboard-kpi p i { color: var(--gold); }
+  .dashboard-workspace .dashboard-kpi strong,
+  .analysis-workspace .analysis-card strong,
+  .analysis-workspace .metric strong,
+  .analysis-workspace .closing-financial-summary strong,
+  .trade-kpi strong { color: var(--gold-text); }
+  .dashboard-workspace .dashboard-kpi:is(.primary, .petrol, .percentage) strong,
+  .analysis-workspace .analysis-card.primary strong,
+  .analysis-workspace .metric.main strong,
+  .trade-kpi.primary strong { color: var(--gold-light); }
+  .dashboard-workspace .dashboard-kpi.negative strong,
+  .trade-kpi.alert strong { color: var(--negative); }
+  .trade-kpi.alert { border-color: var(--gold-border); }
+  .dashboard-workspace .dashboard-kpi strong { margin-top: 0; font-size: clamp(24px, 2vw, 30px); }
+  .dashboard-workspace .dashboard-kpi strong.currency-value,
+  .analysis-workspace .analysis-card strong.currency-value,
+  .trade-kpi strong.compact-currency-value,
+  .analysis-workspace .metric strong,
+  .analysis-workspace .closing-financial-summary strong {
+    overflow: visible;
+    text-overflow: clip;
+    font-size: clamp(17px, 1.45vw, 24px);
+    line-height: 1.2;
+    letter-spacing: -.5px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .analysis-workspace .analysis-card { min-height: 185px; padding: 20px; }
+  .analysis-workspace .analysis-card p { margin-top: 22px; color: var(--gold-text); }
+  .analysis-workspace .analysis-card-top i,
+  .analysis-workspace .analysis-card.primary .analysis-card-top i {
+    background: var(--gold-highlight);
+    color: var(--gold);
+  }
+  .trade-kpi { height: auto; min-height: 142px; border-radius: 12px; gap: 10px; }
+  .trade-kpi strong { margin-top: 0; overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; }
+
+  .dashboard-workspace .dashboard-chart-card,
+  .trade-ranking,
+  .trade-trend,
+  .trade-context {
+    border-color: var(--gold-border);
+    border-radius: 12px;
+    background: var(--gold-card);
+    box-shadow: none;
+  }
+  .dashboard-workspace .dashboard-chart-card header p,
+  .dashboard-workspace .seller-chart li > span,
+  .dashboard-workspace .seller-chart li strong,
+  .trade-ranking h2,
+  .trade-trend h2,
+  .trade-ranking li > span,
+  .trade-ranking li strong { color: var(--gold-text); }
+  .dashboard-workspace .dashboard-chart-card header > div > span,
+  .dashboard-workspace .trend-chart footer,
+  .dashboard-workspace .chart-legend,
+  .trade-ranking header span,
+  .trade-trend header span,
+  .trade-context { color: var(--gold-secondary); }
+  .trade-context strong { color: var(--gold-light); }
+  .trade-context span { color: var(--gold-dark); }
+  .dashboard-workspace .trend-chart line,
+  .trade-trend line { stroke: var(--gold-border); }
+  .trend-chart .trend-gross { stroke: var(--gold-light); }
+  .trend-chart .trend-net { stroke: var(--gold-dark); stroke-dasharray: 8 5; }
+  .trend-chart .trend-negative,
+  .trade-trend-line { stroke: var(--negative); }
+  .chart-legend .gross { background: var(--gold-light); }
+  .chart-legend .net { background: var(--gold-dark); }
+  .chart-legend .negative { background: var(--negative); }
+  .dashboard-workspace .seller-chart li > div,
+  .trade-ranking li > div { background: var(--gold-highlight); }
+  .dashboard-workspace .seller-chart li > div i { background: linear-gradient(90deg, var(--gold-dark), var(--gold)); }
+  .seller-chart > header > i { background: var(--gold-highlight); color: var(--gold); }
+  .chart-legend { flex-wrap: wrap; }
+
+  .analysis-workspace .closing-query-card,
+  .analysis-workspace .closing-brand-awards,
+  .analysis-workspace .closing-details,
+  .closing-general-trade-award {
+    border-color: var(--gold-border);
+    background: var(--gold-card);
+    color: var(--gold-text);
+    box-shadow: none;
+  }
+  .analysis-workspace .closing-query-card { border-left-color: var(--gold); }
+  .analysis-workspace .closing-query-title,
+  .analysis-workspace .closing-brand-awards h2 { color: var(--gold-text); }
+  .analysis-workspace .closing-query-copy,
+  .analysis-workspace .closing-details p,
+  .closing-general-trade-award dt { color: var(--gold-secondary); }
+  .analysis-workspace .closing-brand-awards-table,
+  .analysis-workspace .closing-details th,
+  .analysis-workspace .closing-details td,
+  .closing-general-trade-award dl > div + div { border-color: var(--gold-border); }
+  .analysis-workspace .closing-brand-awards-table { background: var(--gold-border); }
+  .analysis-workspace .closing-brand-awards-head,
+  .analysis-workspace .closing-details thead,
+  .analysis-workspace .closing-brand-total,
+  .closing-general-trade-award h2 { background: var(--gold-highlight); color: var(--gold-light); }
+  .analysis-workspace .closing-brand-awards-row { background: var(--gold-card); color: var(--gold-text); }
+  .analysis-workspace .closing-brand-awards-row strong:first-child,
+  .closing-general-trade-award dd { color: var(--gold-light); }
+  .analysis-workspace .closing-layout .metrics { background: transparent; }
+  .analysis-workspace .metric p { color: var(--gold-text); }
+  .notice,
+  .analysis-workspace .notice,
+  .import-workspace .notice { border-color: var(--gold-border); color: var(--gold-secondary); }
+  .notice.error,
+  .analysis-workspace .notice.error,
+  .import-workspace .notice.error { color: var(--negative); }
+  .analysis-workspace .closing-empty-state { border-color: var(--gold-border); background: var(--gold-card); color: var(--negative); }
+  .analysis-workspace .closing-empty-state p { color: var(--gold-secondary); }
+  .analysis-workspace .closing-empty-state > i { background: var(--gold-highlight); color: var(--negative); }
+
+  /* Statement selectors are intentionally screen-only, including their table totals. */
+  .closing-statement,
+  .valdir-closing { margin: 18px 0; padding: 20px; border-color: var(--gold-border); background: var(--gold-card); color: var(--gold-text); }
+  .statement-heading h1,
+  .valdir-heading h1 { color: var(--gold-text); font-size: clamp(28px, 2.3vw, 34px); }
+  .statement-heading p,
+  .valdir-heading p,
+  .statement-reference,
+  .valdir-reference { color: var(--gold-secondary); }
+  .statement-heading .statement-kicker,
+  .valdir-heading .valdir-kicker { color: var(--gold); }
+  .closing-statement button,
+  .valdir-closing button { border-color: var(--gold); background: var(--gold); color: var(--gold-main); }
+  .closing-statement .statement-secondary,
+  .valdir-closing .valdir-print { border-color: var(--gold-border); background: var(--gold-highlight); color: var(--gold-text); }
+  .closing-statement button:focus-visible,
+  .closing-statement select:focus-visible,
+  .valdir-closing button:focus-visible,
+  .valdir-closing select:focus-visible { outline-color: var(--gold-light); }
+  .statement-controls,
+  .valdir-controls { border-color: var(--gold-border); background: var(--gold-highlight); }
+  .closing-statement .statement-controls label,
+  .analysis-workspace .valdir-closing label { color: var(--gold-secondary); }
+  .closing-statement .statement-controls select,
+  .analysis-workspace .valdir-closing select { border-color: var(--gold-border); background: var(--gold-main); color: var(--gold-text); }
+  .statement-totals article,
+  .statement-panel,
+  .statement-table-panel,
+  .statement-rules article,
+  .statement-notice,
+  .valdir-panel,
+  .valdir-totals article,
+  .valdir-sales,
+  .valdir-rules article,
+  .valdir-notice,
+  .analysis-workspace .valdir-closing .closing-details {
+    border-color: var(--gold-border);
+    background: var(--gold-main);
+    color: var(--gold-text);
+    box-shadow: none;
+  }
+  .statement-panel > h2,
+  .statement-table-panel > h2,
+  .statement-totals .statement-total,
+  .valdir-panel > h2,
+  .valdir-sales > h2,
+  .valdir-totals .valdir-total { border-color: var(--gold-dark); background: var(--gold-highlight); color: var(--gold-light); }
+  .statement-totals :is(h2, p),
+  .statement-panel-body p,
+  .statement-panel-body .statement-label,
+  .statement-fields dt,
+  .closing-statement small,
+  .statement-table-note,
+  .statement-rules p,
+  .statement-footnote,
+  .valdir-closing .valdir-label,
+  .valdir-closing .valdir-note,
+  .valdir-fields dt,
+  .valdir-totals :is(h2, p),
+  .valdir-rules :is(p, dl),
+  .valdir-counts,
+  .analysis-workspace .valdir-closing .closing-details p { color: var(--gold-secondary); }
+  .statement-totals strong,
+  .statement-amount,
+  .statement-fields dd,
+  .statement-rules h2,
+  .valdir-amount,
+  .valdir-fields dd,
+  .valdir-totals strong,
+  .valdir-rules :is(h2, dd),
+  .valdir-counts strong { color: var(--gold-text); }
+  .statement-total strong,
+  .statement-trade .statement-amount,
+  .statement-trade dd,
+  .valdir-total strong,
+  .valdir-trade .valdir-amount,
+  .valdir-trade dd,
+  .valdir-rules h2 i,
+  .valdir-rate-earned { color: var(--gold-light); }
+  .statement-fields,
+  .valdir-fields,
+  .valdir-trade .valdir-fields,
+  .closing-statement th,
+  .closing-statement td,
+  .analysis-workspace .valdir-closing .closing-details th,
+  .analysis-workspace .valdir-closing .closing-details td { border-color: var(--gold-border); }
+  .closing-statement thead,
+  .closing-statement tfoot,
+  .valdir-sales thead,
+  .analysis-workspace .valdir-closing .closing-details thead { background: var(--gold-highlight); color: var(--gold-light); }
+  .closing-statement tbody,
+  .valdir-sales tbody { background: var(--gold-main); color: var(--gold-text); }
+  .closing-statement tbody tr:nth-child(even),
+  .statement-row-total,
+  .valdir-period,
+  .valdir-trade-rate > span { background: var(--gold-highlight); color: var(--gold-text); }
+  .closing-statement .statement-consolidated { background: var(--gold-highlight) !important; }
+  .statement-rules article:nth-child(n),
+  .valdir-rules article:nth-child(n) { border-left-color: var(--gold-dark); }
+  .statement-error,
+  .valdir-error,
+  .valdir-rate-unearned { color: var(--negative); }
+
+  .login-shell { background: var(--gold-main); }
+  .login-layout { border-color: var(--gold-border); background: var(--gold-card); }
+  .login-brand-panel { background: var(--gold-sidebar); color: var(--gold-text); }
+  .login-brand-panel h1 span,
+  .login-brand-panel .eyebrow { color: var(--gold-light); }
+  .login-brand-panel > div > p:last-child,
+  .login-brand-footer { color: var(--gold-secondary); }
+  .login-form-panel { background: var(--gold-card); }
+  .login-form-panel input { background: var(--gold-main); }
+  .login-form-panel .btn { background: var(--gold); color: var(--gold-main); }
+  .password-toggle:hover { color: var(--gold-light); }
+}
+
+@media screen and (max-width: 600px) {
+  .main-canvas,
+  .main-canvas.dashboard-workspace,
+  .main-canvas.analysis-workspace { padding: 12px 14px 30px; }
+  .main-canvas .command-bar { gap: 9px; }
+  .main-canvas .command-bar > div:not(.command-actions) { flex: 1; min-width: 0; }
+  .main-canvas .command-bar strong { font-size: 13px; }
+  .command-actions { gap: 6px; }
+  .main-canvas .analysis-layout,
+  .main-canvas .closing-layout,
+  .main-canvas .trade-analysis-layout { padding-top: 16px; }
+  .analysis-header { gap: 10px; }
+  .dashboard-workspace .dashboard-kpi { min-height: 132px; }
+  .dashboard-workspace .dashboard-kpi strong.currency-value,
+  .trade-kpi strong.compact-currency-value { font-size: 24px; }
+  .closing-statement,
+  .valdir-closing { margin-top: 16px; padding: 16px; }
+  .statement-heading h1,
+  .valdir-heading h1 { font-size: 28px; }
+}
