@@ -11,6 +11,17 @@ public sealed record NetMarginReport(
     decimal LiquidMarginPercent,
     int ProductCount)
 {
+    public decimal OwnReturns { get; init; }
+    public decimal CustomerReturns { get; init; }
+    public decimal Quantity { get; init; }
+    public int MovementCount { get; init; }
+    public IReadOnlyDictionary<string, IReadOnlyList<NetMarginRow>> Groups { get; init; } =
+        new Dictionary<string, IReadOnlyList<NetMarginRow>>
+        {
+            ["seller"] = [], ["brand"] = [], ["customer"] = [],
+            ["group"] = [], ["product"] = [], ["city"] = []
+        };
+
     public static NetMarginReport Create(
         decimal grossSales,
         decimal returns,
@@ -25,3 +36,19 @@ public sealed record NetMarginReport(
         return new NetMarginReport(grossSales, returns, netSales, netCost, tradeLosses, boletoDiscounts, liquidProfit, liquidMarginPercent, productCount);
     }
 }
+
+public sealed record NetMarginRow(
+    string Label,
+    decimal GrossSales,
+    decimal OwnReturns,
+    decimal CustomerReturns,
+    decimal Returns,
+    decimal NetSales,
+    decimal NetCost,
+    decimal TradeLosses,
+    decimal BoletoDiscounts,
+    decimal LiquidProfit,
+    decimal? LiquidMarginPercent,
+    decimal Quantity,
+    int MovementCount,
+    decimal Losses);
