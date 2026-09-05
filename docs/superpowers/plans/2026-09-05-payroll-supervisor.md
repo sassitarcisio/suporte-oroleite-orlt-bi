@@ -47,7 +47,7 @@ public sealed record SupervisorClosingDetails(decimal OwnCommission, decimal Tea
 - [x] Add failing tests for union overlap/Bauducco exclusion, aliases, team mean distinction, no-sale trade award and rounded band boundary.
 - [x] Add contracts and shared catalog; fix Deivid scope; reuse payroll brand rules for team members; preserve generic rules.
 - [x] Add payroll query with validated coverage, nine rows, Tiago copying, correct special salaries and distinct team mean.
-- [ ] Verify source-based operations: 242807.82 / 1542765.94 / 484707.91, union2270281.67, trade62525.54, commission5469.288975. Test three cohorts plus overlap separately so equal totals cannot conceal double counting.
+- [x] Verify source-based operations: 242807.82 / 1542765.94 / 484707.91, union2270281.67, trade62525.54, commission5469.288975. Test three cohorts plus overlap separately so equal totals cannot conceal double counting.
 
 ## Task 2 — API and Excel
 
@@ -69,8 +69,8 @@ Files: Web/features/closings/PayrollClosingPage.tsx, SupervisorClosingPage.tsx, 
 
 ## Task 4 — Release verification
 
-- [ ] Run backend tests, frontend tests/build/lint, independent review and browser desktop/mobile/print checks.
-- [ ] Publish API from exact committed source before pushing frontend changes to main; verify authenticated production reads.
+- [x] Run backend tests, frontend tests/build/lint, independent review and browser desktop/mobile/print checks.
+- [x] Publish API from exact committed source before pushing frontend changes to main; verify authenticated production reads.
 - [ ] Publish frontend, watch CI/deploy, inspect the two live pages and compare all official fields. Explain the legacy's distinct supervisor/payroll averages and full-precision totals.
 
 ## Review corrections
@@ -80,3 +80,12 @@ Files: Web/features/closings/PayrollClosingPage.tsx, SupervisorClosingPage.tsx, 
 - Payroll requires imported defaults; missing PPP maximum for any supervised seller prevents an incomplete result.
 - Pending requests are invalidated on navigation, importing and logout.
 - Validation before release: 43 Web tests, build and lint (four pre-existing warnings); backend suite and final production/browser verification recorded below after rollout.
+
+## Verified release evidence
+
+- Backend: 151 tests passed (36 API, 57 application, 58 infrastructure). Web: 43 tests passed, production build passed; lint has four existing App warnings.
+- API image e6bfa5c / revision closing-e6bfa5c healthy, 100% traffic. All official August row values and six payroll totals matched authenticated production reads. Salary19202.70, commissions26526.90, incentives17151.27,total62880.87. Both supervisor means matched1834.34/1970.05. Valdir remains7219.97.
+- Actual exported XLSX ZIP/XML verified against all six official totals. Alternative Tiago coverage matched Anderson.
+- Browser built frontend with actual API: both pages matched official values and fit320,390,700,701,900,1200,1201,1400,1401,1600pixel viewports. Fixed payroll card overflow at1201. Print media hides navigation/controls and retains statements. Screenshots inspected. Final live frontend check follows deployment.
+
+- Frontend publication blocked by automatic approval review: explicit authorization for default-branch production push required, even after remote and pending commits were verified. API deployment and all local/browser verification complete. Do not claim the new UI is live until approved, pushed and checked.

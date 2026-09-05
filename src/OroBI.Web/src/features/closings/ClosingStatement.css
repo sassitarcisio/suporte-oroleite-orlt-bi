@@ -63,6 +63,10 @@
 .statement-footnote { margin:16px 0 0; color:#617c96; font-size:11px; line-height:1.7; }
 .statement-notice { margin:20px 0 0; padding:16px; border:1px solid #d7e3f1; border-radius:10px; background:#fff; color:#335d86; font-size:13px; }
 .statement-error { border-color:#f0c3cc; color:#a42742; }
+@media(max-width:1400px) {
+  .payroll-totals { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .payroll-totals .statement-total { grid-column:1/-1; }
+}
 @media(max-width:1200px) {
   .statement-totals,.payroll-totals { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .payroll-totals .statement-total { grid-column:1/-1; }
