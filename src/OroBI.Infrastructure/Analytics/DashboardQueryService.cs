@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OroBI.Application.Analytics;
 using OroBI.Infrastructure.Persistence;
+using OroBI.Infrastructure.Imports;
 
 namespace OroBI.Infrastructure.Analytics;
 
@@ -41,7 +42,9 @@ public sealed class DashboardQueryService(OroBiDbContext dbContext) : IDashboard
 
     private async Task<IEnumerable<OroBI.Domain.Commercial.CommercialMovement>> GetMovementsAsync(CommercialFilter filter, CancellationToken cancellationToken)
     {
-        var movements = await dbContext.CommercialMovements.AsNoTracking().ToListAsync(cancellationToken);
+        var duplicates = await ImportedBatchSelection.GetDuplicateIdsAsync(dbContext, cancellationToken);
+        var movements = await dbContext.CommercialMovements.AsNoTracking()
+            .Where(item => !duplicates.Contains(item.ImportBatchId)).ToListAsync(cancellationToken);
         return CommercialFilters.Apply(movements, filter);
     }
 }

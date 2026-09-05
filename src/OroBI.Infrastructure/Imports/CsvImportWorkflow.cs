@@ -1,5 +1,7 @@
 using System.Text;
 using System.Globalization;
+using System.Buffers.Binary;
+using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using OroBI.Application.Abstractions;
 using OroBI.Application.Imports;
@@ -21,6 +23,30 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
         await using var bufferedContent = new MemoryStream();
         await submission.Content.CopyToAsync(bufferedContent, cancellationToken);
         var bytes = bufferedContent.ToArray();
+        var hash = SHA256.HashData(bytes);
+        var checksum = Convert.ToHexStringLower(hash);
+
+        // Serialize uploads of the same content across PostgreSQL API replicas. The
+        // transaction releases the advisory lock on success, failure or cancellation.
+        await using var transaction = dbContext.Database.IsNpgsql()
+            ? await dbContext.Database.BeginTransactionAsync(cancellationToken)
+            : null;
+        if (transaction is not null)
+        {
+            var lockKey = BinaryPrimitives.ReadInt64LittleEndian(hash);
+            await dbContext.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock({lockKey})", cancellationToken);
+        }
+        var existing = await dbContext.ImportBatches.AsNoTracking()
+            .Where(batch => batch.FileType == submission.FileType && batch.Checksum.ToLower() == checksum &&
+                (batch.Status == ImportBatchStatus.Completed || batch.Status == ImportBatchStatus.CompletedWithErrors))
+            .OrderByDescending(batch => batch.StartedAtUtc).ThenByDescending(batch => batch.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+        // GoalValues is a latest-configuration snapshot: reuploading an older file
+        // must restore it as current. Its records are never summed across batches.
+        if (existing is not null && submission.FileType != ImportFileType.GoalValues)
+        {
+            return new ImportExecutionResult(existing.Status, existing.StoredFileUri, existing.ProcessedRows, existing.ErrorRows);
+        }
 
         await using var fileContent = new MemoryStream(bytes, writable: false);
         var storedFile = await fileStore.SaveAsync(fileContent, submission.FileName, submission.ContentType, cancellationToken);
@@ -69,6 +95,7 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
+        if (transaction is not null) await transaction.CommitAsync(cancellationToken);
         return new ImportExecutionResult(batch.Status, batch.StoredFileUri, batch.ProcessedRows, batch.ErrorRows);
     }
 

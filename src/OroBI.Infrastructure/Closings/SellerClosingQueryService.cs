@@ -5,6 +5,7 @@ using OroBI.Domain.Commercial;
 using OroBI.Domain.Goals;
 using OroBI.Domain.Imports;
 using OroBI.Infrastructure.Persistence;
+using OroBI.Infrastructure.Imports;
 
 namespace OroBI.Infrastructure.Closings;
 
@@ -23,13 +24,14 @@ public sealed class SellerClosingQueryService(OroBiDbContext dbContext) : ISelle
         var configuration = await dbContext.SellerClosingConfigurations.AsNoTracking()
             .SingleOrDefaultAsync(item => item.Seller == requestedSeller && item.Year == year && item.Month == month, cancellationToken);
         var importedDefaults = await GetImportedDefaultsAsync(cancellationToken);
+        var duplicates = await ImportedBatchSelection.GetDuplicateIdsAsync(dbContext, cancellationToken);
         if (requestedSeller == "VALDIR ZACARIAS")
         {
-            return await GetValdirClosingAsync(year, month, configuration?.BaseSalary ?? ImportedSellerSalary(importedDefaults, requestedSeller), cancellationToken);
+            return await GetValdirClosingAsync(year, month, configuration?.BaseSalary ?? ImportedSellerSalary(importedDefaults, requestedSeller), duplicates, cancellationToken);
         }
         if (requestedSeller == "DEIVID MANNES")
         {
-            return await GetDeividClosingAsync(year, month, configuration?.BaseSalary ?? ImportedSellerSalary(importedDefaults, requestedSeller), importedDefaults, cancellationToken);
+            return await GetDeividClosingAsync(year, month, configuration?.BaseSalary ?? ImportedSellerSalary(importedDefaults, requestedSeller), importedDefaults, duplicates, cancellationToken);
         }
 
         var baseSalary = configuration?.BaseSalary ?? ImportedSellerSalary(importedDefaults, requestedSeller) ?? ImportedSellerSalary(importedDefaults, importedSeller) ?? importedDefaults?.BaseSalary;
@@ -37,10 +39,13 @@ public sealed class SellerClosingQueryService(OroBiDbContext dbContext) : ISelle
         var pppMaximumAward = configuration?.PppMaximumAward ?? importedDefaults?.PppMaximumAward;
         if (baseSalary is null || commissionPercent is null || pppMaximumAward is null) return null;
         var movements = await dbContext.CommercialMovements.AsNoTracking()
+            .Where(item => !duplicates.Contains(item.ImportBatchId))
             .Where(item => item.Seller == importedSeller && item.MovementDate.Year == year && item.MovementDate.Month == month).ToListAsync(cancellationToken);
         var goals = await dbContext.GoalRecords.AsNoTracking()
+            .Where(item => !duplicates.Contains(item.ImportBatchId))
             .Where(item => item.Seller == importedSeller && item.Year == year && item.Month == month).ToListAsync(cancellationToken);
         var ppp = await dbContext.PppRecords.AsNoTracking()
+            .Where(item => !duplicates.Contains(item.ImportBatchId))
             .Where(item => item.Seller == importedSeller && item.Year == year && item.Month == month).ToListAsync(cancellationToken);
         var values = importedDefaults is null
             ? new List<OroBI.Domain.Goals.GoalValueRecord>()
@@ -82,28 +87,31 @@ public sealed class SellerClosingQueryService(OroBiDbContext dbContext) : ISelle
             .Select(item => item.defaults)
             .FirstOrDefaultAsync(cancellationToken);
 
-    private async Task<SellerClosingSummary?> GetValdirClosingAsync(int year, int month, decimal? baseSalary, CancellationToken cancellationToken)
+    private async Task<SellerClosingSummary?> GetValdirClosingAsync(int year, int month, decimal? baseSalary, Guid[] duplicates, CancellationToken cancellationToken)
     {
         if (baseSalary is null) return null;
         var movements = await dbContext.CommercialMovements.AsNoTracking()
+            .Where(item => !duplicates.Contains(item.ImportBatchId))
             .Where(item => item.MovementDate.Year == year && item.MovementDate.Month == month &&
-                item.Seller != "OPERACAO BAUDUCCO" && item.MovementType != "BONIFICACAO")
+                item.Seller != "OPERACAO BAUDUCCO")
             .ToListAsync(cancellationToken);
         var commissionableRevenue = movements.Sum(item => item.TotalValue);
+        var tradeRevenueBase = movements.Where(item => item.MovementType != "BONIFICACAO").Sum(item => item.TotalValue);
         var trade = movements.Where(item => item.MovementType is "TROCA" or "TROCA DEV").Sum(item => decimal.Abs(item.TotalValue));
-        var tradePercent = decimal.Abs(commissionableRevenue) == 0m ? 0m : trade / decimal.Abs(commissionableRevenue) * 100m;
+        var tradePercent = tradeRevenueBase == 0m ? 0m : trade / decimal.Abs(tradeRevenueBase) * 100m;
         var special = SpecialClosingCalculator.CalculateValdir(new ValdirClosingInput(baseSalary.Value, commissionableRevenue, tradePercent));
         return new SellerClosingSummary(new PppSummary(0m, 0m), 0m, 0m, special.TradeAward, new CompensationSummary(special.Commission, special.SalaryAndCommission), special.TotalAwards)
         {
-            Monthly = BuildMonthlySummary(movements, "company-excluding-bauducco")
+            Monthly = BuildMonthlySummary(movements, "company-excluding-bauducco", includeBonusInCommission: true)
         };
     }
 
-    private async Task<SellerClosingSummary?> GetDeividClosingAsync(int year, int month, decimal? baseSalary, OroBI.Domain.Closings.ImportedClosingDefaults? importedDefaults, CancellationToken cancellationToken)
+    private async Task<SellerClosingSummary?> GetDeividClosingAsync(int year, int month, decimal? baseSalary, OroBI.Domain.Closings.ImportedClosingDefaults? importedDefaults, Guid[] duplicates, CancellationToken cancellationToken)
     {
         if (baseSalary is null) return null;
         var importedTeam = DeividTeam.Select(SellerAliasCatalog.ResolveImportedName).ToHashSet(StringComparer.Ordinal);
         var movements = await dbContext.CommercialMovements.AsNoTracking()
+            .Where(item => !duplicates.Contains(item.ImportBatchId))
             .Where(item => item.MovementDate.Year == year && item.MovementDate.Month == month && item.MovementType != "BONIFICACAO")
             .ToListAsync(cancellationToken);
         var ownRevenue = movements.Where(item => item.Seller == SellerAliasCatalog.ResolveImportedName("DEIVID MANNES")).Sum(item => item.TotalValue);
@@ -113,9 +121,11 @@ public sealed class SellerClosingQueryService(OroBiDbContext dbContext) : ISelle
         var trade = movements.Where(item => item.MovementType is "TROCA" or "TROCA DEV").Sum(item => decimal.Abs(item.TotalValue));
         var tradePercent = decimal.Abs(totalRevenue) == 0m ? 0m : trade / decimal.Abs(totalRevenue) * 100m;
         var teamGoals = await dbContext.GoalRecords.AsNoTracking()
+            .Where(item => !duplicates.Contains(item.ImportBatchId))
             .Where(item => DeividTeam.Contains(item.Seller) && item.Year == year && item.Month == month)
             .ToListAsync(cancellationToken);
         var teamPpp = await dbContext.PppRecords.AsNoTracking()
+            .Where(item => !duplicates.Contains(item.ImportBatchId))
             .Where(item => DeividTeam.Contains(item.Seller) && item.Year == year && item.Month == month)
             .ToListAsync(cancellationToken);
         var teamConfigurations = await dbContext.SellerClosingConfigurations.AsNoTracking()
@@ -162,10 +172,11 @@ public sealed class SellerClosingQueryService(OroBiDbContext dbContext) : ISelle
             };
         }).ToArray();
 
-    private static ClosingMonthlySummary BuildMonthlySummary(IReadOnlyCollection<CommercialMovement> movements, string scope)
+    private static ClosingMonthlySummary BuildMonthlySummary(IReadOnlyCollection<CommercialMovement> movements, string scope, bool includeBonusInCommission = false)
     {
         var revenue = movements.Sum(item => item.TotalValue);
-        var commissionableRevenue = movements.Where(item => item.MovementType != "BONIFICACAO").Sum(item => item.TotalValue);
+        var tradeRevenueBase = movements.Where(item => item.MovementType != "BONIFICACAO").Sum(item => item.TotalValue);
+        var commissionableRevenue = includeBonusInCommission ? revenue : tradeRevenueBase;
         var tradeValue = movements.Where(item => item.MovementType is "TROCA" or "TROCA DEV").Sum(item => decimal.Abs(item.TotalValue));
         // A movement is a document line. Include date, seller, customer and type so reused numbers do not merge unrelated documents.
         var documents = movements.Where(item => !string.IsNullOrWhiteSpace(item.DocumentNumber))
@@ -177,8 +188,8 @@ public sealed class SellerClosingQueryService(OroBiDbContext dbContext) : ISelle
             .ToArray();
         var customerCount = movements.Select(item => item.CustomerCode).Where(code => !string.IsNullOrWhiteSpace(code)).Distinct().Count();
         return new ClosingMonthlySummary(scope, revenue, commissionableRevenue, tradeValue,
-            commissionableRevenue == 0m ? 0m : tradeValue / decimal.Abs(commissionableRevenue) * 100m,
-            movements.Count, customerCount, documents);
+            tradeRevenueBase == 0m ? 0m : tradeValue / decimal.Abs(tradeRevenueBase) * 100m,
+            movements.Count, customerCount, documents) { TradeRevenueBase = tradeRevenueBase };
     }
 
     private static decimal? ImportedSellerSalary(OroBI.Domain.Closings.ImportedClosingDefaults? importedDefaults, string seller)

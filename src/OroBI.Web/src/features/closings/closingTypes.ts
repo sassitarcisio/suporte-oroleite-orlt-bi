@@ -22,6 +22,7 @@ export type ClosingMonthlySummary = {
   scope: string
   revenue: number
   commissionableRevenue: number
+  tradeRevenueBase?: number
   tradeValue: number
   tradePercent: number
   documentCount: number

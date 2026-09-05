@@ -19,6 +19,13 @@ const summary = {
 }
 
 describe('Closing details', () => {
+  it('shows separate commission and trade bases for the official Valdir closing', () => {
+    render(<ClosingsPage summary={{ ...summary, monthly: { ...summary.monthly, scope: 'company-excluding-bauducco', revenue: 4557465.78, commissionableRevenue: 4557465.78, tradeRevenueBase: 4546665.61, tradeValue: 234910.48, tradePercent: 5.17 } }} sellers={[]} state="ready" errorMessage={null} onSubmit={vi.fn()} />)
+    expect(screen.getByText('Base da comissão').closest('article')).toHaveTextContent(/4\.557\.465,78/)
+    expect(screen.getByText('Faturamento sem bonificações').closest('article')).toHaveTextContent(/4\.546\.665,61/)
+    expect(screen.getByRole('region', { name: 'Indicadores do mês' })).toHaveTextContent('0,10%')
+  })
+
   it('keeps Valdir selected even when the commercial seller catalog does not contain him', () => {
     const onSubmit = vi.fn()
     render(<ClosingsPage summary={null} sellers={['MARCIO FERNANDES', 'DEIVID MANNES']} initialSeller="VALDIR ZACARIAS" state="idle" errorMessage={null} onSubmit={onSubmit} />)

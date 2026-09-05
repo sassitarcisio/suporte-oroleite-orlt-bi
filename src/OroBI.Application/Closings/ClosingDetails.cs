@@ -11,6 +11,7 @@ public sealed record ClosingMonthlySummary(
     IReadOnlyCollection<ClosingDocument> Documents)
 {
     public int DocumentCount => Documents.Count;
+    public decimal TradeRevenueBase { get; init; } = CommissionableRevenue;
 }
 
 public sealed record ClosingDocument(

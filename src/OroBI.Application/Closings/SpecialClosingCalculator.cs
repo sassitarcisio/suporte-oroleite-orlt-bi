@@ -12,7 +12,7 @@ public static class SpecialClosingCalculator
     }
 
     public static SpecialClosingSummary CalculateValdir(ValdirClosingInput input) =>
-        new(input.BaseSalary, input.CompanyCommissionableRevenue * 0.001m, 0m, ValdirTradeAward(input.TradePercent));
+        new(input.BaseSalary, decimal.Round(input.CompanyCommissionableRevenue * 0.001m, 2, MidpointRounding.AwayFromZero), 0m, ValdirTradeAward(input.TradePercent));
 
     public static decimal DeividTradeAward(decimal tradePercent) => tradePercent switch
     {

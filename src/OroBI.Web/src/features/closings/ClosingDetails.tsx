@@ -6,10 +6,10 @@ const date = (value: string) => value.split('-').reverse().join('/')
 export function ClosingIndicators({ monthly }: Pick<ClosingSummary, 'monthly'>) {
   return <section aria-label="Indicadores do mês" className="closing-details">
     <h2>Indicadores do mês</h2>
-    <p>{monthly.scope === 'company-excluding-bauducco' ? 'Empresa, exceto Operação Bauducco e bonificações.' : monthly.scope === 'company' ? 'Empresa sem bonificações. A comissão de Deivid combina vendas próprias, equipe e redes Bistek/Giassi.' : 'Movimentos do vendedor no mês selecionado.'}</p>
+    <p>{monthly.scope === 'company-excluding-bauducco' ? 'Empresa, exceto Operação Bauducco. Comissão de 0,10% sobre o faturamento líquido com bonificações; percentual de troca calculado sem bonificações.' : monthly.scope === 'company' ? 'Empresa sem bonificações. A comissão de Deivid combina vendas próprias, equipe e redes Bistek/Giassi.' : 'Movimentos do vendedor no mês selecionado.'}</p>
     <div className="metrics">
-      <article className="metric"><p>Faturamento do mês</p><strong>{money(monthly.revenue)}</strong><span>Soma líquida dos movimentos do escopo</span></article>
-      <article className="metric"><p>Faturamento sem bonificações</p><strong>{money(monthly.commissionableRevenue)}</strong><span>Base do percentual consolidado de troca</span></article>
+      <article className="metric"><p>{monthly.scope === 'company-excluding-bauducco' ? 'Base da comissão' : 'Faturamento do mês'}</p><strong>{money(monthly.scope === 'company-excluding-bauducco' ? monthly.commissionableRevenue : monthly.revenue)}</strong><span>Soma líquida dos movimentos do escopo</span></article>
+      <article className="metric"><p>Faturamento sem bonificações</p><strong>{money(monthly.tradeRevenueBase ?? monthly.commissionableRevenue)}</strong><span>Base do percentual consolidado de troca</span></article>
       <article className="metric"><p>Trocas</p><strong>{money(monthly.tradeValue)}</strong><span>{percent(monthly.tradePercent)} do faturamento sem bonificações</span></article>
       <article className="metric"><p>Documentos identificados</p><strong>{number(monthly.documentCount)}</strong><span>Itens agrupados por documento</span></article>
       <article className="metric"><p>Clientes</p><strong>{number(monthly.customerCount)}</strong><span>Clientes identificados nos movimentos</span></article>

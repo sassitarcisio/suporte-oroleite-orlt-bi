@@ -2,7 +2,7 @@
 
 `GET /api/closings?seller=ANA&month=2026-08` mantém os campos anteriores e acrescenta:
 
-- `monthly`: faturamento líquido dos movimentos (`revenue`), faturamento sem bonificações (`commissionableRevenue`), valor e percentual de troca, contagens de movimentos, clientes e documentos, escopo e documentos agrupados.
+- `monthly`: faturamento líquido dos movimentos (`revenue`), base da comissão (`commissionableRevenue`), base de troca sem bonificações (`tradeRevenueBase`), valor e percentual de troca, contagens de movimentos, clientes e documentos, escopo e documentos agrupados.
 - `compensation.baseSalary`: salário-base; `commission` e `totalSalary` continuam representando comissão e salário com comissão.
 - `total`: salário com comissão mais `totalAwards`.
 - `pppSegments`: segmento, clientes, itens por segmento, grupos colocados e percentual realizado.
@@ -23,12 +23,20 @@ As metas e realizados por marca vêm de `GoalRecords`; os prêmios previstos e l
 `monthly.scope` identifica a abrangência:
 
 - `seller`: vendedor selecionado.
-- `company-excluding-bauducco`: Valdir, empresa sem Operação Bauducco e sem bonificações.
+- `company-excluding-bauducco`: Valdir, empresa sem Operação Bauducco. A comissão de 0,10% inclui bonificações; a base de troca as exclui. A comissão é arredondada para centavos antes de compor o total.
 - `company`: Deivid, empresa sem bonificações para o indicador de troca. Sua comissão continua combinando os escopos próprio, equipe e redes Bistek/Giassi.
 
 Os fechamentos especiais mantêm seus prêmios próprios. Não retornam segmentos PPP ou metas por marca individuais; as listas ficam vazias. O campo legado `revenueAward` de Deivid continua contendo o prêmio da equipe e recebe esse nome na tela.
 
 Nenhuma migração de banco é necessária. A tela usa o contrato expandido e deve ser distribuída junto com a API atualizada.
+
+## Importações repetidas e conferência de agosto de 2026
+
+Dashboard e fechamento contam apenas o lote concluído mais recente de cada combinação de tipo de arquivo e checksum SHA-256. O histórico original permanece no banco. Linhas repetidas dentro de um mesmo arquivo são preservadas, pois podem representar itens legítimos. Arquivos com conteúdo diferente continuam sendo cargas independentes.
+
+Reenviar um arquivo idêntico de movimentos, PPP ou metas já concluído retorna o resultado anterior, mesmo com outro nome, sem gravar outro arquivo ou acrescentar registros. Lotes concluídos com erros também são reconhecidos; lotes rejeitados não bloqueiam nova tentativa. `VALOR_METAS` mantém uma nova versão a cada envio para permitir restaurar configurações anteriores; o fechamento já utiliza somente sua versão mais recente. No PostgreSQL, um bloqueio transacional por conteúdo serializa envios simultâneos, inclusive entre réplicas da API.
+
+O teste do demonstrativo oficial de Valdir reproduz quatro importações idênticas e confere: base da comissão R$ 4.557.465,78; base de troca R$ 4.546.665,61; trocas R$ 234.910,48 (5,17%); salário R$ 2.662,50; comissão R$ 4.557,47; prêmio zero; total R$ 7.219,97.
 
 ## Ordem de publicação
 
