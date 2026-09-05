@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from 'react'
+import { DashboardBreakdowns, type DashboardGroups } from './DashboardBreakdowns'
 
 export type DashboardSummary = {
   grossSales: number
   negativeMovements: number
-  negativePercentage: number
+  negativePercent?: number
+  negativePercentage?: number
   netResult: number
   saleQuantity: number
   movementCount: number
@@ -31,6 +33,7 @@ export type DashboardFilterOptions = {
 }
 
 export type DashboardDetails = {
+  groups?: DashboardGroups
   dailyTrend: Array<{ date: string, grossSales: number, netResult: number, negativeMovements: number }>
   sellerResults: Array<{ seller: string, netResult: number }>
 }
@@ -52,8 +55,10 @@ const number = (value: number) => Number.isFinite(value) ? new Intl.NumberFormat
 
 function trendPoints(points: DashboardDetails['dailyTrend'], pick: (point: DashboardDetails['dailyTrend'][number]) => number) {
   if (points.length === 0) return ''
-  const peak = Math.max(...points.map(pick), 1)
-  return points.map((point, index) => `${points.length === 1 ? 300 : 20 + index / (points.length - 1) * 560},${220 - pick(point) / peak * 185}`).join(' ')
+  const values = points.flatMap(point => [point.grossSales, point.netResult, point.negativeMovements])
+  const min = Math.min(0, ...values)
+  const range = Math.max(0, ...values) - min || 1
+  return points.map((point, index) => `${points.length === 1 ? 300 : 20 + index / (points.length - 1) * 560},${220 - (pick(point) - min) / range * 185}`).join(' ')
 }
 
 export function DashboardPage({ summary, filters, options, details, sellers, state, onFiltersChange, onSubmit, onClear }: DashboardPageProps) {
@@ -92,7 +97,7 @@ export function DashboardPage({ summary, filters, options, details, sellers, sta
       <article className="dashboard-kpi primary"><p><i className="fa-solid fa-sack-dollar" aria-hidden="true" /> Faturamento bruto</p><strong className="currency-value">{money(summary.grossSales)}</strong><span>Somente movimentos de venda</span></article>
       <article className="dashboard-kpi negative"><p><i className="fa-solid fa-arrow-trend-down" aria-hidden="true" /> Movimentos negativos</p><strong className="currency-value">{money(summary.negativeMovements)}</strong><span>Devolucoes, trocas e descontos</span></article>
       <article className="dashboard-kpi petrol"><p><i className="fa-solid fa-chart-line" aria-hidden="true" /> Resultado liquido</p><strong className="currency-value">{money(summary.netResult)}</strong><span>Soma de todos os movimentos</span></article>
-      <article className="dashboard-kpi percentage"><p><i className="fa-solid fa-percent" aria-hidden="true" /> % mov. negativos</p><strong>{number(summary.negativePercentage)}%</strong><span>Negativos sobre vendas brutas</span></article>
+      <article className="dashboard-kpi percentage"><p><i className="fa-solid fa-percent" aria-hidden="true" /> % mov. negativos</p><strong>{number(summary.negativePercent ?? summary.negativePercentage ?? 0)}%</strong><span>Negativos sobre vendas brutas</span></article>
       <article className="dashboard-kpi neutral"><p><i className="fa-solid fa-boxes-stacked" aria-hidden="true" /> Quantidade venda</p><strong>{number(summary.saleQuantity)}</strong><span>Registros classificados como venda</span></article>
       <article className="dashboard-kpi neutral"><p><i className="fa-solid fa-users" aria-hidden="true" /> Clientes</p><strong>{number(summary.customerCount)}</strong><span>Clientes distintos no filtro</span></article>
       <article className="dashboard-kpi neutral"><p><i className="fa-solid fa-file-lines" aria-hidden="true" /> Documentos</p><strong>{number(summary.documentCount)}</strong><span>Documentos distintos no filtro</span></article>
@@ -101,5 +106,6 @@ export function DashboardPage({ summary, filters, options, details, sellers, sta
       <article className="dashboard-chart-card trend-chart"><header><div><p><i className="card-label-icon fa-solid fa-chart-line" aria-hidden="true" /> Evolucao diaria</p><span>Vendas, liquido e movimentos negativos</span></div><div className="chart-legend"><span><i className="gross" />Bruto</span><span><i className="net" />Liquido</span><span><i className="negative" />Negativos</span></div></header><svg viewBox="0 0 600 250" role="img" aria-label="Evolucao diaria de faturamento, resultado e movimentos negativos"><line x1="20" y1="220" x2="580" y2="220" /><line x1="20" y1="130" x2="580" y2="130" /><line x1="20" y1="40" x2="580" y2="40" /><polyline className="trend-gross" points={trendPoints(details.dailyTrend, point => point.grossSales)} /><polyline className="trend-net" points={trendPoints(details.dailyTrend, point => point.netResult)} /><polyline className="trend-negative" points={trendPoints(details.dailyTrend, point => point.negativeMovements)} /></svg><footer><span>{new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(new Date(`${details.dailyTrend[0].date}T12:00:00`))}</span><span>{new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(new Date(`${details.dailyTrend.at(-1)?.date}T12:00:00`))}</span></footer></article>
       <article className="dashboard-chart-card seller-chart"><header><div><p>Resultado por vendedor</p><span>Top 10 resultado liquido</span></div><i className="fa-solid fa-ranking-star" aria-hidden="true" /></header><ol>{details.sellerResults.map(result => <li key={result.seller}><span>{result.seller}</span><div><i style={{ width: `${Math.max(4, result.netResult / Math.max(...details.sellerResults.map(item => Math.abs(item.netResult)), 1) * 100)}%` }} /></div><strong>{money(result.netResult)}</strong></li>)}</ol></article>
     </section>}
+    <DashboardBreakdowns groups={details?.groups} ready={state === 'ready' && summary !== null && summary.movementCount > 0} />
   </section>
 }

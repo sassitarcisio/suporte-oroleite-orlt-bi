@@ -114,9 +114,11 @@ export default function App() {
   const payrollRequestId = useRef(0)
   const [sellers, setSellers] = useState<string[]>([])
   const [menuOpen, setMenuOpen] = useState(false)
+  const dashboardRequestId = useRef(0)
 
   async function loadDashboard(filters = dashboardFilters) {
     if (!token) return
+    const requestId = ++dashboardRequestId.current
     setState('loading')
     try {
       const parameters = filterQuery(filters)
@@ -125,14 +127,16 @@ export default function App() {
         apiRequest<DashboardSummary>(`/api/dashboard${query}`, token),
         apiRequest<DashboardDetails>(`/api/dashboard/details${query}`, token),
       ])
+      if (requestId !== dashboardRequestId.current) return
       setSummary(dashboardSummary)
       setDashboardDetails({
+        groups: details.groups,
         dailyTrend: Array.isArray(details.dailyTrend) ? details.dailyTrend : [],
         sellerResults: Array.isArray(details.sellerResults) ? details.sellerResults : [],
       })
       setState('ready')
     } catch {
-      setState('error')
+      if (requestId === dashboardRequestId.current) setState('error')
     }
   }
 
