@@ -32,8 +32,33 @@ public static class TradeAnalysisCalculator
             Rank(tradeRows, item => item.Seller),
             Rank(tradeRows, item => DisplayCustomer(item)),
             Rank(tradeRows, item => item.ProductName),
-            Rank(tradeRows, item => item.Brand));
+            Rank(tradeRows, item => item.Brand))
+        {
+            Groups = new Dictionary<string, TradeDetailRow[]>
+            {
+                ["customer"] = Details(rows, DisplayCustomer),
+                ["group"] = Details(rows, item => item.Group),
+                ["product"] = Details(rows, item => item.ProductName),
+                ["brand"] = Details(rows, item => item.Brand),
+                ["seller"] = Details(rows, item => item.Seller),
+                ["city"] = Details(rows, item => item.City)
+            }
+        };
     }
+
+    private static TradeDetailRow[] Details(IEnumerable<CommercialMovement> rows, Func<CommercialMovement, string> selector) =>
+        rows.Where(row => RevenueTypes.Contains(row.MovementType) || TradeTypes.Contains(row.MovementType))
+            .GroupBy(row => string.IsNullOrWhiteSpace(selector(row)) ? "SEM INFORMAÇÃO" : selector(row).Trim(), StringComparer.Ordinal)
+            .Select(group =>
+            {
+                var revenue = group.Where(row => RevenueTypes.Contains(row.MovementType)).Sum(row => row.TotalValue);
+                var trades = group.Where(row => TradeTypes.Contains(row.MovementType)).ToArray();
+                var value = trades.Sum(row => decimal.Abs(row.TotalValue));
+                return new TradeDetailRow(group.Key, revenue, value, revenue > 0m ? value / revenue * 100m : null,
+                    trades.Sum(row => decimal.Abs(row.Quantity)));
+            })
+            .Where(row => row.TradeValue > 0m)
+            .OrderByDescending(row => row.TradeValue).ThenBy(row => row.Label, StringComparer.Ordinal).ToArray();
 
     private static decimal ValueFor(IEnumerable<CommercialMovement> movements, string type) =>
         movements.Where(item => item.MovementType == type).Sum(item => decimal.Abs(item.TotalValue));

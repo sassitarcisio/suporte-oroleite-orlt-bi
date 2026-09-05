@@ -1,4 +1,7 @@
+import { TradeDetails, type TradeGroups } from './TradeDetails'
+
 export type TradeAnalysis = {
+  groups?: TradeGroups
   filteredMovementCount: number
   grossSales: number
   netRevenue: number
@@ -74,5 +77,6 @@ export function TradeAnalysisPage({ mode, data, state }: Props) {
       <section className={`trade-kpis trade-kpis-${cards.length}`}>{cards.map(([label, value, note], index) => <article className={index === 0 ? 'trade-kpi primary' : index < 3 ? 'trade-kpi alert' : 'trade-kpi'} key={label}><p><i className={`card-label-icon fa-solid fa-${cardIcons[index]}`} aria-hidden="true" /> {label}</p><strong className={value.startsWith('R$') ? 'compact-currency-value' : undefined}>{value}</strong><span>{note}</span></article>)}</section>
       {salesMode ? <section className="trade-ranking-grid"><Ranking title="Clientes com maior troca" items={data.customerRanking} color="var(--gold)" /><Ranking title="Produtos com maior troca" items={data.productRanking} color="var(--gold-dark)" /><Ranking title="Marcas com maior troca" items={data.brandRanking} color="var(--negative)" /></section> : <section className="trade-chart-grid"><article className="trade-trend"><header><h2><i className="card-label-icon fa-solid fa-chart-line" aria-hidden="true" /> Evolucao diaria</h2><span>Evolucao de TROCA + TROCA DEV</span></header><LineChart points={data.dailyTrend} /></article><Ranking title="Perdas por vendedor" items={data.sellerRanking} color="var(--negative)" /></section>}
     </>}
+    {salesMode && <TradeDetails groups={data?.groups} ready={state === 'ready' && data !== null} />}
   </section>
 }

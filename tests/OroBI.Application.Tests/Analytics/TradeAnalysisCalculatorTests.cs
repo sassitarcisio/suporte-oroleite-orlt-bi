@@ -7,6 +7,28 @@ namespace OroBI.Application.Tests.Analytics;
 public sealed class TradeAnalysisCalculatorTests
 {
     [Fact]
+    public void Detail_groups_use_signed_revenue_absolute_trades_and_no_percentage_without_positive_revenue()
+    {
+        var batch = ImportBatch.Start(ImportFileType.Power, "power.csv", "details").Id;
+        CommercialMovement Row(string type, decimal value, decimal qty, string customer = "Cliente A") =>
+            Movement(batch, new DateOnly(2026, 8, 1), "ANA", type, value, qty, customer, "P1", "Marca A");
+        var result = TradeAnalysisCalculator.Calculate([
+            Row("VENDA", 1000m, 10m), Row("DEVOL ENT", -100m, -1m), Row("DEVOLUCAO", -100m, -1m),
+            Row("TROCA", 40m, 2m), Row("TROCA DEV", -40m, -2m),
+            Row("BONIFICACAO", 500m, 5m), Row("DESC BOLETO", -50m, 0m),
+            Row("TROCA", -20m, -1m, "Sem venda"), Row("DEVOLUCAO", -10m, -1m, "Sem venda")]);
+        Assert.Equal(6, result.Groups.Count);
+        var customer = Assert.Single(result.Groups["customer"], row => row.Label == "Cliente A");
+        Assert.Equal(800m, customer.NetRevenue);
+        Assert.Equal(80m, customer.TradeValue);
+        Assert.Equal(10m, customer.TradePercent);
+        Assert.Equal(4m, customer.TradeQuantity);
+        Assert.Null(Assert.Single(result.Groups["customer"], row => row.Label == "Sem venda").TradePercent);
+        Assert.Equal(100m, Assert.Single(result.Groups["seller"]).TradeValue);
+        Assert.All(TradeAnalysisCalculator.Calculate([]).Groups.Values, rows => Assert.Empty(rows));
+    }
+
+    [Fact]
     public void Builds_trade_indicators_daily_trend_and_rankings_from_trade_movements()
     {
         var batchId = ImportBatch.Start(ImportFileType.Power, "power.csv", "abc").Id;

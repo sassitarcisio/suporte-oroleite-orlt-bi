@@ -289,12 +289,14 @@ export default function App() {
   useEffect(() => {
     if (!token || (view !== 'trades' && view !== 'sales-trades')) return
 
+    let active = true
     setTradeAnalysis(null)
     setAnalysisState('loading')
     const query = filterQuery(dashboardFilters)
     void apiRequest<TradeAnalysis>(`/api/trade-analysis${query ? `?${query}` : ''}`, token)
-      .then(result => { setTradeAnalysis(result); setAnalysisState('ready') })
-      .catch(() => setAnalysisState('error'))
+      .then(result => { if (active) { setTradeAnalysis(result); setAnalysisState('ready') } })
+      .catch(() => { if (active) setAnalysisState('error') })
+    return () => { active = false }
   }, [token, view, dashboardFilters])
 
   async function login(event: FormEvent<HTMLFormElement>) {

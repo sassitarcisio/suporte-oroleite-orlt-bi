@@ -4,6 +4,8 @@ public sealed record TradeRankItem(string Name, decimal Value);
 
 public sealed record DailyTradeValue(DateOnly Date, decimal Value);
 
+public sealed record TradeDetailRow(string Label, decimal NetRevenue, decimal TradeValue, decimal? TradePercent, decimal TradeQuantity);
+
 public sealed record TradeAnalysisReport(
     int FilteredMovementCount,
     decimal GrossSales,
@@ -21,4 +23,7 @@ public sealed record TradeAnalysisReport(
     IReadOnlyList<TradeRankItem> SellerRanking,
     IReadOnlyList<TradeRankItem> CustomerRanking,
     IReadOnlyList<TradeRankItem> ProductRanking,
-    IReadOnlyList<TradeRankItem> BrandRanking);
+    IReadOnlyList<TradeRankItem> BrandRanking)
+{
+    public IReadOnlyDictionary<string, TradeDetailRow[]> Groups { get; init; } = new Dictionary<string, TradeDetailRow[]>();
+}

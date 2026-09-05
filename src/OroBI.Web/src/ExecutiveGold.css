@@ -453,6 +453,24 @@
   .password-toggle:hover { color: var(--gold-light); }
 }
 
+/* Keep navigation in the viewport while the document scrolls. */
+@media screen {
+  .side-rail { height: 100vh; height: 100dvh; min-height: 0; }
+  .side-rail .side-navigation { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--gold-dark) var(--gold-sidebar); }
+  .side-rail > :not(.side-navigation) { flex-shrink: 0; }
+}
+@media screen and (min-width: 901px) {
+  .side-rail { position: sticky; top: 0; align-self: start; }
+}
+@media screen and (max-height: 800px) {
+  .side-rail { padding-top: 12px; padding-bottom: 12px; }
+  .side-rail .brand-logo { height: 64px; }
+  .side-rail .rail-label { margin-top: 14px; margin-bottom: 10px; }
+  .side-rail .side-navigation { gap: 3px; }
+  .side-rail .side-navigation button { padding-top: 9px; padding-bottom: 9px; }
+  .side-rail .rail-footer { padding-top: 10px; }
+}
+
 @media screen and (max-width: 600px) {
   .main-canvas,
   .main-canvas.dashboard-workspace,

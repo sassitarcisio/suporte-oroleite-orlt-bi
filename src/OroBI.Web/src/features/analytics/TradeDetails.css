@@ -1,0 +1,16 @@
+.trade-details { min-width: 0; padding: 20px; margin-top: 20px; scroll-margin-top: 80px; }
+.trade-details > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; justify-content: space-between; }
+.trade-details > header h2 { font-size: 17px; line-height: 1.4; }
+.trade-detail-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin: 18px 0; }
+.trade-detail-controls label { flex: 1 1 180px; min-width: 0; display: grid; gap: 7px; font-size: 12px; color: var(--gold-secondary); }
+.trade-detail-controls select { width: 100%; min-width: 0; padding: 11px; border: 1px solid var(--gold-border); border-radius: 8px; background: var(--gold-main); color: var(--gold-text); font-size: 14px; }
+.trade-detail-controls button { padding: 12px 20px; border: 1px solid var(--gold); border-radius: 8px; background: var(--gold); color: var(--gold-main); font-weight: 700; }
+.trade-detail-scroll { max-height: 525px; overflow: auto; border: 1px solid var(--gold-border); border-radius: 10px; scrollbar-color: var(--gold-dark) var(--gold-main); }
+.trade-detail-scroll table { width: 100%; min-width: 740px; border-collapse: collapse; font-size: 13px; }
+.trade-detail-scroll th, .trade-detail-scroll td { padding: 13px 12px; border-bottom: 1px solid var(--gold-border); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.trade-detail-scroll th { position: sticky; top: 0; background: var(--gold-highlight); color: var(--gold-text); z-index: 1; }
+.trade-detail-scroll :is(th, td):nth-child(-n + 2) { text-align: left; }
+.trade-detail-scroll td:nth-child(2) { min-width: 200px; max-width: 380px; white-space: normal; overflow-wrap: anywhere; }
+.trade-detail-rate { color: var(--negative); font-weight: 700; }
+.trade-details .trade-detail-explanation { margin: 16px 0 0; font-size: 12px; line-height: 1.6; color: var(--gold-secondary); }
+@media (max-width: 600px) { .trade-details { padding: 14px; } .trade-detail-controls label { flex-basis: 100%; } .trade-detail-controls button { width: 100%; } }
