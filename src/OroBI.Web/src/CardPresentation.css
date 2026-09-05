@@ -1,5 +1,8 @@
 /* Shared screen presentation; printed statements keep their compact layout. */
 @media screen {
+  .dashboard-workspace .dashboard-metrics { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .dashboard-workspace .dashboard-kpi { grid-column: span 3; }
+  .dashboard-workspace .dashboard-kpi:nth-child(-n + 3) { grid-column: span 4; }
   .main-canvas .card-label-icon {
     display: inline-block;
     width: 1.2em;
@@ -121,11 +124,17 @@
   .main-canvas .valdir-trade-rate { flex-direction: column; justify-content: center; }
 }
 
+@media screen and (max-width: 1150px) {
+  .dashboard-workspace .dashboard-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dashboard-workspace .dashboard-kpi:nth-child(n) { grid-column: auto; }
+}
+
 @media screen and (min-width: 601px) and (max-width: 1200px) {
   .main-canvas .closing-query-card { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .main-canvas .closing-query-card > div { grid-column: 1 / -1; }
 }
 
 @media screen and (max-width: 600px) {
+  .dashboard-workspace .dashboard-metrics { grid-template-columns: 1fr; }
   .main-canvas .margin-metrics { grid-template-columns: 1fr; }
 }
