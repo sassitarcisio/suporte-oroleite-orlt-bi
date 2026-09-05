@@ -51,6 +51,14 @@ export function ClosingsPage({ summary, sellers, state, errorMessage, initialSel
         <article><p>Premios no periodo</p><strong>{money(summary.totalAwards)}</strong><span>PPP, faturamento, positivacao e troca</span></article>
         <article><p>Total previsto</p><strong>{money(summary.total)}</strong><span>Salario, comissao e premios</span></article>
       </section>
+      {summary.monthly.scope === 'company-excluding-bauducco' && <section className="closing-general-trade-award" aria-labelledby="general-trade-award-title">
+        <h2 id="general-trade-award-title">Prêmio por troca geral</h2>
+        <dl>
+          <div><dt>% de trocas</dt><dd>{percent(summary.monthly.tradePercent)}</dd></div>
+          <div><dt>Valor das trocas</dt><dd>{money(summary.monthly.tradeValue)}</dd></div>
+          <div><dt>Prêmio</dt><dd>{money(summary.tradeAward)}</dd></div>
+        </dl>
+      </section>}
       <ClosingIndicators monthly={summary.monthly} />
       <section className="metrics">
       <article className="metric main"><p>Premios totais</p><strong>{money(summary.totalAwards)}</strong><span>PPP, faturamento, positivacao e troca</span></article>
