@@ -12,6 +12,14 @@
 .seller-portal .portal-home-order{display:flex;flex-direction:column}.seller-portal .portal-home-order>.portal-monthly{order:1;margin-top:8px}.seller-portal .portal-home-order>.portal-rhythm{order:2}.seller-portal .portal-home-order>.portal-source{order:3}.seller-portal .portal-daily-chart{margin:16px 0}.seller-portal .portal-daily-chart svg{display:block;width:100%;height:auto;min-height:135px;overflow:visible}.seller-portal .portal-chart-baseline{stroke:var(--portal-line);stroke-dasharray:4 4}.seller-portal .portal-chart-line{fill:none;stroke:var(--portal-gold);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}.seller-portal .portal-chart-dot{fill:var(--portal-gold);stroke:var(--portal-panel);stroke-width:2}.seller-portal .portal-daily-chart text{font-size:12px;fill:var(--portal-muted)}.seller-portal .portal-daily-chart figcaption{font-size:11px;color:var(--portal-muted);margin-top:10px}.seller-portal .portal-daily-table summary{cursor:pointer;font-size:12px;color:var(--portal-gold);padding:10px 0}
 .seller-portal .portal-pending{border-color:#977126;background:linear-gradient(120deg,#302213,#241a12)}.seller-portal .portal-pending-status{display:block;margin-top:10px;color:var(--portal-gold);font-size:11px}.seller-portal .portal-registration-review{border-top:1px solid var(--portal-line);padding-top:18px;margin-top:20px}.seller-portal .portal-registration-review>.portal-form{max-width:620px}.seller-portal .portal-registration-review .portal-permissions{margin-left:0}
 
+@media(min-width:1100px){
+  .seller-portal:has(.portal-layout){display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+  .seller-portal .portal-header,.seller-portal .portal-offline{flex-shrink:0}
+  .seller-portal .portal-layout{flex:1;min-height:0;width:100%;margin:0 auto}
+  .seller-portal .portal-desktop-nav{min-height:0;overflow-y:auto;overscroll-behavior-y:contain}
+  .seller-portal .portal-content{min-height:0;overflow-y:auto}
+}
+
 .seller-portal .portal-customer-title{overflow-wrap:anywhere}
 .seller-portal .portal-customer-days{display:grid;gap:22px}
 .seller-portal .portal-customer-day{min-width:0;border:1px solid var(--portal-line);border-radius:16px;overflow:hidden;background:var(--portal-panel)}
