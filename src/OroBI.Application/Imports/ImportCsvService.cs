@@ -33,7 +33,7 @@ public static class ImportCsvService
         var header = csv.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
         var providedHeaders = header?
             .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-            .Select(value => value.ToUpperInvariant())
+            .Select(CsvHeader.Normalize)
             .ToHashSet(StringComparer.Ordinal) ?? [];
 
         var errors = RequiredHeaders[fileType]
@@ -54,7 +54,7 @@ public static class ImportCsvService
         const string requiredHeader = "MARCA;FATURAMENTO;POSITIVACAO;TROCA;TROCA_PERCENTUAL";
         var hasBrandTableHeader = csv
             .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-            .Any(line => string.Equals(line.Trim().TrimStart('\uFEFF'), requiredHeader, StringComparison.OrdinalIgnoreCase));
+            .Any(line => string.Equals(CsvHeader.Normalize(line), requiredHeader, StringComparison.Ordinal));
 
         return hasBrandTableHeader
             ? ImportValidationResult.Valid()

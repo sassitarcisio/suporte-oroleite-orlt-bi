@@ -126,7 +126,7 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
             return new([], []);
         }
 
-        var headers = lines[0].Split(';').Select((value, index) => new { Name = value.Trim().ToUpperInvariant(), Index = index })
+        var headers = lines[0].Split(';').Select((value, index) => new { Name = CsvHeader.Normalize(value), Index = index })
             .ToDictionary(item => item.Name, item => item.Index, StringComparer.Ordinal);
         var groupHeader = headers.ContainsKey("GRUPO") ? "GRUPO" : "REDE";
         var culture = CultureInfo.GetCultureInfo("pt-BR");
@@ -156,7 +156,7 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
                     Value("CODCLIENTE").Trim(),
                     Value("NRODOCUMENTO").Trim()));
 
-                string Value(string header) => values[headers[header]].Trim();
+                string Value(string header) => ReadColumn(values, headers[header], header);
             }
             catch (FormatException exception)
             {
@@ -199,6 +199,10 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
         return normalized.ToUpperInvariant();
     }
 
+    private static string ReadColumn(string[] values, int index, string header) => index < values.Length
+        ? values[index].Trim()
+        : throw new FormatException($"Required column has no value: {header}.");
+
     private static PppParseResult ParsePppRecords(Guid batchId, string csv)
     {
         var lines = csv.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
@@ -207,7 +211,7 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
             return new([], []);
         }
 
-        var headers = lines[0].Split(';').Select((value, index) => new { Name = value.Trim().ToUpperInvariant(), Index = index })
+        var headers = lines[0].Split(';').Select((value, index) => new { Name = CsvHeader.Normalize(value), Index = index })
             .ToDictionary(item => item.Name, item => item.Index, StringComparer.Ordinal);
         var records = new List<PppRecord>();
         var errors = new List<PowerRowError>();
@@ -226,7 +230,7 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
                     ParseInteger("QTDE_ITENS_SEGMENTO"),
                     ParseInteger("GRUPOS_COLOCADOS")));
 
-                string Value(string header) => values[headers[header]].Trim();
+                string Value(string header) => ReadColumn(values, headers[header], header);
                 int ParseInteger(string header) => int.TryParse(Value(header), CultureInfo.InvariantCulture, out var value)
                     ? value
                     : throw new FormatException($"{header} must be a valid integer.");
@@ -244,7 +248,7 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
     {
         var lines = csv.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
         if (lines.Length <= 1) return new([], []);
-        var headers = lines[0].Split(';').Select((value, index) => new { Name = value.Trim().ToUpperInvariant(), Index = index })
+        var headers = lines[0].Split(';').Select((value, index) => new { Name = CsvHeader.Normalize(value), Index = index })
             .ToDictionary(item => item.Name, item => item.Index, StringComparer.Ordinal);
         var records = new List<GoalRecord>();
         var errors = new List<PowerRowError>();
@@ -256,7 +260,7 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
                 var values = item.Line.Split(';');
                 var description = Value("DESCRICAO");
                 records.Add(GoalRecord.Create(batchId, Normalize(Value("VENDEDOR")), Integer("MES"), Integer("ANO"), ClassifyGoalType(Value("TIPOMETA"), description), description, Decimal("META"), Decimal("ALCANCADO")));
-                string Value(string header) => values[headers[header]].Trim();
+                string Value(string header) => ReadColumn(values, headers[header], header);
                 int Integer(string header) => int.TryParse(Value(header), CultureInfo.InvariantCulture, out var value) ? value : throw new FormatException($"{header} must be a valid integer.");
                 decimal Decimal(string header) => decimal.TryParse(Value(header), NumberStyles.Number | NumberStyles.AllowCurrencySymbol, culture, out var value) ? value : throw new FormatException($"{header} must be a valid number.");
             }
@@ -276,7 +280,7 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
     private static GoalValueParseResult ParseGoalValueRecords(Guid batchId, string csv)
     {
         var lines = csv.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
-        var headerIndex = Array.FindIndex(lines, line => string.Equals(line.Split(';')[0].Trim().TrimStart('\uFEFF'), "MARCA", StringComparison.OrdinalIgnoreCase));
+        var headerIndex = Array.FindIndex(lines, line => CsvHeader.Normalize(line.Split(';')[0]) == "MARCA");
         if (headerIndex < 0 || headerIndex == lines.Length - 1) return new([], [], null);
         var records = new List<GoalValueRecord>();
         var errors = new List<PowerRowError>();

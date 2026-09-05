@@ -15,6 +15,10 @@ on:
         description: Published API image URI
         required: true
         type: string
+      web_origin:
+        description: HTTPS origin of the published web application
+        required: true
+        type: string
 
 permissions:
   id-token: write
@@ -32,10 +36,17 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       - run: az bicep build --file infra/main.bicep
-      - run: >-
-          az deployment group create
-          --resource-group "${{ inputs.resource_group }}"
-          --template-file infra/main.bicep
-          --parameters prefix="${{ inputs.prefix }}"
-          apiImage="${{ inputs.api_image }}"
-          postgresAdministratorPassword="${{ secrets.POSTGRES_ADMINISTRATOR_PASSWORD }}"
+      - name: Deploy infrastructure with required runtime settings
+        shell: pwsh
+        env:
+          DEPLOY_RESOURCE_GROUP: ${{ inputs.resource_group }}
+          DEPLOY_PREFIX: ${{ inputs.prefix }}
+          DEPLOY_API_IMAGE: ${{ inputs.api_image }}
+          DEPLOY_WEB_ORIGIN: ${{ inputs.web_origin }}
+        run: >-
+          ./scripts/deploy-azure.ps1 -Apply -Confirm:$false
+          -ResourceGroup $env:DEPLOY_RESOURCE_GROUP
+          -Prefix $env:DEPLOY_PREFIX
+          -ApiImage $env:DEPLOY_API_IMAGE
+          -WebOrigin $env:DEPLOY_WEB_ORIGIN
+          -ConfigureRuntimeSecrets

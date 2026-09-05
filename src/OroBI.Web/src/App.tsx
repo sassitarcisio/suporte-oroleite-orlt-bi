@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { apiRequest, apiBaseUrl } from './api/client'
-import { clearAccessToken, readAccessToken, saveAccessToken } from './auth/session'
+import { apiRequest, apiBaseUrl, authenticatedFetch } from './api/client'
+import { clearAccessToken, readAccessToken, saveAccessToken, sessionExpiredEvent } from './auth/session'
 import { MarginAnalysisPage } from './features/analytics/MarginAnalysisPage'
 import type { MarginReport, NetMarginReport } from './features/analytics/marginTypes'
 import { TradeAnalysisPage } from './features/analytics/TradeAnalysisPage'
@@ -90,6 +90,8 @@ export default function App() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [dashboardDetails, setDashboardDetails] = useState<DashboardDetails | null>(null)
   const [dashboardFilters, setDashboardFilters] = useState<DashboardFilters>(() => createDashboardFilters(readSellerFilter()))
+  const [dashboardDraft, setDashboardDraft] = useState(dashboardFilters)
+  const appliedFiltersRef = useRef(dashboardFilters)
   const [dashboardFilterOptions, setDashboardFilterOptions] = useState<DashboardFilterOptions>(emptyDashboardFilterOptions)
   const [state, setState] = useState<PageState>('idle')
   const [view, setView] = useState<View>('dashboard')
@@ -115,8 +117,10 @@ export default function App() {
   const [sellers, setSellers] = useState<string[]>([])
   const [menuOpen, setMenuOpen] = useState(false)
   const dashboardRequestId = useRef(0)
+  const sessionVersion = useRef(0)
+  const [sessionMessage, setSessionMessage] = useState('')
 
-  async function loadDashboard(filters = dashboardFilters) {
+  const loadDashboard = useCallback(async (filters: DashboardFilters) => {
     if (!token) return
     const requestId = ++dashboardRequestId.current
     setState('loading')
@@ -138,16 +142,22 @@ export default function App() {
     } catch {
       if (requestId === dashboardRequestId.current) setState('error')
     }
-  }
+  }, [token])
 
   function applyDashboardFilter(filters: DashboardFilters) {
+    const applied = { ...filters }
+    appliedFiltersRef.current = applied
+    setDashboardFilters(applied)
+    setDashboardDraft(applied)
     writeSellerFilter(filters.seller)
-    void loadDashboard(filters)
+    void loadDashboard(applied)
   }
 
   function clearDashboardFilters() {
     const clearedFilters = createDashboardFilters()
     setDashboardFilters(clearedFilters)
+    setDashboardDraft(clearedFilters)
+    appliedFiltersRef.current = clearedFilters
     writeSellerFilter('')
     void loadDashboard(clearedFilters)
   }
@@ -163,7 +173,7 @@ export default function App() {
     if (nextView === 'margins' || nextView === 'net-margin') void loadMargins(nextView, marginFilters)
   }
 
-  function clearClosingRequests() {
+  const clearClosingRequests = useCallback(() => {
     marginRequestId.current += 1
     setMarginData(null)
     setMarginState('idle')
@@ -177,7 +187,42 @@ export default function App() {
     setClosing(null)
     setClosingState('idle')
     setClosingError(null)
+  }, [])
+
+  function endSession(message = '') {
+    sessionVersion.current += 1
+    dashboardRequestId.current += 1
+    clearClosingRequests()
+    clearAccessToken()
+    setToken('')
+    setView('dashboard')
+    setState('idle')
+    setSummary(null)
+    setDashboardDetails(null)
+    setTradeAnalysis(null)
+    setAnalysisState('idle')
+    setRoles([])
+    setSellers([])
+    setDashboardFilterOptions(emptyDashboardFilterOptions)
+    const filters = createDashboardFilters()
+    appliedFiltersRef.current = filters
+    setDashboardFilters(filters)
+    setDashboardDraft(filters)
+    setMarginFilters(filters)
+    writeSellerFilter('')
+    setFile(null)
+    setPassword('')
+    setPasswordVisible(false)
+    setMenuOpen(false)
+    setSessionMessage(message)
   }
+
+  const expireSession = useEffectEvent(() => endSession('Sua sessão expirou. Entre novamente para continuar.'))
+  useEffect(() => {
+    const expired = () => expireSession()
+    window.addEventListener(sessionExpiredEvent, expired)
+    return () => window.removeEventListener(sessionExpiredEvent, expired)
+  }, [])
 
   async function loadMargins(page: 'margins' | 'net-margin', filters: DashboardFilters) {
     if (!token) return
@@ -225,7 +270,7 @@ export default function App() {
     setExportError(null)
     try {
       const query = new URLSearchParams({ month, coverageSeller: payroll.coverageSeller })
-      const response = await fetch(`${apiBaseUrl}/api/closings/payroll/export?${query}`, { headers: { Authorization: `Bearer ${token}` } })
+      const response = await authenticatedFetch(`/api/closings/payroll/export?${query}`, token)
       if (!response.ok) throw new Error(`Não foi possível exportar a folha (erro ${response.status}).`)
       const blob = await response.blob()
       if (requestId !== payrollRequestId.current) return
@@ -270,37 +315,41 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (!token) {
-      setRoles([])
-      return
-    }
+    if (!token) return
+    let active = true
+    const version = sessionVersion.current
+    const current = () => active && version === sessionVersion.current
 
-    void loadDashboard()
-    void apiRequest<CurrentUser>('/api/me', token).then(user => setRoles(user.roles)).catch(() => setRoles([]))
-    void apiRequest<string[]>('/api/sellers', token).then(result => setSellers(Array.isArray(result) ? result : [])).catch(() => setSellers([]))
-    void apiRequest<DashboardFilterOptions>('/api/dashboard/filter-options', token).then(result => setDashboardFilterOptions({
+    void loadDashboard(appliedFiltersRef.current)
+    void apiRequest<CurrentUser>('/api/me', token).then(user => { if (current()) setRoles(user.roles) }).catch(() => { if (current()) setRoles([]) })
+    void apiRequest<string[]>('/api/sellers', token).then(result => { if (current()) setSellers(Array.isArray(result) ? result : []) }).catch(() => { if (current()) setSellers([]) })
+    void apiRequest<DashboardFilterOptions>('/api/dashboard/filter-options', token).then(result => { if (current()) setDashboardFilterOptions({
       brands: Array.isArray(result.brands) ? result.brands : [],
       groups: Array.isArray(result.groups) ? result.groups : [],
       cities: Array.isArray(result.cities) ? result.cities : [],
       movementTypes: Array.isArray(result.movementTypes) ? result.movementTypes : [],
-    })).catch(() => setDashboardFilterOptions(emptyDashboardFilterOptions))
-  }, [token])
+    }) }).catch(() => { if (current()) setDashboardFilterOptions(emptyDashboardFilterOptions) })
+    return () => { active = false }
+  }, [token, loadDashboard])
 
   useEffect(() => {
     if (!token || (view !== 'trades' && view !== 'sales-trades')) return
 
     let active = true
+    const version = sessionVersion.current
     setTradeAnalysis(null)
     setAnalysisState('loading')
     const query = filterQuery(dashboardFilters)
     void apiRequest<TradeAnalysis>(`/api/trade-analysis${query ? `?${query}` : ''}`, token)
-      .then(result => { if (active) { setTradeAnalysis(result); setAnalysisState('ready') } })
-      .catch(() => { if (active) setAnalysisState('error') })
+      .then(result => { if (active && version === sessionVersion.current) { setTradeAnalysis(result); setAnalysisState('ready') } })
+      .catch(() => { if (active && version === sessionVersion.current) setAnalysisState('error') })
     return () => { active = false }
   }, [token, view, dashboardFilters])
 
   async function login(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    const version = ++sessionVersion.current
+    setSessionMessage('')
     setState('loading')
     try {
       const response = await fetch(`${apiBaseUrl}/api/auth/login`, {
@@ -310,28 +359,32 @@ export default function App() {
       })
       if (!response.ok) throw new Error('Login failed')
       const result = await response.json() as LoginResponse
+      if (version !== sessionVersion.current) return
       saveAccessToken(result.accessToken)
       window.localStorage.setItem('orobi:last-email', email.trim())
       setToken(result.accessToken)
+      setPassword('')
     } catch {
-      setState('error')
+      if (version === sessionVersion.current) setState('error')
     }
   }
 
   async function upload() {
     if (!file) return
+    const version = sessionVersion.current
     setState('loading')
     try {
       const form = new FormData()
       form.append('fileType', fileType)
       form.append('file', file)
       await apiRequest('/api/imports', token, { method: 'POST', body: form })
+      if (version !== sessionVersion.current) return
       setFile(null)
       setState('ready')
       setView('dashboard')
-      await loadDashboard()
+      await loadDashboard(appliedFiltersRef.current)
     } catch {
-      setState('error')
+      if (version === sessionVersion.current) setState('error')
     }
   }
 
@@ -340,14 +393,14 @@ export default function App() {
     if (nextFile && /^VALOR[_ -]?METAS\.csv$/i.test(nextFile.name)) setFileType('GoalValues')
   }
 
-  if (!token) return <main className="shell login-shell"><section className="login-layout shadow-lg"><aside className="login-brand-panel"><img className="login-brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /><div><p className="eyebrow">OROLEITE BI</p><h1 aria-label="Central de resultados">Central de<br /><span>resultados.</span></h1><p>Inteligencia comercial para decisoes mais seguras, todos os dias.</p></div><p className="login-brand-footer"><i className="fa-solid fa-shield-halved" aria-hidden="true" /> Ambiente corporativo protegido</p></aside><section className="login-form-panel"><div className="login-form-heading"><p className="eyebrow">ACESSO RESTRITO</p><h2>Bem-vindo de volta.</h2><p>Informe suas credenciais para acessar os indicadores da operacao.</p></div><form onSubmit={login}><label>E-MAIL<input type="email" autoComplete="username" required value={email} onChange={event => setEmail(event.target.value)} /></label><label>SENHA<span className="password-field"><input type={passwordVisible ? 'text' : 'password'} autoComplete="current-password" required value={password} onChange={event => setPassword(event.target.value)} /><button type="button" className="password-toggle" onClick={() => setPasswordVisible(visible => !visible)} aria-label={passwordVisible ? 'Ocultar senha' : 'Mostrar senha'}><i className={`fa-solid ${passwordVisible ? 'fa-eye-slash' : 'fa-eye'}`} aria-hidden="true" /></button></span></label><button className="btn btn-dark" type="submit" disabled={state === 'loading'}>{state === 'loading' ? 'Entrando...' : 'Entrar'} <i className="fa-solid fa-arrow-right" aria-hidden="true" /></button></form>{state === 'error' && <p className="notice error">Credenciais invalidas ou API indisponivel.</p>}</section></section></main>
+  if (!token) return <main className="shell login-shell"><section className="login-layout shadow-lg"><aside className="login-brand-panel"><img className="login-brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /><div><p className="eyebrow">OROLEITE BI</p><h1 aria-label="Central de resultados">Central de<br /><span>resultados.</span></h1><p>Inteligencia comercial para decisoes mais seguras, todos os dias.</p></div><p className="login-brand-footer"><i className="fa-solid fa-shield-halved" aria-hidden="true" /> Ambiente corporativo protegido</p></aside><section className="login-form-panel"><div className="login-form-heading"><p className="eyebrow">ACESSO RESTRITO</p><h2>Bem-vindo de volta.</h2><p>Informe suas credenciais para acessar os indicadores da operacao.</p></div>{sessionMessage && <p className="notice" role="status">{sessionMessage}</p>}<form onSubmit={login}><label>E-MAIL<input type="email" autoComplete="username" required value={email} onChange={event => setEmail(event.target.value)} /></label><label>SENHA<span className="password-field"><input type={passwordVisible ? 'text' : 'password'} autoComplete="current-password" required value={password} onChange={event => setPassword(event.target.value)} /><button type="button" className="password-toggle" onClick={() => setPasswordVisible(visible => !visible)} aria-label={passwordVisible ? 'Ocultar senha' : 'Mostrar senha'}><i className={`fa-solid ${passwordVisible ? 'fa-eye-slash' : 'fa-eye'}`} aria-hidden="true" /></button></span></label><button className="btn btn-dark" type="submit" disabled={state === 'loading'}>{state === 'loading' ? 'Entrando...' : 'Entrar'} <i className="fa-solid fa-arrow-right" aria-hidden="true" /></button></form>{state === 'error' && <p className="notice error">Credenciais invalidas ou API indisponivel.</p>}</section></section></main>
 
   if (view === 'import') return <main className="shell import-workspace"><ImportPage file={file} fileType={fileType} state={state} onBack={() => setView('dashboard')} onFileChange={selectImportFile} onFileTypeChange={setFileType} onSubmit={() => void upload()} /></main>
 
   return <main className="executive-layout">
     <aside className={`side-rail ${menuOpen ? 'is-open' : ''}`}><div className="brand"><img className="brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /></div><p className="rail-label">CENTRAL DE RESULTADOS</p><nav id="main-navigation" className="side-navigation" aria-label="Modulos do BI">{navigationItems.map(item => <button className={view === item.view ? 'active' : ''} key={item.view} onClick={() => navigate(item.view)}><i className={`fa-solid ${item.icon}`} aria-hidden="true" /><span>{item.label}</span></button>)}</nav><div className="rail-footer"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Dados sincronizados</div></aside>
-    <section className={`main-canvas ${view === 'dashboard' ? 'dashboard-workspace' : 'analysis-workspace'}`}><header className="command-bar"><button className="menu-toggle" type="button" aria-label="Alternar navegacao" aria-controls="main-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(open => !open)}><i className="fa-solid fa-bars" aria-hidden="true" /></button><div><p>PAINEL EXECUTIVO</p><strong>{navigationItems.find(item => item.view === view)?.label ?? 'Importar'}</strong></div><div className="command-actions">{roles.includes('Administrador') && <button className="btn btn-accent" onClick={() => { clearClosingRequests(); setView('import') }}><i className="fa-solid fa-file-arrow-up" aria-hidden="true" /> Importar</button>}<button className="btn btn-ghost" onClick={() => { clearClosingRequests(); clearAccessToken(); setToken(''); setView('dashboard') }} aria-label="Sair"><i className="fa-solid fa-right-from-bracket" aria-hidden="true" /></button></div></header>
-      {view === 'dashboard' && <DashboardPage summary={summary} details={dashboardDetails} filters={dashboardFilters} options={dashboardFilterOptions} sellers={sellers} state={state} onFiltersChange={setDashboardFilters} onSubmit={() => applyDashboardFilter(dashboardFilters)} onClear={clearDashboardFilters} />}
+    <section className={`main-canvas ${view === 'dashboard' ? 'dashboard-workspace' : 'analysis-workspace'}`}><header className="command-bar"><button className="menu-toggle" type="button" aria-label="Alternar navegacao" aria-controls="main-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(open => !open)}><i className="fa-solid fa-bars" aria-hidden="true" /></button><div><p>PAINEL EXECUTIVO</p><strong>{navigationItems.find(item => item.view === view)?.label ?? 'Importar'}</strong></div><div className="command-actions">{roles.includes('Administrador') && <button className="btn btn-accent" onClick={() => { clearClosingRequests(); setView('import') }}><i className="fa-solid fa-file-arrow-up" aria-hidden="true" /> Importar</button>}<button className="btn btn-ghost" onClick={() => endSession()} aria-label="Sair"><i className="fa-solid fa-right-from-bracket" aria-hidden="true" /></button></div></header>
+      {view === 'dashboard' && <DashboardPage summary={summary} details={dashboardDetails} filters={dashboardDraft} appliedFilters={dashboardFilters} options={dashboardFilterOptions} sellers={sellers} state={state} onFiltersChange={setDashboardDraft} onSubmit={() => applyDashboardFilter(dashboardDraft)} onClear={clearDashboardFilters} />}
       {(view === 'margins' || view === 'net-margin') && <MarginAnalysisPage key={view} mode={view === 'margins' ? 'products' : 'net'} data={marginData} state={marginState} filters={marginFilters} options={dashboardFilterOptions} sellers={sellers} onSubmit={filters => void loadMargins(view, filters)} />}
       {(view === 'trades' || view === 'sales-trades') && <TradeAnalysisPage mode={view} data={tradeAnalysis} state={analysisState} />}
       {view === 'closing-rh' && <><PayrollClosingPage summary={payroll} state={payrollState} errorMessage={payrollError} initialMonth={createDashboardFilters().startDate.slice(0, 7)} onSubmit={(month, coverage) => void loadPayroll(month, coverage)} onExport={() => void exportPayroll()} exporting={exporting} />{exportError && <p className="notice error" role="alert">{exportError}</p>}</>}

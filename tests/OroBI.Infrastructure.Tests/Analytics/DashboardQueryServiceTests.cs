@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using OroBI.Application.Analytics;
 using OroBI.Domain.Commercial;
 using OroBI.Domain.Imports;
@@ -9,6 +10,74 @@ namespace OroBI.Infrastructure.Tests.Analytics;
 
 public sealed class DashboardQueryServiceTests
 {
+    [Fact]
+    public void Translates_every_filter_to_postgresql_before_execution()
+    {
+        using var db = new OroBiDbContext(new DbContextOptionsBuilder<OroBiDbContext>()
+            .UseNpgsql("Host=localhost;Database=sql_generation_only;Username=unused").Options);
+        var filter = new CommercialFilter(new DateOnly(2026, 8, 1), new DateOnly(2026, 8, 31),
+            "MARCELO DA ROSA", "NESTLE", "BISTEK", "SAO PAULO", "mercado_100%", "café", ["VENDA"]);
+        var duplicate = Guid.NewGuid();
+
+        var sql = CommercialMovementQuery.ApplyFilters(db.CommercialMovements
+            .Where(item => item.ImportBatchId != duplicate), filter).ToQueryString();
+
+        var predicate = sql[sql.IndexOf("WHERE", StringComparison.Ordinal)..];
+        foreach (var column in new[] { "ImportBatchId", "MovementDate", "Seller", "Brand", "Group", "City", "CustomerName", "ProductName", "MovementType" })
+            Assert.Contains($"\"{column}\"", predicate, StringComparison.Ordinal);
+        Assert.Contains("upper(", predicate, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("LIKE", predicate, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("MARCELO DA ROSA", "MARCELO IVONEI DA ROSA")]
+    [InlineData("RODRIGO", "VENDEDOR: RODRIGO")]
+    [InlineData("VENDEDOR: ANDERSON GONCALVES SOUZA", "ANDERSON GONCALVES SOUZA")]
+    public async Task Database_filters_preserve_aliases_and_literal_case_insensitive_search(string seller, string storedSeller)
+    {
+        await using var db = new OroBiDbContext(new DbContextOptionsBuilder<OroBiDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        CommercialMovement Row(string customer, string product, decimal value) => CommercialMovement.CreateFromImport(
+            Guid.NewGuid(), new DateOnly(2026, 8, 1), storedSeller, "NESTLE", "BISTEK", "VENDA", "CIDADE", customer, product, value, 1m, 1m, "1", "1");
+        db.AddRange(Row("Mercado_100%", "Café", 100m), Row("Mercado X 1000", "Café", 200m), Row("Mercado_100%", "Cafe", 300m));
+        await db.SaveChangesAsync();
+
+        var result = await new DashboardQueryService(db).GetAsync(new CommercialFilter(Seller: seller,
+            CustomerContains: " mercado_100% ", ProductContains: "CAFÉ"), CancellationToken.None);
+
+        Assert.Equal(100m, result.GrossSales);
+        Assert.Equal(1, result.MovementCount);
+    }
+
+    [Fact]
+    public async Task Applies_filters_before_materializing_movements()
+    {
+        var materializations = new MovementMaterializations();
+        await using var db = new OroBiDbContext(new DbContextOptionsBuilder<OroBiDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString()).AddInterceptors(materializations).Options);
+        db.CommercialMovements.AddRange(
+            CommercialMovement.Create(Guid.NewGuid(), new DateOnly(2026, 8, 1), "ANA", "VENDA", 100m, 1m),
+            CommercialMovement.Create(Guid.NewGuid(), new DateOnly(2026, 7, 1), "ANA", "VENDA", 300m, 1m),
+            CommercialMovement.Create(Guid.NewGuid(), new DateOnly(2026, 8, 1), "OUTRO", "VENDA", 500m, 1m));
+        await db.SaveChangesAsync();
+
+        var result = await new DashboardQueryService(db).GetAsync(
+            new CommercialFilter(new DateOnly(2026, 8, 1), new DateOnly(2026, 8, 31), "ANA"), CancellationToken.None);
+
+        Assert.Equal(100m, result.GrossSales);
+        Assert.Equal(1, materializations.Count);
+    }
+
+    private sealed class MovementMaterializations : IMaterializationInterceptor
+    {
+        public int Count { get; private set; }
+        public object InitializedInstance(MaterializationInterceptionData data, object entity)
+        {
+            if (entity is CommercialMovement) Count++;
+            return entity;
+        }
+    }
+
     [Fact]
     public async Task Margin_details_respect_every_filter_and_duplicate_batches_while_preserving_repeated_source_rows()
     {

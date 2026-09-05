@@ -20,7 +20,7 @@ public static class CommercialFilters
         if (!string.IsNullOrWhiteSpace(filter.Seller))
         {
             var seller = SellerAliasCatalog.ResolveImportedName(filter.Seller);
-            query = query.Where(movement => movement.Seller == seller);
+            query = query.Where(movement => SellerAliasCatalog.ResolveImportedName(movement.Seller) == seller);
         }
 
         query = ApplyExact(query, filter.Brand, movement => movement.Brand);

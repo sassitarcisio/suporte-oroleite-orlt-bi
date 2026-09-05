@@ -41,6 +41,7 @@ export type DashboardDetails = {
 type DashboardPageProps = {
   summary: DashboardSummary | null
   filters: DashboardFilters
+  appliedFilters?: DashboardFilters
   options: DashboardFilterOptions
   details: DashboardDetails | null
   sellers: string[]
@@ -61,9 +62,9 @@ function trendPoints(points: DashboardDetails['dailyTrend'], pick: (point: Dashb
   return points.map((point, index) => `${points.length === 1 ? 300 : 20 + index / (points.length - 1) * 560},${220 - (pick(point) - min) / range * 185}`).join(' ')
 }
 
-export function DashboardPage({ summary, filters, options, details, sellers, state, onFiltersChange, onSubmit, onClear }: DashboardPageProps) {
+export function DashboardPage({ summary, filters, appliedFilters = filters, options, details, sellers, state, onFiltersChange, onSubmit, onClear }: DashboardPageProps) {
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const activeFilters = [filters.startDate, filters.endDate, filters.seller, filters.brand, filters.group, filters.city, filters.customerContains, filters.productContains, filters.movementType].filter(Boolean).length
+  const activeFilters = [appliedFilters.startDate, appliedFilters.endDate, appliedFilters.seller, appliedFilters.brand, appliedFilters.group, appliedFilters.city, appliedFilters.customerContains, appliedFilters.productContains, appliedFilters.movementType].filter(Boolean).length
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()

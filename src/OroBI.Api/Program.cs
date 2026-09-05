@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
@@ -15,6 +16,12 @@ using OroBI.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOroBiInfrastructure(builder.Configuration);
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+});
+builder.Services.AddSingleton<LoginRateLimiter>();
 
 if (args.Contains("--migrate", StringComparer.OrdinalIgnoreCase) ||
     args.Contains("--provision-admin", StringComparer.OrdinalIgnoreCase))
@@ -73,7 +80,8 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(AuthorizationPolicies.AdministratorOnly, policy => policy.RequireRole("Administrador"));
     options.AddPolicy(AuthorizationPolicies.ManagerOrAdministrator, policy => policy.RequireRole("Administrador", "Gestor"));
-    options.AddPolicy(AuthorizationPolicies.SellerScope, policy => policy.RequireAuthenticatedUser());
+    options.AddPolicy(AuthorizationPolicies.SellerScope, policy =>
+        policy.RequireAuthenticatedUser().RequireRole("Administrador", "Gestor", "Vendedor"));
 });
 var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
 builder.Services.AddCors(options => options.AddPolicy("Web", policy =>

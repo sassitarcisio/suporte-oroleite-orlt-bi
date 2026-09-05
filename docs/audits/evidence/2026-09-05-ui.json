@@ -1,0 +1,18 @@
+{
+  "before": {
+    "badge": "2 filtros aplicados",
+    "gross": "R$ 6.349.887,34"
+  },
+  "afterDraft": {
+    "badge": "3 filtros aplicados",
+    "gross": "R$ 6.349.887,34"
+  },
+  "requestsAfterEditing": [],
+  "tradesAfterDraft": "Base filtrada: 32.115 movimentos • Faturamento liquido: R$ 2.776.037,76 • Trocas: R$ 176.126,00",
+  "tradeRequest": "/api/trade-analysis?startDate=2026-08-01&endDate=2026-08-31&brand=NESTLE",
+  "expiredSession": {
+    "loginVisible": false,
+    "error": "Nao foi possivel carregar a API.",
+    "sessionStillStored": true
+  }
+}

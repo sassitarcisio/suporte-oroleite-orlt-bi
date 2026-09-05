@@ -75,19 +75,19 @@ Este arquivo e o ponto unico de acompanhamento dos prompts do projeto. Ele regis
 
 ## Fase 2 - Adendo
 
-Os itens abaixo foram confirmados pelo indice interno do adendo. O texto integral do PDF ainda precisa ser disponibilizado ou extraido com um conversor funcional antes de definir criterios de aceite ou alterar o codigo.
+Em 2026-09-05 foi extraído e lido o texto integral das 24 páginas do adendo (itens 68–106), usando `pdftotext -layout -enc UTF-8`. O registro de 31/08 se baseava apenas no índice. A tabela abaixo substitui aquela avaliação parcial. Esta leitura atende ao pedido de situação da fase 2; não autoriza por si só ativar a integração ou mudar a infraestrutura.
 
 | Status | Requisito confirmado | Impacto no estado atual | Proxima acao |
 | --- | --- | --- | --- |
-| `[!]` | Evitar consultar Firebird a cada clique | Fase Firebird adiada; a API continua operando sobre PostgreSQL. | Retomar com frequencia, cache e limites definidos. |
-| `[!]` | Firebird como fonte de dados, somente leitura e protecao do ERP | Fundacao e contratos existem, sem adaptador conectado. | Retomar com mapa de dados e permissao somente leitura. |
-| `[!]` | Worker Service e upsert | Checkpoint, auditoria, chave de origem e contratos existem; worker e leitor Firebird foram adiados. | Retomar com consulta aprovada e configuracao da VM. |
-| `[ ]` | Mapa de origem dos dados e fase inicial com CSV | A importacao CSV e a fonte atual do BI. | Documentar a correspondencia CSV/Firebird para cada entidade antes da migracao. |
-| `[ ]` | PostgreSQL como banco principal do BI | O modelo e a infraestrutura ja usam PostgreSQL. | Validar o modelo de destino contra o mapa de origem da Fase 2. |
+| `[x]` | Frontend → API → banco BI; consultas sem acesso direto ao ERP (68–72, 90–94) | React consome a API; regras comerciais estão no backend; PostgreSQL é a base atual. | Preservar essa separação ao conectar o Firebird. |
+| `[!]` | Adaptador Firebird somente leitura e proteção do ERP (73–75, 84–87) | Existe `IFirebirdCommercialReader`; não existe leitor conectado nem `ICommercialDataSource` comum às fontes CSV/Firebird. | Obter mapa real das tabelas, consulta aprovada, chave de origem, watermark e acesso somente leitura. |
+| `[~]` | Checkpoint, histórico e idempotência (79–82) | Entidades `SynchronizationCheckpoint`/`SynchronizationRun`, persistência e chave de origem existem; não comprovam uma sincronização funcional. | Implementar serviço de upsert, transações e testes de reprocessamento. |
+| `[!]` | Worker periódico, incremental e cancelamentos (76–78, 83) | Não existe projeto Worker no código; há design e plano. | Implementar após confirmar origem, regras de alteração/cancelamento e ambiente de execução. |
+| `[~]` | CSV como contingência e comparação CSV × Firebird (88–89, 105) | Importação CSV operacional; valores comerciais têm verificações, mas nenhuma comparação com Firebird foi realizada. | Conciliar o mesmo período nas duas fontes antes de trocar a fonte principal. |
 | `[x]` | API preparada para mobile e versionada | Rotas `/api/v1` existem para os endpoints comerciais, com aliases `/api` preservados. | Migrar consumidores para v1 somente quando houver validacao mobile. |
-| `[ ]` | Health check Firebird, timeout e retry | Nao ha conexao Firebird a monitorar. | Definir politica de resiliencia, alerta e dead-letter no plano do worker. |
-| `[ ]` | Deploy recomendado na VM e connection strings | A entrega atual aponta para Azure; o requisito pode representar uma alternativa operacional. | Confirmar se VM substitui ou complementa o Azure antes de alterar infraestrutura. |
-| `[ ]` | Resultado arquitetural esperado | O conteudo detalhado nao foi extraido do PDF. | Revisar o texto integral e comparar com o design de migracao existente. |
+| `[ ]` | Última sincronização, painel administrativo e resiliência (96–100) | Não há sincronização Firebird a acompanhar; health da API não comprova saúde do Worker/ERP. | Implementar status, histórico, timeout e retry limitado junto à integração. |
+| `[~]` | Deploy, rede e segredos (101–104) | API/Web em Azure; design existente prevê Worker na rede do ERP e mantém API/Web em Azure. O PDF apresenta VM como recomendação. | Confirmar conectividade da VM e PostgreSQL, sem expor o ERP nem mover a aplicação automaticamente. |
+| `[~]` | Resultado arquitetural esperado (106) | React → API → PostgreSQL operacional; Firebird → Worker → PostgreSQL ainda pendente. | Concluir e homologar a integração antes de declarar a fase 2 entregue. |
 
 ## Registro de verificacoes
 

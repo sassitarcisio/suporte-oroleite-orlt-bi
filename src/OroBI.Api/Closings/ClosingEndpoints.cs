@@ -1,7 +1,9 @@
 using System.Globalization;
+using System.Security.Claims;
 using OroBI.Api.Auth;
 using Microsoft.EntityFrameworkCore;
 using OroBI.Application.Closings;
+using OroBI.Application.Analytics;
 using OroBI.Domain.Closings;
 using OroBI.Infrastructure.Persistence;
 
@@ -21,8 +23,15 @@ public static class ClosingEndpoints
             await dbContext.SaveChangesAsync(cancellationToken);
             return Results.Created($"{prefix}/closing-configurations/{configuration.Id}", new { configuration.Id });
         }).RequireAuthorization(AuthorizationPolicies.AdministratorOnly);
-        endpoints.MapGet($"{prefix}/closings", async (string seller, string month, ISellerClosingQueryService service, CancellationToken cancellationToken) =>
+        endpoints.MapGet($"{prefix}/closings", async (string seller, string month, ClaimsPrincipal user, ISellerClosingQueryService service, CancellationToken cancellationToken) =>
         {
+            if (!user.IsInRole("Administrador") && !user.IsInRole("Gestor"))
+            {
+                var assignedSeller = user.FindFirstValue("seller");
+                if (string.IsNullOrWhiteSpace(assignedSeller) ||
+                    SellerAliasCatalog.ResolveImportedName(assignedSeller) != SellerAliasCatalog.ResolveImportedName(seller))
+                    return Results.Forbid();
+            }
             if (!DateOnly.TryParseExact($"{month}-01", "yyyy-MM-dd", out var period)) return Results.BadRequest(new { error = "month must use yyyy-MM." });
             var result = await service.GetAsync(seller, period.Year, period.Month, cancellationToken);
             if (result is not null) return Results.Ok(result);

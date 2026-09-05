@@ -18,8 +18,28 @@ if ($Apply -and (
     throw 'Applying infrastructure changes requires -ApiImage, -WebOrigin, and -ConfigureRuntimeSecrets.'
 }
 
+if ($Prefix -cnotmatch '^[a-z0-9]{3,18}$') {
+    throw 'Prefix must contain 3 to 18 lowercase letters or numbers.'
+}
+if ([string]::IsNullOrWhiteSpace($ResourceGroup)) {
+    throw 'ResourceGroup is required.'
+}
+if (-not [string]::IsNullOrWhiteSpace($WebOrigin)) {
+    $deploymentOriginUri = $null
+    if (-not [Uri]::TryCreate($WebOrigin, [UriKind]::Absolute, [ref]$deploymentOriginUri) -or
+        $deploymentOriginUri.Scheme -ne 'https' -or
+        $deploymentOriginUri.AbsolutePath -ne '/' -or
+        $deploymentOriginUri.Query -ne '' -or
+        $deploymentOriginUri.Fragment -ne '' -or
+        $deploymentOriginUri.UserInfo -ne '') {
+        throw 'WebOrigin must be an HTTPS origin without path, credentials, query, or fragment.'
+    }
+    $WebOrigin = $deploymentOriginUri.GetLeftPart([UriPartial]::Authority)
+}
+
+$azureCli = Get-Command az -ErrorAction Stop
 $vaultName = "${Prefix}kv"
-$vaultId = & az.cmd keyvault show --name $vaultName --resource-group $ResourceGroup --query id --output tsv
+$vaultId = & $azureCli keyvault show --name $vaultName --resource-group $ResourceGroup --query id --output tsv
 if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($vaultId)) {
     throw "Failed to resolve Key Vault '$vaultName'."
 }
@@ -43,7 +63,7 @@ try {
     $deploymentCommand = if ($Apply) { 'create' } else { 'what-if' }
     $arguments = @('deployment', 'group', $deploymentCommand, '--resource-group', $ResourceGroup, '--template-file', 'infra/main.bicep', '--parameters', "@$parameterFile")
     if ($Apply -and -not $PSCmdlet.ShouldProcess($ResourceGroup, 'Deploy Azure infrastructure')) { return }
-    & az.cmd @arguments
+    & $azureCli @arguments
     if ($LASTEXITCODE -ne 0) { throw "Azure deployment $deploymentCommand failed with exit code $LASTEXITCODE." }
 }
 finally {

@@ -1,0 +1,88 @@
+[
+  {
+    "check": "Anonymous dashboard",
+    "status": 401
+  },
+  {
+    "path": "/api/dashboard?startDate=2026-08-01&endDate=2026-08-31",
+    "status": 200,
+    "ms": 1796,
+    "bytes": 219
+  },
+  {
+    "path": "/api/dashboard/details?startDate=2026-08-01&endDate=2026-08-31",
+    "status": 200,
+    "ms": 3605,
+    "bytes": 306355
+  },
+  {
+    "path": "/api/margins/details?startDate=2026-08-01&endDate=2026-08-31",
+    "status": 200,
+    "ms": 2099,
+    "bytes": 293195
+  },
+  {
+    "path": "/api/net-margin/details?startDate=2026-08-01&endDate=2026-08-31",
+    "status": 200,
+    "ms": 2535,
+    "bytes": 594247
+  },
+  {
+    "path": "/api/trade-analysis?startDate=2026-08-01&endDate=2026-08-31",
+    "status": 200,
+    "ms": 2213,
+    "bytes": 76412
+  },
+  {
+    "path": "/api/closings?seller=VALDIR+ZACARIAS&month=2026-08",
+    "status": 200,
+    "ms": 2498,
+    "bytes": 1015609
+  },
+  {
+    "path": "/api/closings?seller=DEIVID+MANNES&month=2026-08",
+    "status": 200,
+    "ms": 4776,
+    "bytes": 656038
+  },
+  {
+    "path": "/api/closings/payroll?month=2026-08&coverageSeller=MARCIO%20LUIZ%20DA%20ROSA",
+    "status": 200,
+    "ms": 6375,
+    "bytes": 3484
+  },
+  {
+    "path": "/api/dashboard?startDate=2026-08-01&endDate=2026-08-31&seller=ANDERSON%20GONCALVES%20SOUZA",
+    "status": 200,
+    "ms": 1993,
+    "bytes": 210
+  },
+  {
+    "path": "/api/dashboard?startDate=2099-01-01&endDate=2099-01-31",
+    "status": 200,
+    "ms": 1487,
+    "bytes": 143
+  },
+  {
+    "path": "/api/sellers",
+    "status": 200,
+    "ms": 128,
+    "bytes": 178
+  },
+  {
+    "check": "Dashboard sellers absent from selector",
+    "names": [
+      "VENDEDOR: VALDIR ZACARIAS",
+      "OPERACAO BAUDUCCO",
+      "GERENTE: JEFERSON PEREIRA LEAL",
+      "JEFERSON LEAL SEM CPF"
+    ],
+    "catalogHasValdir": false,
+    "familyGroups": [
+      {
+        "label": "SEM INFORMAÇÃO",
+        "movementCount": 51936
+      }
+    ]
+  }
+]

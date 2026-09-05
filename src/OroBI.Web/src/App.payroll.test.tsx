@@ -50,6 +50,19 @@ describe('App payroll integration', () => {
     vi.useRealTimers()
   })
 
+  it('expires the session if payroll export returns 401', async () => {
+    vi.mocked(fetch).mockImplementation(input => String(input).includes('/api/closings/payroll/export?')
+      ? Promise.resolve(new Response('{}', { status: 401 })) : baseFetch(input))
+    render(<App />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Fechamento RH' }))
+    await screen.findByRole('table', { name: 'Fechamento para folha de pagamento' })
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar Excel' }))
+    expect(await screen.findByRole('heading', { name: 'Bem-vindo de volta.' })).toBeVisible()
+    expect(screen.getByText(/sessão expirou/i)).toBeVisible()
+    expect(sessionStorage.getItem('orobi.access-token')).toBeNull()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  })
+
   it('opens RH with the previous month and default coverage and automatically loads nine payroll rows', async () => {
     render(<App />)
     fireEvent.click(await screen.findByRole('button', { name: 'Fechamento RH' }))

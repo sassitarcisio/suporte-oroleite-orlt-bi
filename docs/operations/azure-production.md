@@ -43,8 +43,9 @@ Run the `Deploy Azure` workflow manually with:
 | `resource_group` | Existing Azure resource group in the target subscription. |
 | `prefix` | Globally unique, lowercase letters and numbers only, from 3 to 18 characters. |
 | `api_image` | Published API container image accessible to Azure Container Apps, such as `registry.example/orobi-api:<tag>`. |
+| `web_origin` | HTTPS origin of the published SPA, without a path, query or fragment. |
 
-The workflow validates `infra/main.bicep` and then runs a resource-group deployment. It does not build or publish the API image; publish that image before deployment.
+The workflow validates `infra/main.bicep` and calls `scripts/deploy-azure.ps1` with the image, web origin, and runtime secret reference enabled. Inputs are passed through environment variables rather than interpolated into shell commands. The script uses a Key Vault parameter reference; the deployment identity needs permission to deploy using that reference. It does not build or publish the API image; publish that image before deployment.
 
 ## API Image Publication
 

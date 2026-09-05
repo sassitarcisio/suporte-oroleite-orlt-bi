@@ -14,16 +14,24 @@ public sealed class LocalAuthenticationService(
 {
     public async Task<LocalLoginResult?> LoginAsync(string email, string password, CancellationToken cancellationToken)
     {
-        var user = await userManager.FindByEmailAsync(email);
-        if (user is null)
+        cancellationToken.ThrowIfCancellationRequested();
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrEmpty(password)) return null;
+
+        var user = await userManager.FindByEmailAsync(email.Trim());
+        if (user is null || await userManager.IsLockedOutAsync(user))
         {
             return null;
         }
 
         if (!await userManager.CheckPasswordAsync(user, password))
         {
+            await userManager.AccessFailedAsync(user);
             return null;
         }
+
+        if (await userManager.IsLockedOutAsync(user)) return null;
+        var resetResult = await userManager.ResetAccessFailedCountAsync(user);
+        if (!resetResult.Succeeded) return null;
 
         var roles = await userManager.GetRolesAsync(user);
         var claims = new List<Claim>

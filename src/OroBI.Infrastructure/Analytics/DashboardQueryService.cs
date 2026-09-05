@@ -33,8 +33,11 @@ public sealed class DashboardQueryService(OroBiDbContext dbContext) : IDashboard
     private async Task<IEnumerable<OroBI.Domain.Commercial.CommercialMovement>> GetMovementsAsync(CommercialFilter filter, CancellationToken cancellationToken)
     {
         var duplicates = await ImportedBatchSelection.GetDuplicateIdsAsync(dbContext, cancellationToken);
-        var movements = await dbContext.CommercialMovements.AsNoTracking()
-            .Where(item => !duplicates.Contains(item.ImportBatchId)).ToListAsync(cancellationToken);
+        var query = dbContext.CommercialMovements.AsNoTracking()
+            .Where(item => !duplicates.Contains(item.ImportBatchId));
+        var movements = await CommercialMovementQuery.ApplyFilters(query, filter).ToListAsync(cancellationToken);
+        // Keep the exact in-memory OrdinalIgnoreCase check on the filtered result.
+        // Database case folding follows its collation, while this contract is ordinal.
         return CommercialFilters.Apply(movements, filter);
     }
 }

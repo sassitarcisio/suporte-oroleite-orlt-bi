@@ -6,6 +6,25 @@ namespace OroBI.Application.Tests.Analytics;
 
 public sealed class CommercialFiltersTests
 {
+    [Theory]
+    [InlineData("ANDERSON GONCALVES SOUZA", "VENDEDOR: ANDERSON GONCALVES SOUZA")]
+    [InlineData("VENDEDOR: ANDERSON GONCALVES SOUZA", "ANDERSON GONCALVES SOUZA")]
+    [InlineData("MARCELO DA ROSA", "MARCELO IVONEI DA ROSA")]
+    [InlineData("RODRIGO", "RODRIGO KEHL")]
+    [InlineData("DEIVID MANNES", "SUPERVISOR: DEIVID MANNES")]
+    public void Matches_equivalent_seller_names_on_both_sides(string filterSeller, string storedSeller)
+    {
+        var rows = new[]
+        {
+            CommercialMovement.Create(Guid.NewGuid(), new DateOnly(2026, 8, 1), storedSeller, "VENDA", 100m, 1m),
+            CommercialMovement.Create(Guid.NewGuid(), new DateOnly(2026, 8, 1), "OUTRO", "VENDA", 500m, 1m)
+        };
+
+        var result = CommercialFilters.Apply(rows, new CommercialFilter(Seller: filterSeller));
+
+        Assert.Equal(100m, Assert.Single(result).TotalValue);
+    }
+
     [Fact]
     public void Applies_inclusive_date_range_and_normalized_seller()
     {

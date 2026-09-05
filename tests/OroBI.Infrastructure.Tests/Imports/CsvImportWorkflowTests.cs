@@ -8,6 +8,50 @@ namespace OroBI.Infrastructure.Tests.Imports;
 
 public sealed class CsvImportWorkflowTests
 {
+    public static TheoryData<ImportFileType, string, string, string> TabularFiles => new()
+    {
+        { ImportFileType.Power, "DATA;VENDEDOR;MARCA;GRUPO;TIPO;CIDADE;NOME;PRODUTO;VALTOTAL;QTDE;PRECOCUSTO;CODCLIENTE;NRODOCUMENTO", "01/08/2026;Ana;Nestle;Leites;Venda;Sao Paulo;Cliente A;Leite;100,00;1;10,00;123;456", "01/08/2026;Ana;Nestle" },
+        { ImportFileType.Ppp, "ANO;MES;VENDEDOR;SEGMENTO;QTDE_CLIENTES;QTDE_ITENS_SEGMENTO;GRUPOS_COLOCADOS", "2026;8;Ana;Leites;10;2;15", "2026;8;Ana" },
+        { ImportFileType.Goals, "VENDEDOR;MES;ANO;TIPOMETA;DESCRICAO;META;ALCANCADO", "Ana;8;2026;FATURAMENTO;Marca NESTLE / Valor;100,00;95,00", "Ana;8;2026" }
+    };
+
+    public static IEnumerable<object[]> BomFiles => TabularFiles.Select(row => row.Take(3).ToArray());
+
+    [Theory]
+    [MemberData(nameof(TabularFiles))]
+    public async Task Records_truncated_rows_as_errors_and_preserves_valid_rows(ImportFileType type, string header, string validRow, string truncatedRow)
+    {
+        await using var db = new OroBiDbContext(new DbContextOptionsBuilder<OroBiDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        var workflow = new CsvImportWorkflow(db, new InMemoryImportFileStore());
+        await using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes($"{header}\n{validRow}\n{truncatedRow}"));
+
+        var result = await workflow.ImportAsync(new ImportSubmission(type, "rows.csv", "text/csv", stream), CancellationToken.None);
+
+        Assert.Equal(ImportBatchStatus.CompletedWithErrors, result.Status);
+        Assert.Equal(1, result.ProcessedRows);
+        Assert.Equal(1, result.ErrorRows);
+        var batch = await db.ImportBatches.SingleAsync();
+        var error = await db.ImportErrors.SingleAsync();
+        Assert.Equal(batch.Id, error.ImportBatchId);
+        Assert.Equal(3, error.LineNumber);
+        Assert.Equal(1, await db.CommercialMovements.CountAsync() + await db.PppRecords.CountAsync() + await db.GoalRecords.CountAsync());
+    }
+
+    [Theory]
+    [MemberData(nameof(BomFiles))]
+    public async Task Imports_tabular_utf8_bom_headers(ImportFileType type, string header, string validRow)
+    {
+        await using var db = new OroBiDbContext(new DbContextOptionsBuilder<OroBiDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        var workflow = new CsvImportWorkflow(db, new InMemoryImportFileStore());
+        await using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes($"\uFEFF{header}\n{validRow}"));
+
+        var result = await workflow.ImportAsync(new ImportSubmission(type, "bom.csv", "text/csv", stream), CancellationToken.None);
+
+        Assert.Equal(ImportBatchStatus.Completed, result.Status);
+        Assert.Equal(1, result.ProcessedRows);
+        Assert.Equal(0, result.ErrorRows);
+    }
+
     [Fact]
     public async Task Persists_completed_batch_for_valid_power_headers()
     {
