@@ -15,6 +15,7 @@ import type { DashboardDetails, DashboardFilterOptions, DashboardFilters, Dashbo
 import { ImportPage } from './features/imports/ImportPage'
 import './App.css'
 import './ExecutiveGold.css'
+import './CardPresentation.css'
 
 type LoginResponse = { accessToken: string }
 type CurrentUser = { roles: string[] }

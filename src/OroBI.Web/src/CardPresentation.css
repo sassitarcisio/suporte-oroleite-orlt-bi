@@ -1,0 +1,122 @@
+/* Shared screen presentation; printed statements keep their compact layout. */
+@media screen {
+  .main-canvas :is(.dashboard-kpi, .trade-kpi, .margin-kpi, .analysis-card, .metric,
+    .closing-financial-summary article, .statement-totals article, .valdir-totals article) {
+    position: relative;
+    container-type: inline-size;
+    min-width: 0;
+    min-height: 156px;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .main-canvas :is(.dashboard-kpi, .trade-kpi, .margin-kpi, .analysis-card, .metric,
+    .closing-financial-summary article, .statement-totals article, .valdir-totals article,
+    .dashboard-chart-card, .trade-ranking, .trade-trend, .margin-panel, .statement-panel,
+    .valdir-panel, .statement-table-panel, .valdir-sales, .statement-rules article,
+    .valdir-rules article, .closing-details, .closing-general-trade-award) {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .main-canvas :is(.dashboard-kpi, .trade-kpi, .margin-kpi, .analysis-card, .metric,
+    .closing-financial-summary article, .statement-totals article, .valdir-totals article,
+    .dashboard-chart-card, .trade-ranking, .trade-trend, .margin-panel, .statement-panel,
+    .valdir-panel, .statement-table-panel, .valdir-sales, .statement-rules article,
+    .valdir-rules article, .closing-details, .closing-general-trade-award)::after {
+    content: '';
+    position: absolute;
+    width: 76px;
+    height: 76px;
+    top: -26px;
+    right: -20px;
+    border: 1px solid var(--gold-border);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .main-canvas :is(.dashboard-kpi, .trade-kpi, .margin-kpi, .analysis-card, .metric,
+    .closing-financial-summary article, .statement-totals article, .valdir-totals article) > :is(p, h2) {
+    margin: 0 0 12px;
+    min-height: 2.7em;
+    text-align: center;
+    font-size: clamp(14px, 4.8cqi, 15px);
+    font-weight: 650;
+    line-height: 1.35;
+    letter-spacing: 0;
+  }
+
+  .main-canvas .dashboard-kpi > p { justify-content: center; }
+
+  .main-canvas :is(.dashboard-kpi, .trade-kpi, .margin-kpi, .analysis-card, .metric,
+    .closing-financial-summary article, .statement-totals article, .valdir-totals article)
+    > :is(strong, .currency-value, .compact-currency-value) {
+    display: block;
+    width: 100%;
+    margin: 0 0 12px;
+    text-align: center;
+    font-size: clamp(18px, 10cqi, 30px);
+    font-weight: 750;
+    line-height: 1.2;
+    letter-spacing: -.5px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .main-canvas :is(.dashboard-kpi, .trade-kpi, .margin-kpi, .analysis-card, .metric,
+    .closing-financial-summary article, .statement-totals article, .valdir-totals article)
+    > :is(span, strong + p) {
+    display: block;
+    min-height: 0;
+    margin-top: auto;
+    margin-bottom: 0;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  .main-canvas .statement-totals .statement-text-value,
+  .main-canvas .valdir-totals .valdir-exclusion {
+    font-size: clamp(18px, 8cqi, 24px);
+    white-space: normal;
+  }
+
+  .main-canvas :is(.statement-panel-body, .valdir-panel-body) {
+    container-type: inline-size;
+    text-align: center;
+  }
+  .main-canvas :is(.statement-panel, .valdir-panel) > h2 {
+    padding-inline: 38px;
+    text-align: center;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .main-canvas :is(.statement-label, .valdir-label, .statement-fields dt, .valdir-fields dt) {
+    text-align: center;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .main-canvas :is(.statement-amount, .valdir-amount) {
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-size: clamp(20px, 10cqi, 30px);
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+  .main-canvas :is(.statement-fields dd, .valdir-fields dd) { text-align: center; }
+  .main-canvas .valdir-trade-rate { flex-direction: column; justify-content: center; }
+}
+
+@media screen and (min-width: 601px) and (max-width: 1200px) {
+  .main-canvas .closing-query-card { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .main-canvas .closing-query-card > div { grid-column: 1 / -1; }
+}
+
+@media screen and (max-width: 600px) {
+  .main-canvas .margin-metrics { grid-template-columns: 1fr; }
+}
