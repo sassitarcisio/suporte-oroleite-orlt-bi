@@ -242,8 +242,22 @@
     background: var(--gold-highlight);
     color: var(--gold);
   }
-  .trade-kpi { height: auto; min-height: 142px; border-radius: 12px; gap: 10px; }
-  .trade-kpi strong { margin-top: 0; overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; }
+  .trade-kpis-6,
+  .trade-kpis-7 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); }
+  .trade-kpi { height: auto; min-height: 142px; margin: 0; border-radius: 12px; gap: 10px; }
+  .trade-kpi p { min-height: 2.6em; }
+  .trade-kpi strong,
+  .trade-kpi strong.compact-currency-value {
+    width: 100%;
+    margin-top: 0;
+    overflow: visible;
+    text-overflow: clip;
+    text-align: center;
+    font-size: clamp(20px, 1.45vw, 24px);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
 
   .dashboard-workspace .dashboard-chart-card,
   .trade-ranking,
