@@ -31,8 +31,8 @@ function ranked<T extends { label: string }>(rows: T[], metric: keyof T, limit: 
   }).slice(0, limit)
 }
 
-function Kpi({ label, value, hint, kind = 'money', deduction = false }: { label: string, value: number | undefined, hint: string, kind?: 'money' | 'percent' | 'number', deduction?: boolean }) {
-  return <article className={`margin-kpi ${deduction ? 'margin-deduction' : ''}`}><p>{label}</p><strong className={negative(value)}>{kind === 'percent' ? pct(value ?? 0) : kind === 'number' ? number(value) : money(value)}</strong><span>{hint}</span></article>
+function Kpi({ label, icon, value, hint, kind = 'money', deduction = false }: { label: string, icon: string, value: number | undefined, hint: string, kind?: 'money' | 'percent' | 'number', deduction?: boolean }) {
+  return <article className={`margin-kpi ${deduction ? 'margin-deduction' : ''}`}><p><i className={`card-label-icon fa-solid fa-${icon}`} aria-hidden="true" /> {label}</p><strong className={negative(value)}>{kind === 'percent' ? pct(value ?? 0) : kind === 'number' ? number(value) : money(value)}</strong><span>{hint}</span></article>
 }
 
 function BarChart({ title, rows, format = money }: { title: string, rows: { label: string, value: number }[], format?: (value: number) => string }) {
@@ -58,16 +58,16 @@ function GrossAnalysis({ data, ready }: { data: MarginReport | null, ready: bool
   const rows = ranked(allRows, selection.order, selection.limit)
   return <>
     <section className="margin-metrics margin-metrics-gross" data-testid="margin-metrics" aria-label="Indicadores de margem bruta">
-      <Kpi label="Faturamento" value={data.revenue} hint="Somente movimentos VENDA" />
-      <Kpi label="Custo" value={data.cost} hint="Quantidade × custo unitário" deduction />
-      <Kpi label="Lucro bruto" value={data.grossProfit} hint="Faturamento menos custo" />
-      <Kpi label="Margem bruta" value={data.marginPercent} hint="Lucro bruto / faturamento" kind="percent" />
-      <Kpi label="Clientes" value={data.customerCount} hint="Clientes distintos no filtro" kind="number" />
-      <Kpi label="Produtos" value={data.productCount} hint="Produtos distintos no filtro" kind="number" />
+      <Kpi label="Faturamento" icon="sack-dollar" value={data.revenue} hint="Somente movimentos VENDA" />
+      <Kpi label="Custo" icon="boxes-stacked" value={data.cost} hint="Quantidade × custo unitário" deduction />
+      <Kpi label="Lucro bruto" icon="chart-line" value={data.grossProfit} hint="Faturamento menos custo" />
+      <Kpi label="Margem bruta" icon="percent" value={data.marginPercent} hint="Lucro bruto / faturamento" kind="percent" />
+      <Kpi label="Clientes" icon="users" value={data.customerCount} hint="Clientes distintos no filtro" kind="number" />
+      <Kpi label="Produtos" icon="box-open" value={data.productCount} hint="Produtos distintos no filtro" kind="number" />
     </section>
-    <section className="margin-charts" aria-label="Maiores lucros brutos">{(['customer', 'product', 'brand'] as const).map(dimension => <article className="margin-panel" key={dimension}><header><h2>Lucro por {dimensionNames[dimension].toLowerCase()}</h2><span>Top 10 · lucro bruto</span></header><BarChart title={`Lucro bruto por ${dimensionNames[dimension]}`} rows={ranked(data.groups?.[dimension] ?? [], 'grossProfit', 10).map(row => ({ label: row.label, value: row.grossProfit }))} /></article>)}</section>
+    <section className="margin-charts" aria-label="Maiores lucros brutos">{(['customer', 'product', 'brand'] as const).map(dimension => <article className="margin-panel" key={dimension}><header><h2><i className="card-label-icon fa-solid fa-chart-line" aria-hidden="true" /> Lucro por {dimensionNames[dimension].toLowerCase()}</h2><span>Top 10 · lucro bruto</span></header><BarChart title={`Lucro bruto por ${dimensionNames[dimension]}`} rows={ranked(data.groups?.[dimension] ?? [], 'grossProfit', 10).map(row => ({ label: row.label, value: row.grossProfit }))} /></article>)}</section>
     <section className="margin-detail-grid">
-      <article className="margin-panel"><header><h2>Detalhamento de margem</h2><span>{rows.length} de {allRows.length} resultados</span></header>
+      <article className="margin-panel"><header><h2><i className="card-label-icon fa-solid fa-percent" aria-hidden="true" /> Detalhamento de margem</h2><span>{rows.length} de {allRows.length} resultados</span></header>
         <form className="margin-controls" onSubmit={event => { event.preventDefault(); setSelection(draft) }}>
           <label>Agrupar detalhamento<select value={draft.dimension} onChange={event => setDraft({ ...draft, dimension: event.target.value as MarginDimension })}>{(['customer', 'product', 'brand'] as const).map(dimension => <option key={dimension} value={dimension}>{dimensionNames[dimension]}</option>)}</select></label>
           <label>Ordenar detalhamento<select value={draft.order} onChange={event => setDraft({ ...draft, order: event.target.value as keyof MarginRow })}><option value="grossProfit">Maior lucro bruto</option><option value="marginPercent">Maior margem %</option><option value="revenue">Maior faturamento</option></select></label>
@@ -75,7 +75,7 @@ function GrossAnalysis({ data, ready }: { data: MarginReport | null, ready: bool
         </form>
         <div className="margin-table-wrap" tabIndex={0} role="region" aria-label="Tabela de margem com rolagem horizontal"><table aria-label="Detalhamento de margem"><thead><tr><th>{dimensionNames[selection.dimension]}</th><th>Faturamento</th><th>Custo</th><th>Lucro bruto</th><th>Margem %</th><th>Quantidade</th></tr></thead><tbody>{rows.map((row, index) => <tr key={`${row.label}-${index}`}><th scope="row" title={row.label}>{row.label}</th><td>{money(row.revenue)}</td><td>{money(row.cost)}</td><td className={negative(row.grossProfit)}>{money(row.grossProfit)}</td><td className={negative(row.marginPercent)}>{pct(row.marginPercent)}</td><td>{number(row.quantity)}</td></tr>)}{rows.length === 0 && <tr><td colSpan={6}>{emptyText}</td></tr>}</tbody></table></div>
       </article>
-      <aside className="margin-panel margin-explanation"><h2>Como a margem é calculada</h2><p><strong>Faturamento</strong> considera somente movimentos do tipo VENDA.</p><p><strong>Custo</strong> soma a quantidade × custo unitário de cada venda.</p><p><strong>Lucro bruto</strong> = faturamento − custo.</p><p><strong>Margem bruta</strong> = lucro bruto ÷ faturamento × 100.</p><p>Uma margem sem faturamento é exibida como — no detalhamento.</p></aside>
+      <aside className="margin-panel margin-explanation"><h2><i className="card-label-icon fa-solid fa-circle-info" aria-hidden="true" /> Como a margem é calculada</h2><p><strong>Faturamento</strong> considera somente movimentos do tipo VENDA.</p><p><strong>Custo</strong> soma a quantidade × custo unitário de cada venda.</p><p><strong>Lucro bruto</strong> = faturamento − custo.</p><p><strong>Margem bruta</strong> = lucro bruto ÷ faturamento × 100.</p><p>Uma margem sem faturamento é exibida como — no detalhamento.</p></aside>
     </section>
   </>
 }
@@ -97,23 +97,23 @@ function NetAnalysis({ data, ready }: { data: NetMarginReport | null, ready: boo
   return <>
     <p className="margin-status">Venda líquida: <strong>{money(data.netSales)}</strong><span> · {number(data.movementCount)} movimentos · {number(data.quantity)} unidades</span></p>
     <section className="margin-metrics margin-metrics-net" data-testid="margin-metrics" aria-label="Indicadores de margem líquida">
-      <Kpi label="Vendas brutas" value={data.grossSales} hint="Somente movimentos VENDA" />
-      <Kpi label="Devoluções" value={data.returns} hint="Reduzem a venda e devolvem o custo" deduction />
-      <Kpi label="Custo líquido" value={data.netCost} hint="Custo de venda menos retorno ao estoque" deduction />
-      <Kpi label="Perda em trocas" value={data.tradeLosses} hint="Custo de TROCA e TROCA DEV" deduction />
-      <Kpi label="Desconto de boleto" value={data.boletoDiscounts} hint="Abatimento financeiro" deduction />
-      <Kpi label="Lucro líquido" value={data.liquidProfit} hint="Venda líquida − custo líquido − perdas" />
-      <Kpi label="Margem líquida" value={data.liquidMarginPercent} hint="Lucro líquido / venda líquida" kind="percent" />
-      <Kpi label="Produtos" value={data.productCount} hint="Com movimento no filtro" kind="number" />
+      <Kpi label="Vendas brutas" icon="sack-dollar" value={data.grossSales} hint="Somente movimentos VENDA" />
+      <Kpi label="Devoluções" icon="arrow-right-arrow-left" value={data.returns} hint="Reduzem a venda e devolvem o custo" deduction />
+      <Kpi label="Custo líquido" icon="boxes-stacked" value={data.netCost} hint="Custo de venda menos retorno ao estoque" deduction />
+      <Kpi label="Perda em trocas" icon="arrow-right-arrow-left" value={data.tradeLosses} hint="Custo de TROCA e TROCA DEV" deduction />
+      <Kpi label="Desconto de boleto" icon="barcode" value={data.boletoDiscounts} hint="Abatimento financeiro" deduction />
+      <Kpi label="Lucro líquido" icon="chart-line" value={data.liquidProfit} hint="Venda líquida − custo líquido − perdas" />
+      <Kpi label="Margem líquida" icon="percent" value={data.liquidMarginPercent} hint="Lucro líquido / venda líquida" kind="percent" />
+      <Kpi label="Produtos" icon="box-open" value={data.productCount} hint="Com movimento no filtro" kind="number" />
     </section>
-    <article className="margin-panel margin-product-detail"><header><h2>Margem líquida por produto</h2><span>{productRows.length} de {products.length} produtos · trocas pelo custo</span></header>
+    <article className="margin-panel margin-product-detail"><header><h2><i className="card-label-icon fa-solid fa-percent" aria-hidden="true" /> Margem líquida por produto</h2><span>{productRows.length} de {products.length} produtos · trocas pelo custo</span></header>
       <form className="margin-controls" onSubmit={event => { event.preventDefault(); setDetail(detailDraft) }}><label>Ordenar produtos<select value={detailDraft.order} onChange={event => setDetailDraft({ ...detailDraft, order: event.target.value as keyof NetMarginRow })}><option value="liquidProfit">Maior lucro líquido</option><option value="liquidMarginPercent">Maior margem líquida %</option><option value="losses">Maior perda</option><option value="grossSales">Maior venda</option></select></label><Limits label="Limite de produtos" value={detailDraft.limit} values={[20, 50, 100]} onChange={limit => setDetailDraft({ ...detailDraft, limit })} /><button type="submit" aria-label="Atualizar produtos">Atualizar</button></form>
       <div className="margin-table-wrap" tabIndex={0} role="region" aria-label="Tabela de produtos com rolagem horizontal"><table aria-label="Margem líquida por produto"><thead><tr><th>Produto</th><th>Vendas</th><th title="DEVOLUCAO">Devol. própria</th><th title="DEVOL ENT">Devol. cliente</th><th>Custo líquido</th><th>Trocas (custo)</th><th>Desc. boleto</th><th>Lucro líquido</th><th>Margem %</th></tr></thead><tbody>{productRows.map((row, index) => <tr key={`${row.label}-${index}`}><th scope="row" title={row.label}>{row.label}</th><td>{money(row.grossSales)}</td><td>{money(row.ownReturns)}</td><td>{money(row.customerReturns)}</td><td>{money(row.netCost)}</td><td>{money(row.tradeLosses)}</td><td>{money(row.boletoDiscounts)}</td><td className={negative(row.liquidProfit)}>{money(row.liquidProfit)}</td><td className={negative(row.liquidMarginPercent)}>{pct(row.liquidMarginPercent)}</td></tr>)}{productRows.length === 0 && <tr><td colSpan={9}>{emptyText}</td></tr>}</tbody></table></div>
     </article>
-    <section className="margin-dynamic-grid"><article className="margin-panel"><header><h2>Análise dinâmica</h2><span>Escolha como agrupar</span></header>
+    <section className="margin-dynamic-grid"><article className="margin-panel"><header><h2><i className="card-label-icon fa-solid fa-chart-line" aria-hidden="true" /> Análise dinâmica</h2><span>Escolha como agrupar</span></header>
       <form className="margin-controls" onSubmit={event => { event.preventDefault(); setSelection(draft) }}><label>Agrupar análise<select value={draft.dimension} onChange={event => setDraft({ ...draft, dimension: event.target.value as NetMarginDimension })}>{(['seller', 'brand', 'customer', 'group', 'product', 'city'] as const).map(dimension => <option key={dimension} value={dimension}>{dimensionNames[dimension]}</option>)}</select></label><label>Métrica da análise<select value={draft.metric} onChange={event => setDraft({ ...draft, metric: event.target.value as NetMetric })}>{(Object.keys(metricNames) as NetMetric[]).map(metric => <option key={metric} value={metric}>{metricNames[metric]}</option>)}</select></label><Limits label="Limite da análise" value={draft.limit} values={[10, 15, 25, 50]} onChange={limit => setDraft({ ...draft, limit })} /><button type="submit" aria-label="Atualizar análise">Atualizar</button></form>
       <BarChart title={`${metricNames[selection.metric]} por ${dimensionNames[selection.dimension]}`} rows={rows.map(row => ({ label: row.label, value: row[selection.metric] }))} format={format} />
-    </article><article className="margin-panel"><header><h2>Ranking dinâmico</h2><span>{dimensionNames[selection.dimension]} · {rows.length} de {groups.length} resultados</span></header><div className="margin-table-wrap" tabIndex={0} role="region" aria-label="Ranking com rolagem horizontal"><table aria-label="Ranking dinâmico"><thead><tr><th>#</th><th>{dimensionNames[selection.dimension]}</th><th>{metricNames[selection.metric]}</th></tr></thead><tbody>{rows.map((row, index) => <tr key={`${row.label}-${index}`}><td>{index + 1}</td><th scope="row" title={row.label}>{row.label}</th><td className={negative(row[selection.metric])}>{format(row[selection.metric])}</td></tr>)}{rows.length === 0 && <tr><td colSpan={3}>{emptyText}</td></tr>}</tbody></table></div></article></section>
+    </article><article className="margin-panel"><header><h2><i className="card-label-icon fa-solid fa-ranking-star" aria-hidden="true" /> Ranking dinâmico</h2><span>{dimensionNames[selection.dimension]} · {rows.length} de {groups.length} resultados</span></header><div className="margin-table-wrap" tabIndex={0} role="region" aria-label="Ranking com rolagem horizontal"><table aria-label="Ranking dinâmico"><thead><tr><th>#</th><th>{dimensionNames[selection.dimension]}</th><th>{metricNames[selection.metric]}</th></tr></thead><tbody>{rows.map((row, index) => <tr key={`${row.label}-${index}`}><td>{index + 1}</td><th scope="row" title={row.label}>{row.label}</th><td className={negative(row[selection.metric])}>{format(row[selection.metric])}</td></tr>)}{rows.length === 0 && <tr><td colSpan={3}>{emptyText}</td></tr>}</tbody></table></div></article></section>
   </>
 }
 

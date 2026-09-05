@@ -1,5 +1,14 @@
 /* Shared screen presentation; printed statements keep their compact layout. */
 @media screen {
+  .main-canvas .card-label-icon {
+    display: inline-block;
+    width: 1.2em;
+    margin-right: .35em;
+    color: var(--gold);
+    font-size: 1.05em;
+    text-align: center;
+    vertical-align: -.05em;
+  }
   .main-canvas :is(.dashboard-kpi, .trade-kpi, .margin-kpi, .analysis-card, .metric,
     .closing-financial-summary article, .statement-totals article, .valdir-totals article) {
     position: relative;

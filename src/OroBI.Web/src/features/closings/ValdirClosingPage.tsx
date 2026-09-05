@@ -40,26 +40,26 @@ export function ValdirClosingPage({ summary, state, errorMessage, initialMonth =
     {ready && summary && <>
       <div className="valdir-primary">
         <section className="valdir-panel" aria-labelledby="valdir-salary-title">
-          <h2 id="valdir-salary-title">Salário-base</h2>
+          <h2 id="valdir-salary-title"><i className="card-label-icon fa-solid fa-wallet" aria-hidden="true" /> Salário-base</h2>
           <div className="valdir-panel-body"><p className="valdir-label">Remuneração fixa</p><strong className="valdir-amount">{money(summary.compensation.baseSalary)}</strong><p className="valdir-note">Salário-base utilizado no fechamento.</p><span className="valdir-period">{reference}</span></div>
         </section>
         <section className="valdir-panel" aria-labelledby="valdir-commission-title">
-          <h2 id="valdir-commission-title">Comissão · 0,10%</h2>
+          <h2 id="valdir-commission-title"><i className="card-label-icon fa-solid fa-calculator" aria-hidden="true" /> Comissão · 0,10%</h2>
           <div className="valdir-panel-body"><p className="valdir-label">Base da comissão</p><strong className="valdir-amount">{money(summary.monthly.commissionableRevenue)}</strong><p className="valdir-note">Faturamento líquido com bonificações.</p><dl className="valdir-fields"><div><dt>Percentual</dt><dd>0,10%</dd></div><div><dt>Comissão</dt><dd>{money(summary.compensation.commission)}</dd></div></dl></div>
         </section>
         <section className="valdir-panel valdir-trade" aria-labelledby="valdir-trade-title">
-          <h2 id="valdir-trade-title">Prêmio por troca geral</h2>
+          <h2 id="valdir-trade-title"><i className="card-label-icon fa-solid fa-trophy" aria-hidden="true" /> Prêmio por troca geral</h2>
           <div className="valdir-panel-body"><p className="valdir-label">% de trocas</p><div className="valdir-trade-rate"><strong className="valdir-amount">{percent(summary.monthly.tradePercent)}</strong><span>{summary.tradeAward > 0 ? 'Com prêmio' : 'Sem prêmio'}</span></div><p className="valdir-note">Sobre o faturamento sem bonificações.</p><dl className="valdir-fields"><div><dt>Valor das trocas</dt><dd>{money(summary.monthly.tradeValue)}</dd></div><div><dt>Prêmio</dt><dd>{money(summary.tradeAward)}</dd></div></dl></div>
         </section>
       </div>
       <section className="valdir-totals" aria-label="Resumo da remuneração" data-testid="closing-financial-summary">
-        <article><h2>Salário + comissão</h2><strong>{money(summary.compensation.totalSalary)}</strong><p>Remuneração sem prêmio</p></article>
-        <article><h2>Prêmios no período</h2><strong>{money(summary.totalAwards)}</strong><p>Prêmio por troca geral</p></article>
-        <article className="valdir-total"><h2>Total previsto</h2><strong>{money(summary.total)}</strong><p>Salário + comissão + prêmio</p></article>
-        <article><h2>Base excluída</h2><strong className="valdir-exclusion">Operação Bauducco</strong><p>Fora do faturamento e das trocas</p></article>
+        <article><h2><i className="card-label-icon fa-solid fa-calculator" aria-hidden="true" /> Salário + comissão</h2><strong>{money(summary.compensation.totalSalary)}</strong><p>Remuneração sem prêmio</p></article>
+        <article><h2><i className="card-label-icon fa-solid fa-trophy" aria-hidden="true" /> Prêmios no período</h2><strong>{money(summary.totalAwards)}</strong><p>Prêmio por troca geral</p></article>
+        <article className="valdir-total"><h2><i className="card-label-icon fa-solid fa-money-check-dollar" aria-hidden="true" /> Total previsto</h2><strong>{money(summary.total)}</strong><p>Salário + comissão + prêmio</p></article>
+        <article><h2><i className="card-label-icon fa-solid fa-filter-circle-xmark" aria-hidden="true" /> Base excluída</h2><strong className="valdir-exclusion">Operação Bauducco</strong><p>Fora do faturamento e das trocas</p></article>
       </section>
       <section className="valdir-sales" aria-labelledby="valdir-sales-title">
-        <h2 id="valdir-sales-title">Resumo geral de vendas e trocas</h2>
+        <h2 id="valdir-sales-title"><i className="card-label-icon fa-solid fa-arrow-right-arrow-left" aria-hidden="true" /> Resumo geral de vendas e trocas</h2>
         <div className="valdir-table-scroll"><table aria-label="Resumo geral de vendas e trocas"><thead><tr><th>Base</th><th>Venda líquida sem bonificações</th><th>Bonificações</th><th>Total de trocas</th><th>% de trocas</th></tr></thead><tbody><tr><th scope="row">Empresa sem Operação Bauducco</th><td>{money(summary.monthly.tradeRevenueBase ?? summary.monthly.commissionableRevenue)}</td><td>{money(summary.monthly.revenue - (summary.monthly.tradeRevenueBase ?? summary.monthly.commissionableRevenue))}</td><td>{money(summary.monthly.tradeValue)}</td><td className={summary.tradeAward > 0 ? 'valdir-rate-earned' : 'valdir-rate-unearned'}>{percent(summary.monthly.tradePercent)}</td></tr></tbody></table></div>
       </section>
       <section className="valdir-rules" aria-label="Regras do fechamento">

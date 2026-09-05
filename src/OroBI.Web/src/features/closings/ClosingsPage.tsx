@@ -53,15 +53,15 @@ export function ClosingsPage({ summary, sellers, state, errorMessage, initialSel
       <button disabled={state === 'loading'}>Consultar fechamento</button>
     </form>
     {state === 'loading' && <section className="notice">Calculando fechamento...</section>}
-    {state === 'error' && <section className="closing-empty-state"><i className="fa-solid fa-triangle-exclamation" aria-hidden="true" /><div><h2>Nao foi possivel consultar o fechamento</h2><p>{errorMessage ?? 'A consulta de fechamento falhou. Tente novamente em alguns instantes.'}</p></div></section>}
+    {state === 'error' && <section className="closing-empty-state"><i className="fa-solid fa-triangle-exclamation" aria-hidden="true" /><div><h2><i className="card-label-icon fa-solid fa-circle-info" aria-hidden="true" /> Nao foi possivel consultar o fechamento</h2><p>{errorMessage ?? 'A consulta de fechamento falhou. Tente novamente em alguns instantes.'}</p></div></section>}
     {summary && state === 'ready' && <>
       <section className="closing-financial-summary" data-testid="closing-financial-summary">
-        <article><p>Salario + comissao</p><strong>{money(summary.compensation.totalSalary)}</strong><span>Salário-base: {money(summary.compensation.baseSalary)}</span><span>Comissão: {money(summary.compensation.commission)}</span></article>
-        <article><p>Premios no periodo</p><strong>{money(summary.totalAwards)}</strong><span>PPP, faturamento, positivacao e troca</span></article>
-        <article><p>Total previsto</p><strong>{money(summary.total)}</strong><span>Salario, comissao e premios</span></article>
+        <article><p><i className="card-label-icon fa-solid fa-calculator" aria-hidden="true" /> Salario + comissao</p><strong>{money(summary.compensation.totalSalary)}</strong><span>Salário-base: {money(summary.compensation.baseSalary)}</span><span>Comissão: {money(summary.compensation.commission)}</span></article>
+        <article><p><i className="card-label-icon fa-solid fa-trophy" aria-hidden="true" /> Premios no periodo</p><strong>{money(summary.totalAwards)}</strong><span>PPP, faturamento, positivacao e troca</span></article>
+        <article><p><i className="card-label-icon fa-solid fa-money-check-dollar" aria-hidden="true" /> Total previsto</p><strong>{money(summary.total)}</strong><span>Salario, comissao e premios</span></article>
       </section>
       {summary.monthly.scope === 'company-excluding-bauducco' && <section className="closing-general-trade-award" aria-labelledby="general-trade-award-title">
-        <h2 id="general-trade-award-title">Prêmio por troca geral</h2>
+        <h2 id="general-trade-award-title"><i className="card-label-icon fa-solid fa-trophy" aria-hidden="true" /> Prêmio por troca geral</h2>
         <dl>
           <div><dt>% de trocas</dt><dd>{percent(summary.monthly.tradePercent)}</dd></div>
           <div><dt>Valor das trocas</dt><dd>{money(summary.monthly.tradeValue)}</dd></div>
@@ -70,12 +70,12 @@ export function ClosingsPage({ summary, sellers, state, errorMessage, initialSel
       </section>}
       <ClosingIndicators monthly={summary.monthly} />
       <section className="metrics">
-      <article className="metric main"><p>Premios totais</p><strong>{money(summary.totalAwards)}</strong><span>PPP, faturamento, positivacao e troca</span></article>
-      <article className="metric"><p>Premio PPP</p><strong>{money(summary.ppp.award)}</strong><span>{percent(summary.ppp.meanPercent)} de media</span></article>
-      <article className="metric"><p>{summary.monthly.scope === 'company' ? 'Prêmio da equipe' : 'Premio faturamento'}</p><strong>{money(summary.revenueAward)}</strong></article>
-      <article className="metric"><p>Premio positivacao</p><strong>{money(summary.positivityAward)}</strong></article>
-      <article className="metric"><p>Premio troca</p><strong>{money(summary.tradeAward)}</strong></article>
-      <article className="metric"><p>Comissao</p><strong>{money(summary.compensation.commission)}</strong><span>Salario: {money(summary.compensation.baseSalary)}</span></article>
+      <article className="metric main"><p><i className="card-label-icon fa-solid fa-trophy" aria-hidden="true" /> Premios totais</p><strong>{money(summary.totalAwards)}</strong><span>PPP, faturamento, positivacao e troca</span></article>
+      <article className="metric"><p><i className="card-label-icon fa-solid fa-trophy" aria-hidden="true" /> Premio PPP</p><strong>{money(summary.ppp.award)}</strong><span>{percent(summary.ppp.meanPercent)} de media</span></article>
+      <article className="metric"><p><i className="card-label-icon fa-solid fa-trophy" aria-hidden="true" /> {summary.monthly.scope === 'company' ? 'Prêmio da equipe' : 'Premio faturamento'}</p><strong>{money(summary.revenueAward)}</strong></article>
+      <article className="metric"><p><i className="card-label-icon fa-solid fa-trophy" aria-hidden="true" /> Premio positivacao</p><strong>{money(summary.positivityAward)}</strong></article>
+      <article className="metric"><p><i className="card-label-icon fa-solid fa-trophy" aria-hidden="true" /> Premio troca</p><strong>{money(summary.tradeAward)}</strong></article>
+      <article className="metric"><p><i className="card-label-icon fa-solid fa-calculator" aria-hidden="true" /> Comissao</p><strong>{money(summary.compensation.commission)}</strong><span>Salario: {money(summary.compensation.baseSalary)}</span></article>
     </section>
     <ClosingDetails summary={summary} />
     </>}
