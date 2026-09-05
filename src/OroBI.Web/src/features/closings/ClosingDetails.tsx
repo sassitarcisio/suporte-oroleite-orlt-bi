@@ -41,12 +41,16 @@ export function ClosingDetails({ summary }: { summary: ClosingSummary }) {
         ])}</tbody>
       </table></div>}
     </section>
-    <section className="closing-details">
+    <ClosingDocuments monthly={summary.monthly} />
+  </>
+}
+
+export function ClosingDocuments({ monthly }: Pick<ClosingSummary, 'monthly'>) {
+  return <section className="closing-details">
       <h2>Documentos do mês</h2>
-      {summary.monthly.documents.length === 0 ? <p>Nenhum documento identificado no período.</p> : <details><summary>Ver {number(summary.monthly.documentCount)} documentos</summary><div className="closing-table-scroll"><table aria-label="Documentos do mês">
+      {monthly.documents.length === 0 ? <p>Nenhum documento identificado no período.</p> : <details><summary>Ver {number(monthly.documentCount)} documentos</summary><div className="closing-table-scroll"><table aria-label="Documentos do mês">
         <thead><tr><th>Data</th><th>Documento</th><th>Vendedor</th><th>Cliente</th><th>Movimento</th><th>Valor</th></tr></thead>
-        <tbody>{summary.monthly.documents.map((document, index) => <tr key={index}><td>{date(document.date)}</td><th scope="row">{document.documentNumber}</th><td>{document.seller}</td><td>{document.customerName || document.customerCode}</td><td>{document.movementType}</td><td>{money(document.totalValue)}</td></tr>)}</tbody>
+        <tbody>{monthly.documents.map((document, index) => <tr key={index}><td>{date(document.date)}</td><th scope="row">{document.documentNumber}</th><td>{document.seller}</td><td>{document.customerName || document.customerCode}</td><td>{document.movementType}</td><td>{money(document.totalValue)}</td></tr>)}</tbody>
       </table></div></details>}
     </section>
-  </>
 }

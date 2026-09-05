@@ -20,10 +20,22 @@ const summary = {
 
 describe('Closing details', () => {
   it('shows separate commission and trade bases for the official Valdir closing', () => {
-    render(<ClosingsPage summary={{ ...summary, monthly: { ...summary.monthly, scope: 'company-excluding-bauducco', revenue: 4557465.78, commissionableRevenue: 4557465.78, tradeRevenueBase: 4546665.61, tradeValue: 234910.48, tradePercent: 5.17 } }} sellers={[]} state="ready" errorMessage={null} onSubmit={vi.fn()} />)
-    expect(screen.getByText('Base da comissão').closest('article')).toHaveTextContent(/4\.557\.465,78/)
-    expect(screen.getByText('Faturamento sem bonificações').closest('article')).toHaveTextContent(/4\.546\.665,61/)
-    expect(screen.getByRole('region', { name: 'Indicadores do mês' })).toHaveTextContent('0,10%')
+    render(<ClosingsPage summary={{ ...summary, monthly: { ...summary.monthly, scope: 'company-excluding-bauducco', revenue: 4557465.78, commissionableRevenue: 4557465.78, tradeRevenueBase: 4546665.61, tradeValue: 234910.48, tradePercent: 5.17 } }} initialSeller="VALDIR ZACARIAS" initialMonth="2026-08" sellers={[]} state="ready" errorMessage={null} onSubmit={vi.fn()} />)
+    expect(screen.getByRole('region', { name: 'Comissão · 0,10%' })).toHaveTextContent(/4\.557\.465,78/)
+    expect(screen.getByRole('table', { name: 'Resumo geral de vendas e trocas' })).toHaveTextContent(/4\.546\.665,61/)
+    expect(screen.queryByRole('heading', { name: 'Segmentos PPP' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Imprimir demonstrativo' })).toBeEnabled()
+    const print = vi.spyOn(window, 'print').mockImplementation(() => {})
+    fireEvent.click(screen.getByRole('button', { name: 'Imprimir demonstrativo' }))
+    expect(print).toHaveBeenCalledOnce()
+    print.mockRestore()
+  })
+
+  it('does not print stale Valdir amounts when the reference month changes', () => {
+    render(<ClosingsPage summary={summary} sellers={[]} initialSeller="VALDIR ZACARIAS" initialMonth="2026-08" state="ready" errorMessage={null} onSubmit={vi.fn()} />)
+    fireEvent.change(screen.getByLabelText('MES'), { target: { value: '2026-07' } })
+    expect(screen.queryByTestId('closing-financial-summary')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Imprimir demonstrativo' })).toBeDisabled()
   })
 
   it('keeps Valdir selected even when the commercial seller catalog does not contain him', () => {
@@ -33,6 +45,17 @@ describe('Closing details', () => {
     fireEvent.change(screen.getByLabelText('MES'), { target: { value: '2026-08' } })
     fireEvent.click(screen.getByRole('button', { name: 'Consultar fechamento' }))
     expect(onSubmit).toHaveBeenCalledWith('VALDIR ZACARIAS', '2026-08')
+  })
+
+  it('preserves seller and month controls when the generic closing returns Valdir company scope', () => {
+    const props = { summary: null, sellers: ['ANA', 'VALDIR ZACARIAS'], state: 'idle' as const, errorMessage: null, onSubmit: vi.fn() }
+    const view = render(<ClosingsPage {...props} />)
+    fireEvent.change(screen.getByLabelText('VENDEDOR'), { target: { value: 'VALDIR ZACARIAS' } })
+    fireEvent.change(screen.getByLabelText('MES'), { target: { value: '2026-08' } })
+    view.rerender(<ClosingsPage {...props} state="ready" summary={{ ...summary, monthly: { ...summary.monthly, scope: 'company-excluding-bauducco' } }} />)
+    expect(screen.getByLabelText('VENDEDOR')).toBeEnabled()
+    expect(screen.getByLabelText('VENDEDOR')).toHaveValue('VALDIR ZACARIAS')
+    expect(screen.getByLabelText('MES')).toHaveValue('2026-08')
   })
 
   it('renders monthly indicators, document totals, PPP rates and goal progress from the API', () => {

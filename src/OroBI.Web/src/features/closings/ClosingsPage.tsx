@@ -3,9 +3,10 @@ import type { FormEvent } from 'react'
 import { ClosingDetails, ClosingIndicators } from './ClosingDetails'
 import { money, percent } from './closingFormat'
 import type { ClosingSummary } from './closingTypes'
+import { ValdirClosingPage } from './ValdirClosingPage'
 export type { ClosingSummary } from './closingTypes'
 
-type ClosingsPageProps = {
+export type ClosingsPageProps = {
   summary: ClosingSummary | null
   sellers: string[]
   state: 'idle' | 'loading' | 'ready' | 'error'
@@ -29,6 +30,10 @@ export function ClosingsPage({ summary, sellers, state, errorMessage, initialSel
   const [seller, setSeller] = useState(initialSeller)
   const [month, setMonth] = useState(initialMonth)
   const sellerOptions = initialSeller ? [initialSeller] : sellers
+
+  if (initialSeller === 'VALDIR ZACARIAS') {
+    return <ValdirClosingPage summary={summary} state={state} errorMessage={errorMessage} initialMonth={initialMonth} onSubmit={onSubmit} months={referenceMonths} />
+  }
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()

@@ -1,0 +1,86 @@
+.valdir-closing { margin:28px 0; padding:clamp(18px,2vw,30px); border:1px solid #d8e4f1; border-radius:20px; background:#f3f7fd; color:#123252; }
+.analysis-workspace:has(.valdir-closing) .command-bar { background:#08111f; }
+.valdir-heading { display:flex; align-items:center; justify-content:space-between; gap:24px; }
+.valdir-heading h1 { margin:5px 0 10px; font-size:clamp(28px,2.8vw,40px); font-weight:750; line-height:1.12; letter-spacing:-1px; color:#102f50; }
+.valdir-heading p { max-width:620px; margin:0; color:#5d7690; font-size:13px; line-height:1.6; }
+.valdir-heading .valdir-kicker { color:#164574; font-size:11px; font-weight:750; letter-spacing:1.5px; }
+.valdir-reference { display:inline-block; margin-top:10px; color:#375b80; font-size:12px; font-weight:600; }
+.valdir-closing button { min-height:42px; border:1px solid #164574; border-radius:8px; background:#164574; padding:10px 16px; color:#fff; font:inherit; font-size:12px; font-weight:650; cursor:pointer; }
+.valdir-closing button:disabled { opacity:.5; cursor:not-allowed; }
+.valdir-closing button:focus-visible,.valdir-closing select:focus-visible { outline:3px solid #a78bfa; outline-offset:3px; }
+.valdir-closing .valdir-print { flex-shrink:0; border-color:#cedbea; background:#fff; color:#163d64; }
+.valdir-print i { margin-right:7px; }
+.valdir-controls { display:flex; align-items:end; gap:12px; margin:22px 0; padding:16px; border:1px solid #dae5f1; border-radius:12px; background:#eaf1fa; }
+.analysis-workspace .valdir-closing label { display:flex; flex-direction:column; gap:7px; color:#526f8b; font-size:10px; font-weight:700; letter-spacing:.5px; }
+.analysis-workspace .valdir-closing select { min-width:200px; min-height:42px; padding:9px 12px; border:1px solid #cddceb; border-radius:7px; background:#fff; color:#123252; font:inherit; font-size:12px; letter-spacing:0; }
+.valdir-controls button { margin-left:auto; }
+.valdir-primary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.valdir-panel { min-width:0; overflow:hidden; border:1px solid #d7e3f1; border-radius:14px; background:#fff; box-shadow:0 5px 16px #153d6410; }
+.valdir-panel>h2,.valdir-sales>h2 { margin:0; padding:13px 16px; background:#164574; color:#fff; font-size:12px; font-weight:750; text-transform:uppercase; letter-spacing:.2px; }
+.valdir-panel-body { padding:18px 16px; }
+.valdir-closing .valdir-label { margin:0 0 10px; color:#607b95; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; }
+.valdir-amount { display:block; color:#102f50; font-size:clamp(22px,1.8vw,29px); font-weight:750; line-height:1.2; letter-spacing:-.6px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.valdir-closing .valdir-note { margin:10px 0 16px; color:#688199; font-size:11px; line-height:1.5; }
+.valdir-period { display:inline-block; margin-top:3px; padding:8px 12px; border-radius:6px; background:#eff5fc; color:#335d86; font-size:12px; font-weight:600; }
+.valdir-fields { display:flex; flex-wrap:wrap; gap:12px; margin:0; padding-top:14px; border-top:1px solid #e4edf6; }
+.valdir-fields>div { flex:1 1 145px; min-width:0; }
+.valdir-fields dt { color:#607b95; font-size:10px; font-weight:700; text-transform:uppercase; }
+.valdir-fields dd { margin:7px 0 0; color:#133958; font-size:clamp(16px,1.25vw,20px); font-weight:750; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.valdir-trade { border-color:#e3d8fd; }
+.valdir-trade>h2 { background:#7c3aed; }
+.valdir-trade .valdir-amount,.valdir-trade dd { color:#7c3aed; }
+.valdir-trade-rate { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.valdir-trade-rate>span { padding:5px 8px; border-radius:20px; background:#f3edff; color:#7842c4; font-size:10px; font-weight:650; }
+.valdir-totals { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:16px 0; }
+.valdir-totals article { min-width:0; padding:17px; border:1px solid #d7e3f1; border-radius:12px; background:#fff; }
+.valdir-totals h2 { margin:0; color:#607b95; font-size:10px; font-weight:750; text-transform:uppercase; }
+.valdir-totals strong { display:block; margin:10px 0 7px; color:#123252; font-size:clamp(20px,1.65vw,27px); font-weight:750; font-variant-numeric:tabular-nums; white-space:nowrap; letter-spacing:-.5px; }
+.valdir-totals p { margin:0; color:#688199; font-size:11px; line-height:1.5; }
+.valdir-totals .valdir-total { background:#153f69; border-color:#153f69; }
+.valdir-total h2,.valdir-total p { color:#c1d5eb; }
+.valdir-total strong { color:#fff; }
+.valdir-totals .valdir-exclusion { font-size:17px; line-height:1.4; white-space:normal; letter-spacing:0; }
+.valdir-sales { overflow:hidden; border:1px solid #d7e3f1; border-radius:12px; background:#fff; }
+.valdir-table-scroll { max-width:100%; overflow:auto; }
+.valdir-sales table { width:100%; border-collapse:collapse; font-size:12px; }
+.valdir-sales th,.valdir-sales td { padding:13px 16px; text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.valdir-sales th:first-child { text-align:left; white-space:normal; }
+.valdir-sales thead { background:#edf4fc; color:#527193; font-size:10px; text-transform:uppercase; }
+.valdir-sales tbody { background:#eef9f5; color:#133b55; font-weight:700; }
+.valdir-rate-unearned { color:#b42342; }.valdir-rate-earned { color:#08744e; }
+.valdir-rules { display:grid; grid-template-columns:1fr 1fr 1.3fr; gap:12px; margin:16px 0; }
+.valdir-rules article { padding:16px; border:1px solid #dce7f2; border-left:4px solid #2874d8; border-radius:10px; background:#fff; }
+.valdir-rules article:nth-child(2) { border-left-color:#0c9972; }
+.valdir-rules .valdir-award-rule { border-left-color:#7c3aed; }
+.valdir-rules h2 { margin:0 0 10px; color:#163b60; font-size:12px; font-weight:700; }
+.valdir-rules h2 i { margin-right:5px; color:#6889ab; }
+.valdir-rules p { margin:0; color:#5e7891; font-size:12px; line-height:1.7; }
+.valdir-rules dl { margin:0; color:#5e7891; font-size:11px; }
+.valdir-rules dl>div { display:flex; justify-content:space-between; gap:12px; padding:4px 0; }
+.valdir-rules dd { margin:0; color:#163b60; font-weight:650; white-space:nowrap; }
+.valdir-counts { display:flex; flex-wrap:wrap; gap:10px 26px; padding:14px 0 0; color:#617c96; font-size:12px; }
+.valdir-counts strong { color:#1f4b72; font-variant-numeric:tabular-nums; }
+.analysis-workspace .valdir-closing .closing-details { margin-top:16px; border-color:#d7e3f1; background:#fff; color:#123252; }
+.analysis-workspace .valdir-closing .closing-details p { color:#617c96; }
+.analysis-workspace .valdir-closing .closing-details th,.analysis-workspace .valdir-closing .closing-details td { border-color:#e2ebf4; }
+.analysis-workspace .valdir-closing .closing-details thead { background:#edf4fc; }
+.valdir-notice { margin:20px 0 0; padding:16px; border:1px solid #d7e3f1; border-radius:10px; background:#fff; color:#335d86; font-size:13px; }
+.valdir-error { border-color:#f0c3cc; color:#a42742; }
+@media(max-width:1200px) { .valdir-primary { grid-template-columns:repeat(2,minmax(0,1fr)); }.valdir-trade { grid-column:1/-1; }.valdir-trade .valdir-panel-body { display:grid; grid-template-columns:1fr 1fr; gap:0 24px; }.valdir-trade .valdir-label { grid-column:1; }.valdir-trade .valdir-trade-rate { grid-column:1; }.valdir-trade .valdir-note { grid-column:1; margin-bottom:0; }.valdir-trade .valdir-fields { grid-column:2; grid-row:1/4; align-content:center; padding-top:0; padding-left:24px; border-top:0; border-left:1px solid #e4edf6; }.valdir-totals { grid-template-columns:repeat(2,minmax(0,1fr)); }.valdir-rules { grid-template-columns:repeat(2,minmax(0,1fr)); }.valdir-award-rule { grid-column:1/-1; } }
+@media(max-width:650px) { .valdir-closing { margin:18px 0; padding:16px; border-radius:14px; }.valdir-heading { align-items:start; flex-direction:column; gap:16px; }.valdir-heading h1 { font-size:30px; }.valdir-controls { align-items:stretch; flex-direction:column; padding:12px; }.analysis-workspace .valdir-closing select { width:100%; min-width:0; }.valdir-controls button { margin-left:0; }.valdir-primary,.valdir-totals,.valdir-rules { grid-template-columns:1fr; }.valdir-trade .valdir-panel-body { display:block; }.valdir-trade .valdir-note { margin-bottom:16px; }.valdir-trade .valdir-fields { padding:14px 0 0; border-left:0; border-top:1px solid #e4edf6; }.valdir-amount { font-size:27px; }.valdir-fields dd { font-size:18px; }.valdir-totals strong { font-size:26px; }.valdir-rules dl { font-size:10px; }.valdir-counts { flex-direction:column; }.valdir-closing .closing-details { padding:14px; } }
+@media(max-width:400px) { .valdir-fields { gap:14px; }.valdir-fields>div { display:flex; flex-basis:100%; align-items:center; justify-content:space-between; gap:8px; }.valdir-fields dd { margin:0; } }
+@media print {
+  body:has(.valdir-closing) { background:#fff; }
+  body:has(.valdir-closing) .side-rail,body:has(.valdir-closing) .command-bar,.valdir-closing .valdir-controls,.valdir-closing .valdir-print,.valdir-closing .valdir-documents { display:none!important; }
+  body:has(.valdir-closing) .executive-layout { display:block; background:#fff; }
+  body:has(.valdir-closing) .main-canvas { padding:0; background:#fff; }
+  .valdir-closing { margin:0; padding:0; border:0; background:#fff; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+  .valdir-heading { margin-bottom:16px; }
+  .valdir-primary { grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+  .valdir-trade { grid-column:auto; }.valdir-trade .valdir-panel-body { display:block; }.valdir-trade .valdir-fields { padding:10px 0 0; border-left:0; border-top:1px solid #e4edf6; }.valdir-trade .valdir-note { margin-bottom:10px; }
+  .valdir-panel-body { padding:12px; }.valdir-amount { font-size:20px; }.valdir-fields { gap:7px; }.valdir-fields>div { flex-basis:90px; }.valdir-fields dd { font-size:13px; }.valdir-trade-rate>span { font-size:8px; }
+  .valdir-totals { grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }.valdir-totals article { padding:12px; }.valdir-totals strong { font-size:20px; }.valdir-totals .valdir-exclusion { font-size:14px; }
+  .valdir-sales th,.valdir-sales td { padding:9px; white-space:normal; }.valdir-table-scroll { overflow:visible; }.valdir-sales table { font-size:10px; }
+  .valdir-rules { grid-template-columns:1fr 1fr 1.3fr; gap:8px; }.valdir-award-rule { grid-column:auto; }.valdir-rules article { padding:10px; }.valdir-rules p,.valdir-rules dl { font-size:9px; }
+  .valdir-panel,.valdir-totals,.valdir-sales,.valdir-rules { break-inside:avoid; box-shadow:none; }
+}
