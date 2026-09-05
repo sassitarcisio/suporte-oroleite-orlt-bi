@@ -11,6 +11,8 @@ type ClosingsPageProps = {
   state: 'idle' | 'loading' | 'ready' | 'error'
   errorMessage: string | null
   initialSeller?: string
+  initialMonth?: string
+  title?: string
   onSubmit: (seller: string, month: string) => void
 }
 
@@ -23,20 +25,21 @@ const referenceMonths = Array.from({ length: 24 }, (_, index) => {
   return { value, label: label.charAt(0).toUpperCase() + label.slice(1) }
 })
 
-export function ClosingsPage({ summary, sellers, state, errorMessage, initialSeller = '', onSubmit }: ClosingsPageProps) {
+export function ClosingsPage({ summary, sellers, state, errorMessage, initialSeller = '', initialMonth = '', title = 'Fechamento por vendedor', onSubmit }: ClosingsPageProps) {
   const [seller, setSeller] = useState(initialSeller)
-  const [month, setMonth] = useState('')
+  const [month, setMonth] = useState(initialMonth)
+  const sellerOptions = initialSeller ? [initialSeller] : sellers
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    onSubmit(seller.trim(), month)
+    onSubmit(initialSeller || seller.trim(), month)
   }
 
   return <section className="closing-layout">
-    <header className="closing-header"><p className="eyebrow">FECHAMENTO</p><h1>Fechamento por vendedor</h1><p>Consulte premios, comissao e salario no periodo selecionado.</p></header>
+    <header className="closing-header"><p className="eyebrow">FECHAMENTO</p><h1>{title}</h1><p>Consulte premios, comissao e salario no periodo selecionado.</p></header>
     <form className="closing-query-card" onSubmit={submit}>
       <div><p className="closing-query-title">Selecione o periodo</p><p className="closing-query-copy">O calculo usa as metas e regras comerciais configuradas para o vendedor.</p></div>
-      <label>VENDEDOR<select required value={seller} onChange={event => setSeller(event.target.value)}><option value="" disabled>Selecione um vendedor</option>{sellers.map(registeredSeller => <option key={registeredSeller} value={registeredSeller}>{registeredSeller}</option>)}</select></label>
+      <label>VENDEDOR<select required disabled={Boolean(initialSeller)} value={initialSeller || seller} onChange={event => setSeller(event.target.value)}><option value="" disabled>Selecione um vendedor</option>{sellerOptions.map(registeredSeller => <option key={registeredSeller} value={registeredSeller}>{registeredSeller}</option>)}</select></label>
       <label>MES<select required value={month} onChange={event => setMonth(event.target.value)}><option value="" disabled>Selecione o mes</option>{referenceMonths.map(reference => <option key={reference.value} value={reference.value}>{reference.label}</option>)}</select></label>
       <button disabled={state === 'loading'}>Consultar fechamento</button>
     </form>

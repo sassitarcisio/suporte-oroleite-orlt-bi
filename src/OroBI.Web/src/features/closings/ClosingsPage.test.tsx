@@ -19,6 +19,15 @@ const summary = {
 }
 
 describe('Closing details', () => {
+  it('keeps Valdir selected even when the commercial seller catalog does not contain him', () => {
+    const onSubmit = vi.fn()
+    render(<ClosingsPage summary={null} sellers={['MARCIO FERNANDES', 'DEIVID MANNES']} initialSeller="VALDIR ZACARIAS" state="idle" errorMessage={null} onSubmit={onSubmit} />)
+    expect(screen.getByLabelText('VENDEDOR')).toHaveValue('VALDIR ZACARIAS')
+    fireEvent.change(screen.getByLabelText('MES'), { target: { value: '2026-08' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Consultar fechamento' }))
+    expect(onSubmit).toHaveBeenCalledWith('VALDIR ZACARIAS', '2026-08')
+  })
+
   it('renders monthly indicators, document totals, PPP rates and goal progress from the API', () => {
     render(<ClosingsPage summary={summary} sellers={['ANA']} state="ready" errorMessage={null} onSubmit={vi.fn()} />)
     expect(screen.getByRole('region', { name: 'Indicadores do mês' })).toHaveTextContent(/1\.100,00/)

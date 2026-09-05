@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { TradeAnalysisPage } from './features/analytics/TradeAnalysisPage'
@@ -177,6 +177,60 @@ describe('App dashboard', () => {
     expect(screen.getByRole('heading', { name: 'Premios por marca' })).toBeVisible()
     expect(screen.getByRole('table', { name: 'Metas e prêmios por marca' })).toHaveTextContent('NESTLE')
     expect(document.querySelector('.analysis-workspace')).toBeInTheDocument()
+  })
+
+  it.each([
+    ['Fechamento Valdir', 'VALDIR ZACARIAS'],
+    ['Fechamento supervisor', 'DEIVID MANNES'],
+  ])('opens %s with the correct seller and automatically calculates the previous month', async (menu, seller) => {
+    render(<App />)
+    fireEvent.click(await screen.findByRole('button', { name: menu }))
+    expect(screen.getByLabelText('VENDEDOR')).toHaveValue(seller)
+    const previousMonth = new Date()
+    previousMonth.setDate(1)
+    previousMonth.setMonth(previousMonth.getMonth() - 1)
+    const month = `${previousMonth.getFullYear()}-${String(previousMonth.getMonth() + 1).padStart(2, '0')}`
+    expect(screen.getByLabelText('MES')).toHaveValue(month)
+    expect(await screen.findByTestId('closing-financial-summary')).toHaveTextContent(/750,00/)
+    const closingCalls = vi.mocked(fetch).mock.calls.filter(([input]) => String(input).includes('/api/closings?'))
+    expect(closingCalls).toHaveLength(1)
+    const query = new URL(String(closingCalls[0][0]), 'https://orobi.test').searchParams
+    expect(query.get('seller')).toBe(seller)
+    expect(query.get('month')).toBe(month)
+  })
+
+  it('clears the previous closing when navigating to another closing page', async () => {
+    render(<App />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Fechamento por vendedor' }))
+    fireEvent.change(screen.getByLabelText('VENDEDOR'), { target: { value: 'ANA' } })
+    fireEvent.change(screen.getByLabelText('MES'), { target: { value: '2026-08' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Consultar fechamento' }))
+    expect(await screen.findByTestId('closing-financial-summary')).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Fechamento RH' }))
+    expect(screen.queryByTestId('closing-financial-summary')).not.toBeInTheDocument()
+  })
+
+  it('ignores a closing response that arrives after navigating to another closing page', async () => {
+    const originalFetch = vi.mocked(fetch).getMockImplementation()!
+    let finishClosing: (() => void) | undefined
+    vi.mocked(fetch).mockImplementation((input, init) => {
+      if (String(input).includes('/api/closings?')) {
+        return new Promise<Response>(resolve => {
+          finishClosing = () => { void originalFetch(input, init).then(resolve) }
+        })
+      }
+      return originalFetch(input, init)
+    })
+    render(<App />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Fechamento por vendedor' }))
+    fireEvent.change(screen.getByLabelText('VENDEDOR'), { target: { value: 'ANA' } })
+    fireEvent.change(screen.getByLabelText('MES'), { target: { value: '2026-08' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Consultar fechamento' }))
+    expect(screen.getByText('Calculando fechamento...')).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Fechamento RH' }))
+    await act(async () => { finishClosing!() })
+    expect(screen.queryByTestId('closing-financial-summary')).not.toBeInTheDocument()
+    expect(screen.queryByText('Calculando fechamento...')).not.toBeInTheDocument()
   })
 
   it('shows an API failure instead of a missing closing configuration', async () => {

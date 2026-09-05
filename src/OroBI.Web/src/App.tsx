@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { apiRequest, apiBaseUrl } from './api/client'
 import { clearAccessToken, readAccessToken, saveAccessToken } from './auth/session'
@@ -16,6 +16,11 @@ type LoginResponse = { accessToken: string }
 type CurrentUser = { roles: string[] }
 type PageState = 'idle' | 'loading' | 'ready' | 'error'
 type View = 'dashboard' | 'import' | 'trades' | 'sales-trades' | 'margins' | 'net-margin' | 'closings' | 'closing-rh' | 'closing-supervisor' | 'closing-valdir'
+
+const specialClosingSellers: Partial<Record<View, string>> = {
+  'closing-supervisor': 'DEIVID MANNES',
+  'closing-valdir': 'VALDIR ZACARIAS',
+}
 
 const navigationItems: Array<{ view: Exclude<View, 'import'>, label: string, icon: string }> = [
   { view: 'dashboard', label: 'Dashboard', icon: 'fa-chart-pie' },
@@ -99,6 +104,7 @@ export default function App() {
   const [closing, setClosing] = useState<ClosingSummary | null>(null)
   const [closingState, setClosingState] = useState<PageState>('idle')
   const [closingError, setClosingError] = useState<string | null>(null)
+  const closingRequestId = useRef(0)
   const [sellers, setSellers] = useState<string[]>([])
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -136,20 +142,31 @@ export default function App() {
   }
 
   function navigate(nextView: Exclude<View, 'import'>) {
-    setView(nextView)
     setMenuOpen(false)
+    if (nextView === view) return
+    closingRequestId.current += 1
+    setClosing(null)
+    setClosingState('idle')
+    setClosingError(null)
+    setView(nextView)
+    const specialSeller = specialClosingSellers[nextView]
+    if (specialSeller) void loadClosing(specialSeller, createDashboardFilters().startDate.slice(0, 7))
   }
 
   async function loadClosing(activeSeller: string, month: string) {
     if (!token || !activeSeller || !month) return
+    const requestId = ++closingRequestId.current
     setClosingState('loading')
     setClosing(null)
     setClosingError(null)
     try {
       const query = new URLSearchParams({ seller: activeSeller, month })
-      setClosing(await apiRequest<ClosingSummary>(`/api/closings?${query}`, token))
+      const result = await apiRequest<ClosingSummary>(`/api/closings?${query}`, token)
+      if (requestId !== closingRequestId.current) return
+      setClosing(result)
       setClosingState('ready')
     } catch (error) {
+      if (requestId !== closingRequestId.current) return
       const message = error instanceof Error ? error.message : undefined
       const status = message?.match(/(\d{3})$/)?.[1]
       setClosingError(message && !status
@@ -252,7 +269,7 @@ export default function App() {
       {view === 'dashboard' && <DashboardPage summary={summary} details={dashboardDetails} filters={dashboardFilters} options={dashboardFilterOptions} sellers={sellers} state={state} onFiltersChange={setDashboardFilters} onSubmit={() => applyDashboardFilter(dashboardFilters)} onClear={clearDashboardFilters} />}
       {page && !(['trades', 'sales-trades'] as View[]).includes(view) && <AnalyticsPage title={page.title} description={page.description} data={analysis} state={analysisState} />}
       {(view === 'trades' || view === 'sales-trades') && <TradeAnalysisPage mode={view} data={tradeAnalysis} state={analysisState} />}
-      {(['closings', 'closing-rh', 'closing-supervisor', 'closing-valdir'] as View[]).includes(view) && <ClosingsPage key={view} summary={closing} sellers={sellers} state={closingState} errorMessage={closingError} initialSeller={view === 'closing-supervisor' ? 'DEIVID MANNES' : view === 'closing-valdir' ? 'VALDIR ZACARIAS' : ''} onSubmit={(activeSeller, month) => void loadClosing(activeSeller, month)} />}
+      {(['closings', 'closing-rh', 'closing-supervisor', 'closing-valdir'] as View[]).includes(view) && <ClosingsPage key={view} title={navigationItems.find(item => item.view === view)?.label} summary={closing} sellers={sellers} state={closingState} errorMessage={closingError} initialSeller={specialClosingSellers[view]} initialMonth={specialClosingSellers[view] ? createDashboardFilters().startDate.slice(0, 7) : ''} onSubmit={(activeSeller, month) => void loadClosing(activeSeller, month)} />}
     </section>
   </main>
 }
