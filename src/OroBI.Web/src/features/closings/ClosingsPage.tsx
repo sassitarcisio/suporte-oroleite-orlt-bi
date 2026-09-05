@@ -4,6 +4,7 @@ import { ClosingDetails, ClosingIndicators } from './ClosingDetails'
 import { money, percent } from './closingFormat'
 import type { ClosingSummary } from './closingTypes'
 import { ValdirClosingPage } from './ValdirClosingPage'
+import { SupervisorClosingPage } from './SupervisorClosingPage'
 export type { ClosingSummary } from './closingTypes'
 
 export type ClosingsPageProps = {
@@ -33,6 +34,9 @@ export function ClosingsPage({ summary, sellers, state, errorMessage, initialSel
 
   if (initialSeller === 'VALDIR ZACARIAS') {
     return <ValdirClosingPage summary={summary} state={state} errorMessage={errorMessage} initialMonth={initialMonth} onSubmit={onSubmit} months={referenceMonths} />
+  }
+  if (initialSeller === 'DEIVID MANNES') {
+    return <SupervisorClosingPage summary={summary} state={state} errorMessage={errorMessage} initialMonth={initialMonth} onSubmit={onSubmit} />
   }
 
   function submit(event: FormEvent<HTMLFormElement>) {

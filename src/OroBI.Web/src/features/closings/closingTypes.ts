@@ -40,6 +40,7 @@ export type ClosingMonthlySummary = {
 }
 
 export type ClosingSummary = {
+  supervisor?: SupervisorClosingDetails | null
   ppp: { meanPercent: number, award: number }
   revenueAward: number
   positivityAward: number
@@ -56,4 +57,63 @@ export type ClosingSummary = {
     achievementPercent: number | null
   }>
   brandAwards: ClosingBrandAward[]
+}
+
+export type ClosingOperation = {
+  key: string
+  label: string
+  revenue: number
+  trade: number
+  tradeReturns: number
+  totalTrades: number
+  tradePercent: number
+}
+
+export type SupervisorTeamMember = {
+  seller: string
+  includedInPayroll: boolean
+  sales: ClosingOperation
+  pppAward: number
+  goalAward: number
+  totalAward: number
+}
+
+export type SupervisorClosingDetails = {
+  ownCommission: number
+  teamCommission: number
+  networkCommission: number
+  operations: ClosingOperation[]
+  team: SupervisorTeamMember[]
+  teamAverageAward: number
+  payrollTeamAverageAward: number
+}
+
+export type PayrollClosingRow = {
+  seller: string
+  sourceSeller: string
+  reference: string
+  revenue: number
+  baseSalary: number
+  commissionPercent: number | null
+  commission: number
+  pppAward: number
+  goalAward: number
+  tradeAward: number
+  incentives: number
+  total: number
+}
+
+export type PayrollClosing = {
+  year: number
+  month: number
+  coverageSeller: string
+  coverageSellers: string[]
+  rows: PayrollClosingRow[]
+  sellerCount: number
+  totalBaseSalary: number
+  totalCommission: number
+  totalPppAward: number
+  totalGoalAward: number
+  totalIncentives: number
+  total: number
 }

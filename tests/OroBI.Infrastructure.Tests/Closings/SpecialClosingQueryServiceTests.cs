@@ -111,9 +111,9 @@ public sealed class SpecialClosingQueryServiceTests
             1200m,
             new Dictionary<string, decimal> { ["SUPERVISOR: DEIVID MANNES"] = 3000m }));
         db.AddRange(
-            GoalValueRecord.Create(valuesBatch.Id, "NESTLE", 100m, 50m, 25m, 2m),
-            GoalRecord.Create(goalsBatch.Id, "ANDERSON GONCALVES SOUZA", 8, 2026, "FATURAMENTO", "Marca NESTLE / Valor", 100m, 100m),
-            GoalRecord.Create(goalsBatch.Id, "ANDERSON GONCALVES SOUZA", 8, 2026, "POSITIVACAO", "Marca NESTLE / Positivacao", 100m, 100m),
+            GoalValueRecord.Create(valuesBatch.Id, "NESTLE", 140m, 60m, 25m, 2m),
+            GoalRecord.Create(goalsBatch.Id, "VENDEDOR: ANDERSON GONCALVES SOUZA", 8, 2026, "FATURAMENTO", "Marca NESTLE / Valor", 100m, 100m),
+            GoalRecord.Create(goalsBatch.Id, "VENDEDOR: ANDERSON GONCALVES SOUZA", 8, 2026, "POSITIVACAO", "Marca NESTLE / Positivacao", 100m, 100m),
             Movement(movementsBatch.Id, "SUPERVISOR: DEIVID MANNES", "VENDA", 10000m),
             Movement(movementsBatch.Id, "VENDEDOR: ANDERSON GONCALVES SOUZA", "VENDA", 200000m),
             Movement(movementsBatch.Id, "OUTRO VENDEDOR", "VENDA", 50000m, "BISTEK"),
@@ -125,12 +125,12 @@ public sealed class SpecialClosingQueryServiceTests
         Assert.NotNull(result);
         Assert.Equal(475m, result.Compensation.Commission);
         Assert.Equal(3475m, result.Compensation.TotalSalary);
-        Assert.Equal(325m / 7m, result.RevenueAward);
+        Assert.Equal(225m / 7m, result.RevenueAward);
         Assert.Equal(5000m, result.TradeAward);
-        Assert.Equal(5000m + 325m / 7m, result.TotalAwards);
-        Assert.Equal("company", result.Monthly.Scope);
-        Assert.Equal(1260000m, result.Monthly.Revenue);
-        Assert.Equal(4, result.Monthly.DocumentCount);
+        Assert.Equal(5000m + 225m / 7m, result.TotalAwards);
+        Assert.Equal("supervisor-union", result.Monthly.Scope);
+        Assert.Equal(260000m, result.Monthly.Revenue);
+        Assert.Equal(3, result.Monthly.DocumentCount);
         Assert.Equal(0m, result.Monthly.TradePercent);
         Assert.Equal(3000m, result.Compensation.BaseSalary);
         Assert.Empty(result.PppSegments);

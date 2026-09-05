@@ -1,3 +1,4 @@
+using System.Globalization;
 using OroBI.Api.Auth;
 using Microsoft.EntityFrameworkCore;
 using OroBI.Application.Closings;
@@ -28,7 +29,36 @@ public static class ClosingEndpoints
             var status = await service.GetConfigurationStatusAsync(seller, period.Year, period.Month, cancellationToken);
             return Results.NotFound(new { error = status.ErrorMessage });
         }).RequireAuthorization(AuthorizationPolicies.SellerScope);
+        endpoints.MapGet($"{prefix}/closings/payroll", (string? month, string? coverageSeller,
+            IPayrollClosingQueryService service, CancellationToken cancellationToken) =>
+            GetPayrollAsync(month, coverageSeller, service, false, cancellationToken))
+            .RequireAuthorization(AuthorizationPolicies.ManagerOrAdministrator);
+        endpoints.MapGet($"{prefix}/closings/payroll/export", (string? month, string? coverageSeller,
+            IPayrollClosingQueryService service, CancellationToken cancellationToken) =>
+            GetPayrollAsync(month, coverageSeller, service, true, cancellationToken))
+            .RequireAuthorization(AuthorizationPolicies.ManagerOrAdministrator);
         return endpoints;
+    }
+
+    private static async Task<IResult> GetPayrollAsync(string? month, string? coverageSeller,
+        IPayrollClosingQueryService service, bool export, CancellationToken cancellationToken)
+    {
+        if (!DateOnly.TryParseExact(month, "yyyy-MM", CultureInfo.InvariantCulture, DateTimeStyles.None, out var period))
+            return Results.BadRequest(new { error = "month deve usar o formato yyyy-MM." });
+
+        var coverage = PayrollCatalog.CanonicalName(coverageSeller ?? PayrollCatalog.DefaultCoverage);
+        if (!PayrollCatalog.StandardSellers.Contains(coverage, StringComparer.Ordinal))
+            return Results.BadRequest(new { error = "coverageSeller deve ser um dos seis vendedores disponíveis para cobertura." });
+
+        var closing = await service.GetPayrollAsync(coverage, period.Year, period.Month, cancellationToken);
+        if (closing is null)
+            return Results.NotFound(new { error = "Fechamento RH indisponível: faltam configurações salariais ou importações obrigatórias para o período selecionado." });
+
+        return export
+            ? Results.File(PayrollExcelExporter.Export(closing),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"fechamento-rh-{period.ToString("yyyy-MM", CultureInfo.InvariantCulture)}.xlsx")
+            : Results.Ok(closing);
     }
 
     public sealed record ClosingConfigurationRequest(string Seller, int Year, int Month, decimal BaseSalary, decimal CommissionPercent, decimal PppMaximumAward);

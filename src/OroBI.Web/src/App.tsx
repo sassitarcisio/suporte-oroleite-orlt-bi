@@ -7,6 +7,8 @@ import { TradeAnalysisPage } from './features/analytics/TradeAnalysisPage'
 import type { TradeAnalysis } from './features/analytics/TradeAnalysisPage'
 import { ClosingsPage } from './features/closings/ClosingsPage'
 import type { ClosingSummary } from './features/closings/ClosingsPage'
+import { PayrollClosingPage } from './features/closings/PayrollClosingPage'
+import type { PayrollClosing } from './features/closings/closingTypes'
 import { DashboardPage } from './features/dashboard/DashboardPage'
 import type { DashboardDetails, DashboardFilterOptions, DashboardFilters, DashboardSummary } from './features/dashboard/DashboardPage'
 import { ImportPage } from './features/imports/ImportPage'
@@ -105,6 +107,12 @@ export default function App() {
   const [closingState, setClosingState] = useState<PageState>('idle')
   const [closingError, setClosingError] = useState<string | null>(null)
   const closingRequestId = useRef(0)
+  const [payroll, setPayroll] = useState<PayrollClosing | null>(null)
+  const [payrollState, setPayrollState] = useState<PageState>('idle')
+  const [payrollError, setPayrollError] = useState<string | null>(null)
+  const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState<string | null>(null)
+  const payrollRequestId = useRef(0)
   const [sellers, setSellers] = useState<string[]>([])
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -144,13 +152,72 @@ export default function App() {
   function navigate(nextView: Exclude<View, 'import'>) {
     setMenuOpen(false)
     if (nextView === view) return
-    closingRequestId.current += 1
-    setClosing(null)
-    setClosingState('idle')
-    setClosingError(null)
+    clearClosingRequests()
     setView(nextView)
     const specialSeller = specialClosingSellers[nextView]
     if (specialSeller) void loadClosing(specialSeller, createDashboardFilters().startDate.slice(0, 7))
+    if (nextView === 'closing-rh') void loadPayroll(createDashboardFilters().startDate.slice(0, 7), 'MARCIO LUIZ DA ROSA')
+  }
+
+  function clearClosingRequests() {
+    closingRequestId.current += 1
+    payrollRequestId.current += 1
+    setPayroll(null)
+    setPayrollState('idle')
+    setPayrollError(null)
+    setExportError(null)
+    setExporting(false)
+    setClosing(null)
+    setClosingState('idle')
+    setClosingError(null)
+  }
+
+  async function loadPayroll(month: string, coverageSeller: string) {
+    if (!token) return
+    const requestId = ++payrollRequestId.current
+    setPayroll(null)
+    setPayrollState('loading')
+    setPayrollError(null)
+    setExportError(null)
+    setExporting(false)
+    try {
+      const query = new URLSearchParams({ month, coverageSeller })
+      const result = await apiRequest<PayrollClosing>(`/api/closings/payroll?${query}`, token)
+      if (requestId !== payrollRequestId.current) return
+      setPayroll(result)
+      setPayrollState('ready')
+    } catch (error) {
+      if (requestId !== payrollRequestId.current) return
+      setPayrollError(error instanceof Error ? error.message : 'Não foi possível consultar a folha de pagamento.')
+      setPayrollState('error')
+    }
+  }
+
+  async function exportPayroll() {
+    if (!token || !payroll || payrollState !== 'ready' || exporting) return
+    const requestId = payrollRequestId.current
+    const month = `${payroll.year}-${String(payroll.month).padStart(2, '0')}`
+    setExporting(true)
+    setExportError(null)
+    try {
+      const query = new URLSearchParams({ month, coverageSeller: payroll.coverageSeller })
+      const response = await fetch(`${apiBaseUrl}/api/closings/payroll/export?${query}`, { headers: { Authorization: `Bearer ${token}` } })
+      if (!response.ok) throw new Error(`Não foi possível exportar a folha (erro ${response.status}).`)
+      const blob = await response.blob()
+      if (requestId !== payrollRequestId.current) return
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `fechamento-rh-${month}.xlsx`
+      document.body.append(link)
+      link.click()
+      link.remove()
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+    } catch (error) {
+      if (requestId === payrollRequestId.current) setExportError(error instanceof Error ? error.message : 'Não foi possível exportar a folha.')
+    } finally {
+      if (requestId === payrollRequestId.current) setExporting(false)
+    }
   }
 
   async function loadClosing(activeSeller: string, month: string) {
@@ -265,11 +332,12 @@ export default function App() {
   const page = analysisPages[view]
   return <main className="executive-layout">
     <aside className={`side-rail ${menuOpen ? 'is-open' : ''}`}><div className="brand"><img className="brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /></div><p className="rail-label">CENTRAL DE RESULTADOS</p><nav id="main-navigation" className="side-navigation" aria-label="Modulos do BI">{navigationItems.map(item => <button className={view === item.view ? 'active' : ''} key={item.view} onClick={() => navigate(item.view)}><i className={`fa-solid ${item.icon}`} aria-hidden="true" /><span>{item.label}</span></button>)}</nav><div className="rail-footer"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Dados sincronizados</div></aside>
-    <section className={`main-canvas ${view === 'dashboard' ? 'dashboard-workspace' : 'analysis-workspace'}`}><header className="command-bar"><button className="menu-toggle" type="button" aria-label="Alternar navegacao" aria-controls="main-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(open => !open)}><i className="fa-solid fa-bars" aria-hidden="true" /></button><div><p>PAINEL EXECUTIVO</p><strong>{navigationItems.find(item => item.view === view)?.label ?? 'Importar'}</strong></div><div className="command-actions">{roles.includes('Administrador') && <button className="btn btn-accent" onClick={() => setView('import')}><i className="fa-solid fa-file-arrow-up" aria-hidden="true" /> Importar</button>}<button className="btn btn-ghost" onClick={() => { clearAccessToken(); setToken('') }} aria-label="Sair"><i className="fa-solid fa-right-from-bracket" aria-hidden="true" /></button></div></header>
+    <section className={`main-canvas ${view === 'dashboard' ? 'dashboard-workspace' : 'analysis-workspace'}`}><header className="command-bar"><button className="menu-toggle" type="button" aria-label="Alternar navegacao" aria-controls="main-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(open => !open)}><i className="fa-solid fa-bars" aria-hidden="true" /></button><div><p>PAINEL EXECUTIVO</p><strong>{navigationItems.find(item => item.view === view)?.label ?? 'Importar'}</strong></div><div className="command-actions">{roles.includes('Administrador') && <button className="btn btn-accent" onClick={() => { clearClosingRequests(); setView('import') }}><i className="fa-solid fa-file-arrow-up" aria-hidden="true" /> Importar</button>}<button className="btn btn-ghost" onClick={() => { clearClosingRequests(); clearAccessToken(); setToken(''); setView('dashboard') }} aria-label="Sair"><i className="fa-solid fa-right-from-bracket" aria-hidden="true" /></button></div></header>
       {view === 'dashboard' && <DashboardPage summary={summary} details={dashboardDetails} filters={dashboardFilters} options={dashboardFilterOptions} sellers={sellers} state={state} onFiltersChange={setDashboardFilters} onSubmit={() => applyDashboardFilter(dashboardFilters)} onClear={clearDashboardFilters} />}
       {page && !(['trades', 'sales-trades'] as View[]).includes(view) && <AnalyticsPage title={page.title} description={page.description} data={analysis} state={analysisState} />}
       {(view === 'trades' || view === 'sales-trades') && <TradeAnalysisPage mode={view} data={tradeAnalysis} state={analysisState} />}
-      {(['closings', 'closing-rh', 'closing-supervisor', 'closing-valdir'] as View[]).includes(view) && <ClosingsPage key={view} title={navigationItems.find(item => item.view === view)?.label} summary={closing} sellers={sellers} state={closingState} errorMessage={closingError} initialSeller={specialClosingSellers[view]} initialMonth={specialClosingSellers[view] ? createDashboardFilters().startDate.slice(0, 7) : ''} onSubmit={(activeSeller, month) => void loadClosing(activeSeller, month)} />}
+      {view === 'closing-rh' && <><PayrollClosingPage summary={payroll} state={payrollState} errorMessage={payrollError} initialMonth={createDashboardFilters().startDate.slice(0, 7)} onSubmit={(month, coverage) => void loadPayroll(month, coverage)} onExport={() => void exportPayroll()} exporting={exporting} />{exportError && <p className="notice error" role="alert">{exportError}</p>}</>}
+      {(['closings', 'closing-supervisor', 'closing-valdir'] as View[]).includes(view) && <ClosingsPage key={view} title={navigationItems.find(item => item.view === view)?.label} summary={closing} sellers={sellers} state={closingState} errorMessage={closingError} initialSeller={specialClosingSellers[view]} initialMonth={specialClosingSellers[view] ? createDashboardFilters().startDate.slice(0, 7) : ''} onSubmit={(activeSeller, month) => void loadClosing(activeSeller, month)} />}
     </section>
   </main>
 }

@@ -55,6 +55,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ILocalAuthenticationService, LocalAuthenticationService>();
         services.AddScoped<InitialAdminProvisioner>();
         services.AddScoped<ISellerClosingQueryService, SellerClosingQueryService>();
+        services.AddScoped<IPayrollClosingQueryService, SellerClosingQueryService>();
         services.AddScoped<IDashboardQueryService, DashboardQueryService>();
         services.AddScoped<ICommercialAnalyticsQueryService, DashboardQueryService>();
         services.AddScoped<ICommercialFilterOptionsQueryService, CommercialFilterOptionsQueryService>();
