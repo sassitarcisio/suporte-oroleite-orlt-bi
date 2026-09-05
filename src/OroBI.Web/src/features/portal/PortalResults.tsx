@@ -32,9 +32,34 @@ export function Sales({ data, onPage }: { data: PortalPage<PortalSale>; onPage: 
   return <>{data.items.length ? <SalesList items={data.items} /> : <Empty>Nenhuma venda no período selecionado.</Empty>}<div className="portal-pagination"><button disabled={data.page <= 1} onClick={() => onPage(data.page - 1)} aria-label="Página anterior"><i className="fa-solid fa-arrow-left" aria-hidden="true" /></button><span>Página {data.page} · {number(data.totalCount)} movimentos</span><button disabled={data.page * data.pageSize >= data.totalCount} onClick={() => onPage(data.page + 1)} aria-label="Próxima página"><i className="fa-solid fa-arrow-right" aria-hidden="true" /></button></div></>
 }
 export function Customers({ data, onSelect }: { data: PortalCustomers; onSelect: (code: string) => void }) {
-  return <><p className="portal-help">Clientes observados nas suas compras do período. Esta lista não representa a carteira completa do ERP.</p>{data.items.length ? <div className="portal-list">{data.items.map(customer => <button className="portal-record portal-customer" key={customer.customerCode} onClick={() => onSelect(customer.customerCode)}><div className="portal-record-top"><strong>{customer.customerName}</strong><span>{money(customer.netRevenue)}</span></div><div className="portal-record-meta"><span>{customer.city} · {customer.customerCode}</span><span>Última compra: {date(customer.lastPurchaseDate)}</span></div></button>)}</div> : <Empty>Nenhum cliente com compra no período selecionado.</Empty>}{data.hasMore && <p className="portal-help">Exibindo os primeiros {data.items.length} de {number(data.totalCount)} clientes. Refine os filtros.</p>}</>
+  return <><p className="portal-help">Clientes observados nas suas compras do período. Esta lista não representa a carteira completa do ERP.</p>{data.items.length ? <div className="portal-list">{data.items.map(customer => <button className="portal-record portal-customer" key={customer.customerCode} onClick={() => onSelect(customer.customerCode)}><div className="portal-record-top"><strong>{customer.customerCode && `${customer.customerCode} · `}{customer.customerName}</strong><span>{money(customer.netRevenue)}</span></div><div className="portal-record-meta"><span>{customer.city}</span><span>Última compra: {date(customer.lastPurchaseDate)}</span></div></button>)}</div> : <Empty>Nenhum cliente com compra no período selecionado.</Empty>}{data.hasMore && <p className="portal-help">Exibindo os primeiros {data.items.length} de {number(data.totalCount)} clientes. Refine os filtros.</p>}</>
 }
-export function CustomerDetail({ data }: { data: PortalCustomerDetail }) { return <><h2>{data.customer.customerName}</h2><p className="portal-help">{data.customer.city} · Código {data.customer.customerCode}</p><div className="portal-kpis"><Metric primary label="Receita líquida" value={money(data.customer.netRevenue)} /><Metric label="Documentos" value={number(data.customer.documentCount)} /><Metric label="Ticket líquido por documento" value={money(data.customer.averageTicket)} /><Metric label="Quantidade comprada" value={number(data.customer.purchasedQuantity)} /></div><h2>Movimentos do cliente</h2><SalesList items={data.sales} />{data.hasMore && <p className="portal-help">Lista limitada. Refine o período para ver outros movimentos.</p>}</> }
+export function CustomerDetail({ data }: { data: PortalCustomerDetail }) {
+  const days = new Map<string, PortalSale[]>()
+  for (const sale of data.sales) {
+    const day = sale.date.slice(0, 10)
+    const products = days.get(day) ?? []
+    products.push(sale)
+    days.set(day, products)
+  }
+  const orderedDays = [...days.entries()].sort(([left], [right]) => right.localeCompare(left))
+  return <>
+    <h2 className="portal-customer-title">{data.customer.customerCode && `${data.customer.customerCode} · `}{data.customer.customerName}</h2>
+    <p className="portal-help">{data.customer.city}</p>
+    <div className="portal-kpis"><Metric primary label="Receita líquida" value={money(data.customer.netRevenue)} /><Metric label="Documentos" value={number(data.customer.documentCount)} /><Metric label="Ticket líquido por documento" value={money(data.customer.averageTicket)} /><Metric label="Quantidade comprada" value={number(data.customer.purchasedQuantity)} /></div>
+    <h2>Produtos por dia</h2>
+    {orderedDays.length ? <div className="portal-customer-days">{orderedDays.map(([day, products]) => <section className="portal-customer-day" key={day} aria-label={`Produtos de ${date(day)}`}>
+      <header className="portal-customer-day-heading"><h3><time dateTime={day}>{date(day)}</time></h3><span>{number(products.length)} {products.length === 1 ? 'movimento exibido' : 'movimentos exibidos'}</span></header>
+      <ul className="portal-customer-products">{products.map(sale => <li className="portal-customer-product" key={sale.id}>
+        <div className="portal-customer-product-name"><strong>{sale.productName}</strong><span>{sale.brand} · Doc. {sale.documentNumber}</span></div>
+        <div className="portal-customer-product-quantity"><span>Quantidade</span><strong>{number(sale.quantity)} un.</strong></div>
+        <div className="portal-customer-product-type"><span>Tipo</span><strong>{sale.movementType}</strong></div>
+        <div className="portal-customer-product-value"><span>Valor</span><strong>{money(sale.totalValue)}</strong></div>
+      </li>)}</ul>
+    </section>)}</div> : <Empty>Nenhum produto no período selecionado.</Empty>}
+    {data.hasMore && <p className="portal-help">Lista limitada. Refine o período para ver outros movimentos.</p>}
+  </>
+}
 export function Ranking({ data }: { data: PortalRanking }) { return <>{data.items.length ? <div className="portal-list">{data.items.map(item => <article className="portal-record" key={item.label}><div className="portal-record-top"><strong>{item.label}</strong><span>{money(item.netRevenue)}</span></div><div className="portal-record-meta"><span>{number(item.quantity)} unidades · {number(item.customerCount)} clientes</span><span>{percent(item.revenueSharePercent)} da receita líquida</span></div></article>)}</div> : <Empty>Nenhum resultado no período selecionado.</Empty>}{data.hasMore && <p className="portal-help">Exibindo os primeiros {data.items.length} de {number(data.totalCount)} resultados. Refine os filtros.</p>}</> }
 export function Goals({ data }: { data: PortalGoals }) {
   if (!data.items.length) return <Empty>{data.unavailableReason ?? 'Metas não disponíveis para este mês.'}</Empty>

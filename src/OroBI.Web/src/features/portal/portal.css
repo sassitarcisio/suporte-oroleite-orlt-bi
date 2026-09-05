@@ -11,3 +11,28 @@
 .seller-portal .portal-shortcuts button{flex:0 0 auto}.seller-portal .portal-kpis-small .portal-metric strong{font-size:clamp(14px,4vw,24px);white-space:nowrap;overflow-wrap:normal}@media(max-width:430px){.seller-portal .portal-kpis-small .portal-metric{padding:16px 12px}.seller-portal .portal-kpis-small .portal-metric strong{font-size:16px}}
 .seller-portal .portal-home-order{display:flex;flex-direction:column}.seller-portal .portal-home-order>.portal-monthly{order:1;margin-top:8px}.seller-portal .portal-home-order>.portal-rhythm{order:2}.seller-portal .portal-home-order>.portal-source{order:3}.seller-portal .portal-daily-chart{margin:16px 0}.seller-portal .portal-daily-chart svg{display:block;width:100%;height:auto;min-height:135px;overflow:visible}.seller-portal .portal-chart-baseline{stroke:var(--portal-line);stroke-dasharray:4 4}.seller-portal .portal-chart-line{fill:none;stroke:var(--portal-gold);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}.seller-portal .portal-chart-dot{fill:var(--portal-gold);stroke:var(--portal-panel);stroke-width:2}.seller-portal .portal-daily-chart text{font-size:12px;fill:var(--portal-muted)}.seller-portal .portal-daily-chart figcaption{font-size:11px;color:var(--portal-muted);margin-top:10px}.seller-portal .portal-daily-table summary{cursor:pointer;font-size:12px;color:var(--portal-gold);padding:10px 0}
 .seller-portal .portal-pending{border-color:#977126;background:linear-gradient(120deg,#302213,#241a12)}.seller-portal .portal-pending-status{display:block;margin-top:10px;color:var(--portal-gold);font-size:11px}.seller-portal .portal-registration-review{border-top:1px solid var(--portal-line);padding-top:18px;margin-top:20px}.seller-portal .portal-registration-review>.portal-form{max-width:620px}.seller-portal .portal-registration-review .portal-permissions{margin-left:0}
+
+.seller-portal .portal-customer-title{overflow-wrap:anywhere}
+.seller-portal .portal-customer-days{display:grid;gap:22px}
+.seller-portal .portal-customer-day{min-width:0;border:1px solid var(--portal-line);border-radius:16px;overflow:hidden;background:var(--portal-panel)}
+.seller-portal .portal-customer-day-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px 20px;background:#352614;border-bottom:1px solid var(--portal-line)}
+.seller-portal .portal-customer-day-heading h3{margin:0;color:var(--portal-gold);font-size:15px}
+.seller-portal .portal-customer-day-heading>span{font-size:11px;color:var(--portal-muted)}
+.seller-portal .portal-customer-products{list-style:none;margin:0;padding:0}
+.seller-portal .portal-customer-product{display:grid;grid-template-columns:minmax(0,1fr) 100px 100px 130px;align-items:center;gap:18px;padding:16px 20px;border-bottom:1px solid var(--portal-line)}
+.seller-portal .portal-customer-product:last-child{border-bottom:0}
+.seller-portal .portal-customer-product>div{display:grid;gap:6px;min-width:0}
+.seller-portal .portal-customer-product strong{font-size:13px;overflow-wrap:anywhere}
+.seller-portal .portal-customer-product span{font-size:11px;color:var(--portal-muted);overflow-wrap:anywhere}
+.seller-portal .portal-customer-product-name strong{font-size:14px;line-height:1.5}
+.seller-portal .portal-customer-product-value{text-align:right;font-variant-numeric:tabular-nums}
+.seller-portal .portal-customer-product-value strong{color:var(--portal-gold);font-size:15px;white-space:nowrap}
+@media(max-width:767px){
+  .seller-portal .portal-customer-day-heading{padding:14px 16px}
+  .seller-portal .portal-customer-product{grid-template-columns:minmax(0,1fr) auto;gap:12px 16px;padding:16px}
+  .seller-portal .portal-customer-product-name{grid-column:1/-1}
+  .seller-portal .portal-customer-product-quantity{grid-column:1;grid-row:2}
+  .seller-portal .portal-customer-product-type{grid-column:1;grid-row:3}
+  .seller-portal .portal-customer-product-value{grid-column:2;grid-row:2/4;align-self:center}
+  .seller-portal .portal-customer-product-quantity,.seller-portal .portal-customer-product-type{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px}
+}
