@@ -40,6 +40,16 @@ public sealed class SpecialClosingQueryServiceTests
         Assert.Equal(4000.99m, result.Compensation.TotalSalary);
         Assert.Equal(5000m, result.TradeAward);
         Assert.Equal(5000m, result.TotalAwards);
+        Assert.Equal("company-excluding-bauducco", result.Monthly.Scope);
+        Assert.Equal(990m, result.Monthly.Revenue);
+        Assert.Equal(990m, result.Monthly.CommissionableRevenue);
+        Assert.Equal(10m, result.Monthly.TradeValue);
+        Assert.Equal(10m / 990m * 100m, result.Monthly.TradePercent);
+        Assert.Equal(2, result.Monthly.DocumentCount);
+        Assert.Equal(4000m, result.Compensation.BaseSalary);
+        Assert.Equal(9000.99m, result.Total);
+        Assert.Empty(result.PppSegments);
+        Assert.Empty(result.BrandAwards);
     }
 
     [Fact]
@@ -77,6 +87,13 @@ public sealed class SpecialClosingQueryServiceTests
         Assert.Equal(325m / 7m, result.RevenueAward);
         Assert.Equal(5000m, result.TradeAward);
         Assert.Equal(5000m + 325m / 7m, result.TotalAwards);
+        Assert.Equal("company", result.Monthly.Scope);
+        Assert.Equal(1260000m, result.Monthly.Revenue);
+        Assert.Equal(4, result.Monthly.DocumentCount);
+        Assert.Equal(0m, result.Monthly.TradePercent);
+        Assert.Equal(3000m, result.Compensation.BaseSalary);
+        Assert.Empty(result.PppSegments);
+        Assert.Empty(result.BrandAwards);
     }
 
     private static CommercialMovement Movement(Guid batchId, string seller, string type, decimal amount, string group = "OUTRA REDE") =>

@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -40,6 +41,13 @@ public sealed class ClosingEndpointsTests : IClassFixture<WebApplicationFactory<
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("brandAwards", body, StringComparison.Ordinal);
         Assert.Contains("NESTLE", body, StringComparison.Ordinal);
+        var json = JsonSerializer.Deserialize<JsonElement>(body);
+        Assert.Equal(2000m, json.GetProperty("compensation").GetProperty("baseSalary").GetDecimal());
+        Assert.Equal(2595m, json.GetProperty("total").GetDecimal());
+        Assert.Equal(12000m, json.GetProperty("monthly").GetProperty("revenue").GetDecimal());
+        Assert.Equal("2026-08-01", json.GetProperty("monthly").GetProperty("documents")[0].GetProperty("date").GetString());
+        Assert.Equal(75m, json.GetProperty("pppSegments")[0].GetProperty("achievementPercent").GetDecimal());
+        Assert.Equal(1000m, json.GetProperty("brandAwards")[0].GetProperty("revenueGoal").GetDecimal());
     }
 
     [Fact]
@@ -64,7 +72,10 @@ internal sealed class TestSellerClosingQueryService : ISellerClosingQueryService
             new CompensationSummary(120m, 2120m),
             475m)
         {
-            BrandAwards = [new ClosingBrandAward("NESTLE", 50m, 100m, 25m)]
+            BrandAwards = [new ClosingBrandAward("NESTLE", 50m, 100m, 25m) { RevenueGoal = 1000m }],
+            Monthly = new ClosingMonthlySummary("seller", 12000m, 12000m, 0m, 0m, 1, 1,
+                [new ClosingDocument("NF1", new DateOnly(2026, 8, 1), "ANA", "1", "CLIENTE", "VENDA", 12000m)]),
+            PppSegments = [new ClosingPppSegment("MERCADO", 10, 4, 30)]
         });
 
     public Task<ClosingConfigurationStatus> GetConfigurationStatusAsync(string seller, int year, int month, CancellationToken cancellationToken) =>

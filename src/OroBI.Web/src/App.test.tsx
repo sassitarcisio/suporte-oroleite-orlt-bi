@@ -20,7 +20,7 @@ describe('App dashboard', () => {
         : url.endsWith('/api/auth/login')
           ? { accessToken: 'new-access-token' }
         : url.includes('/api/closings')
-          ? { ppp: { meanPercent: 75, award: 300 }, revenueAward: 250, positivityAward: 100, tradeAward: 100, compensation: { commission: 120, salary: 2120 }, totalAwards: 750, brandAwards: [{ brand: 'NESTLE', positivityAward: 100, revenueAward: 100, tradeAward: 25, totalAward: 225 }] }
+          ? { ppp: { meanPercent: 75, award: 300 }, revenueAward: 250, positivityAward: 100, tradeAward: 100, compensation: { baseSalary: 2000, commission: 120, totalSalary: 2120 }, totalAwards: 750, total: 2870, monthly: { scope: 'seller', revenue: 12000, commissionableRevenue: 12000, tradeValue: 0, tradePercent: 0, documentCount: 0, movementCount: 0, customerCount: 0, documents: [] }, pppSegments: [], brandAwards: [{ brand: 'NESTLE', revenueGoal: 1000, revenueActual: 1000, revenueAchievedPercent: 100, revenuePrize: 100, positivityGoal: 10, positivityActual: 10, positivityAchievedPercent: 100, positivityPrize: 100, tradeValue: 0, tradeActualPercent: 0, tradeGoalPercent: 2, tradePrize: 25, positivityAward: 100, revenueAward: 100, tradeAward: 25, totalAward: 225 }] }
           : url.includes('/api/trade-analysis')
             ? { filteredMovementCount: 100, grossSales: 1500, netRevenue: 1350, totalTradeValue: 150, tradeToRevenuePercent: 11.11, tradeDevValue: 120, tradeValue: 30, tradeQuantity: 25, tradeMovementCount: 10, customerCount: 3, productCount: 4, brandCount: 2, dailyTrend: [{ date: '2026-08-01', value: 150 }], sellerRanking: [{ name: 'ANA', value: 150 }], customerRanking: [{ name: 'CLIENTE A', value: 150 }], productRanking: [{ name: 'PRODUTO A', value: 150 }], brandRanking: [{ name: 'MARCA A', value: 150 }] }
           : url.includes('/api/sales-trades')
@@ -175,7 +175,7 @@ describe('App dashboard', () => {
     const financialSummary = await screen.findByTestId('closing-financial-summary')
     expect(financialSummary).toHaveTextContent(/750,00/)
     expect(screen.getByRole('heading', { name: 'Premios por marca' })).toBeVisible()
-    expect(screen.getByText('NESTLE')).toBeVisible()
+    expect(screen.getByRole('table', { name: 'Metas e prêmios por marca' })).toHaveTextContent('NESTLE')
     expect(document.querySelector('.analysis-workspace')).toBeInTheDocument()
   })
 

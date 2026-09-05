@@ -12,7 +12,21 @@ public static class StandardClosingCalculator
             var positivityAward = GoalPayoutCalculator.Positivity(positivityPercent, brand.PositivityPrize);
             var revenueAward = GoalPayoutCalculator.Revenue(revenuePercent, brand.RevenuePrize);
             var tradeAward = GoalPayoutCalculator.Trade(brand.TradeActualPercent, brand.TradeGoalPercent, brand.TradePrize);
-            return new ClosingBrandAward(brand.Brand, positivityAward, revenueAward, tradeAward);
+            return new ClosingBrandAward(brand.Brand, positivityAward, revenueAward, tradeAward)
+            {
+                RevenueGoal = brand.RevenueGoal,
+                RevenueActual = brand.RevenueActual,
+                RevenueAchievedPercent = revenuePercent,
+                RevenuePrize = brand.RevenuePrize,
+                PositivityGoal = brand.PositivityGoal,
+                PositivityActual = brand.PositivityActual,
+                PositivityAchievedPercent = positivityPercent,
+                PositivityPrize = brand.PositivityPrize,
+                TradeValue = brand.TradeValue,
+                TradeActualPercent = brand.TradeActualPercent,
+                TradeGoalPercent = brand.TradeGoalPercent,
+                TradePrize = brand.TradePrize
+            };
         }).ToArray();
         var compensation = CompensationCalculator.Calculate(input.BaseSalary, input.CommissionPercent, input.CommissionableRevenue);
         return new StandardClosingSummary(ppp, brandAwards, compensation, ppp.Award + brandAwards.Sum(item => item.TotalAward));
@@ -39,10 +53,25 @@ public sealed record ClosingBrandInput(
     decimal PositivityPrize,
     decimal RevenuePrize,
     decimal TradePrize,
-    decimal TradeGoalPercent);
+    decimal TradeGoalPercent)
+{
+    public decimal TradeValue { get; init; }
+}
 
 public sealed record ClosingBrandAward(string Brand, decimal PositivityAward, decimal RevenueAward, decimal TradeAward)
 {
+    public decimal RevenueGoal { get; init; }
+    public decimal RevenueActual { get; init; }
+    public decimal RevenueAchievedPercent { get; init; }
+    public decimal RevenuePrize { get; init; }
+    public decimal PositivityGoal { get; init; }
+    public decimal PositivityActual { get; init; }
+    public decimal PositivityAchievedPercent { get; init; }
+    public decimal PositivityPrize { get; init; }
+    public decimal TradeValue { get; init; }
+    public decimal TradeActualPercent { get; init; }
+    public decimal TradeGoalPercent { get; init; }
+    public decimal TradePrize { get; init; }
     public decimal TotalAward => PositivityAward + RevenueAward + TradeAward;
 }
 

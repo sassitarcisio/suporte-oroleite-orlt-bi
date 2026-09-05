@@ -52,7 +52,10 @@ public sealed class SellerClosingQueryService(OroBiDbContext dbContext) : ISelle
         var standard = StandardClosingCalculator.Calculate(new StandardClosingInput(commissionableRevenue, baseSalary.Value, commissionPercent.Value, pppMaximumAward.Value, ppp.Select(item => ((decimal)item.CustomerCount, (decimal)item.ItemsPerSegment, (decimal)item.GroupsPlaced)).ToArray(), brands));
         return new SellerClosingSummary(standard.Ppp, standard.BrandAwards.Sum(item => item.RevenueAward), standard.BrandAwards.Sum(item => item.PositivityAward), standard.BrandAwards.Sum(item => item.TradeAward), standard.Compensation, standard.TotalAwards)
         {
-            BrandAwards = standard.BrandAwards
+            BrandAwards = standard.BrandAwards,
+            Monthly = BuildMonthlySummary(movements, "seller"),
+            PppSegments = ppp.OrderBy(item => item.Segment)
+                .Select(item => new ClosingPppSegment(item.Segment, item.CustomerCount, item.ItemsPerSegment, item.GroupsPlaced)).ToArray()
         };
     }
 
@@ -90,7 +93,10 @@ public sealed class SellerClosingQueryService(OroBiDbContext dbContext) : ISelle
         var trade = movements.Where(item => item.MovementType is "TROCA" or "TROCA DEV").Sum(item => decimal.Abs(item.TotalValue));
         var tradePercent = decimal.Abs(commissionableRevenue) == 0m ? 0m : trade / decimal.Abs(commissionableRevenue) * 100m;
         var special = SpecialClosingCalculator.CalculateValdir(new ValdirClosingInput(baseSalary.Value, commissionableRevenue, tradePercent));
-        return new SellerClosingSummary(new PppSummary(0m, 0m), 0m, 0m, special.TradeAward, new CompensationSummary(special.Commission, special.SalaryAndCommission), special.TotalAwards);
+        return new SellerClosingSummary(new PppSummary(0m, 0m), 0m, 0m, special.TradeAward, new CompensationSummary(special.Commission, special.SalaryAndCommission), special.TotalAwards)
+        {
+            Monthly = BuildMonthlySummary(movements, "company-excluding-bauducco")
+        };
     }
 
     private async Task<SellerClosingSummary?> GetDeividClosingAsync(int year, int month, decimal? baseSalary, OroBI.Domain.Closings.ImportedClosingDefaults? importedDefaults, CancellationToken cancellationToken)
@@ -135,7 +141,10 @@ public sealed class SellerClosingQueryService(OroBiDbContext dbContext) : ISelle
         }).ToArray();
 
         var special = SpecialClosingCalculator.CalculateDeivid(new DeividClosingInput(baseSalary.Value, ownRevenue, teamRevenue, networkRevenue, teamAwards.Average(), tradePercent));
-        return new SellerClosingSummary(new PppSummary(0m, 0m), special.TeamAward, 0m, special.TradeAward, new CompensationSummary(special.Commission, special.SalaryAndCommission), special.TotalAwards);
+        return new SellerClosingSummary(new PppSummary(0m, 0m), special.TeamAward, 0m, special.TradeAward, new CompensationSummary(special.Commission, special.SalaryAndCommission), special.TotalAwards)
+        {
+            Monthly = BuildMonthlySummary(movements, "company")
+        };
     }
 
     private static ClosingBrandInput[] BuildBrandInputs(IEnumerable<GoalValueRecord> values, IEnumerable<GoalRecord> goals, IEnumerable<CommercialMovement> movements) =>
@@ -147,8 +156,30 @@ public sealed class SellerClosingQueryService(OroBiDbContext dbContext) : ISelle
             var brandMovements = movements.Where(movement => movement.Brand == value.Brand).ToArray();
             var total = brandMovements.Sum(movement => movement.TotalValue);
             var trade = brandMovements.Where(movement => movement.MovementType is "TROCA" or "TROCA DEV").Sum(movement => decimal.Abs(movement.TotalValue));
-            return new ClosingBrandInput(value.Brand, positivityGoal?.Target ?? 0m, positivityGoal?.Achieved ?? 0m, revenueGoal?.Target ?? 0m, revenueGoal?.Achieved ?? 0m, decimal.Abs(total) == 0m ? 0m : trade / decimal.Abs(total) * 100m, value.PositivityPrize, value.RevenuePrize, value.TradePrize, value.TradePercentageGoal);
+            return new ClosingBrandInput(value.Brand, positivityGoal?.Target ?? 0m, positivityGoal?.Achieved ?? 0m, revenueGoal?.Target ?? 0m, revenueGoal?.Achieved ?? 0m, decimal.Abs(total) == 0m ? 0m : trade / decimal.Abs(total) * 100m, value.PositivityPrize, value.RevenuePrize, value.TradePrize, value.TradePercentageGoal)
+            {
+                TradeValue = trade
+            };
         }).ToArray();
+
+    private static ClosingMonthlySummary BuildMonthlySummary(IReadOnlyCollection<CommercialMovement> movements, string scope)
+    {
+        var revenue = movements.Sum(item => item.TotalValue);
+        var commissionableRevenue = movements.Where(item => item.MovementType != "BONIFICACAO").Sum(item => item.TotalValue);
+        var tradeValue = movements.Where(item => item.MovementType is "TROCA" or "TROCA DEV").Sum(item => decimal.Abs(item.TotalValue));
+        // A movement is a document line. Include date, seller, customer and type so reused numbers do not merge unrelated documents.
+        var documents = movements.Where(item => !string.IsNullOrWhiteSpace(item.DocumentNumber))
+            .GroupBy(item => new { item.DocumentNumber, item.MovementDate, item.Seller, item.CustomerCode, item.MovementType })
+            .OrderBy(group => group.Key.MovementDate).ThenBy(group => group.Key.DocumentNumber)
+            .ThenBy(group => group.Key.Seller).ThenBy(group => group.Key.CustomerCode).ThenBy(group => group.Key.MovementType)
+            .Select(group => new ClosingDocument(group.Key.DocumentNumber, group.Key.MovementDate, group.Key.Seller,
+                group.Key.CustomerCode, group.First().CustomerName, group.Key.MovementType, group.Sum(item => item.TotalValue)))
+            .ToArray();
+        var customerCount = movements.Select(item => item.CustomerCode).Where(code => !string.IsNullOrWhiteSpace(code)).Distinct().Count();
+        return new ClosingMonthlySummary(scope, revenue, commissionableRevenue, tradeValue,
+            commissionableRevenue == 0m ? 0m : tradeValue / decimal.Abs(commissionableRevenue) * 100m,
+            movements.Count, customerCount, documents);
+    }
 
     private static decimal? ImportedSellerSalary(OroBI.Domain.Closings.ImportedClosingDefaults? importedDefaults, string seller)
     {

@@ -36,4 +36,7 @@ public sealed record SellerClosingSummary(
     decimal TotalAwards)
 {
     public IReadOnlyCollection<ClosingBrandAward> BrandAwards { get; init; } = [];
+    public ClosingMonthlySummary Monthly { get; init; } = new("seller", 0m, 0m, 0m, 0m, 0, 0, []);
+    public IReadOnlyCollection<ClosingPppSegment> PppSegments { get; init; } = [];
+    public decimal Total => Compensation.TotalSalary + TotalAwards;
 }
