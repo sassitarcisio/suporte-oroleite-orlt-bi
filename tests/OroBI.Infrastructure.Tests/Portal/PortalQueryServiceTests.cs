@@ -310,9 +310,132 @@ public sealed class PortalQueryServiceTests
         Assert.True(pppJson.TryGetProperty("IsApproved", out var pppStatus) && pppStatus.GetBoolean());
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Closing_review_rejects_missing_prize_values_for_an_imported_goal(bool unrelatedValuesExist)
+    {
+        await using var db = await Fixture();
+        db.GoalValueRecords.RemoveRange(db.GoalValueRecords);
+        if (unrelatedValuesExist)
+        {
+            var defaults = await db.ImportedClosingDefaults.SingleAsync();
+            db.Add(GoalValueRecord.Create(defaults.ImportBatchId, "OUTRA MARCA", 100, 50, 25, 2));
+        }
+        var seller = new Seller { Name = "Ana", ImportedName = "ANA" };
+        db.Add(seller);
+        await db.SaveChangesAsync();
+        var service = new PortalClosingService(db, new SellerClosingQueryService(db));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ReviewAsync(seller.Id, "ANA", 2026, 8, "admin", default));
+        Assert.Empty(await db.ClosingSnapshots.ToListAsync());
+    }
+
+    [Fact]
+    public async Task Closing_approval_rechecks_prize_values_removed_after_review()
+    {
+        await using var db = await Fixture();
+        var seller = new Seller { Name = "Ana", ImportedName = "ANA" };
+        db.Add(seller);
+        await db.SaveChangesAsync();
+        var service = new PortalClosingService(db, new SellerClosingQueryService(db));
+        await service.ReviewAsync(seller.Id, "ANA", 2026, 8, "admin", default);
+        db.GoalValueRecords.RemoveRange(db.GoalValueRecords);
+        await db.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ApproveAsync(seller.Id, "ANA", 2026, 8, "admin", default));
+        var snapshot = await db.ClosingSnapshots.SingleAsync();
+        Assert.Equal(ClosingApprovalStatus.EmConferencia, snapshot.Status);
+        Assert.Null(snapshot.SnapshotJson);
+    }
+
+    [Theory]
+    [InlineData("ANA")]
+    [InlineData("VALDIR ZACARIAS")]
+    [InlineData("DEIVID MANNES")]
+    public async Task Closing_without_personal_goals_or_with_special_scope_can_still_be_approved(string name)
+    {
+        await using var db = await Fixture();
+        db.GoalValueRecords.RemoveRange(db.GoalValueRecords);
+        db.GoalRecords.RemoveRange(db.GoalRecords.Where(item => item.Seller == "ANA"));
+        var seller = new Seller { Name = name, ImportedName = SellerAliasCatalog.ResolveImportedName(name) };
+        db.Add(seller);
+        if (name != "ANA")
+        {
+            db.Add(SellerClosingConfiguration.Create(name, 2026, 8, 3000, 1, 1200));
+            db.Add(GoalRecord.Create(Guid.NewGuid(), seller.ImportedName, 8, 2026, "FATURAMENTO", "Marca SEM VALOR / Valor", 100, 80));
+            db.Add(Movement(Guid.NewGuid(), seller.ImportedName, "SPECIAL", 100, 3));
+        }
+        await db.SaveChangesAsync();
+        var service = new PortalClosingService(db, new SellerClosingQueryService(db));
+
+        await service.ReviewAsync(seller.Id, seller.ImportedName, 2026, 8, "admin", default);
+        var approved = await service.ApproveAsync(seller.Id, seller.ImportedName, 2026, 8, "admin", default);
+        Assert.Equal("Aprovado", approved.Status);
+    }
+
+    [Fact]
+    public async Task Ticket_counts_reused_numbers_as_distinct_documents_but_keeps_multiple_lines_together()
+    {
+        await using var db = await Fixture();
+        db.CommercialMovements.RemoveRange(db.CommercialMovements);
+        var batch = Batch(ImportFileType.Power);
+        db.Add(batch);
+        foreach (var (day, value) in new[] { (1, 40m), (1, 60m), (2, 200m) })
+        {
+            var movement = Movement(batch.Id, "ANA", "SHARED", value, day);
+            db.Entry(movement).Property(item => item.DocumentNumber).CurrentValue = "123";
+            db.Add(movement);
+        }
+        await db.SaveChangesAsync();
+        var service = Service(db);
+
+        var dashboard = await service.GetDashboardAsync("ANA", August, default);
+        Assert.Equal(2, dashboard.Period.DocumentCount);
+        Assert.Equal(150m, dashboard.Period.AverageTicket);
+        var customer = Assert.Single((await service.GetCustomersAsync("ANA", August, default)).Items);
+        Assert.Equal(150m, customer.AverageTicket);
+        var detail = await service.GetCustomerAsync("ANA", "SHARED", August, default);
+        Assert.NotNull(detail);
+        Assert.Equal(150m, detail.Customer.AverageTicket);
+    }
+
     private sealed class FixedClock(DateTimeOffset now) : TimeProvider
     {
         public override DateTimeOffset GetUtcNow() => now;
+    }
+
+    [Fact]
+    public async Task Product_ranking_preserves_codes_and_separates_identical_names_within_seller_scope()
+    {
+        await using var db = new OroBiDbContext(new DbContextOptionsBuilder<OroBiDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        var batch = Batch(ImportFileType.Power);
+        db.Add(batch);
+        foreach (var (seller, code, name, amount, day) in new[]
+        {
+            ("ANA", "00123", "Leite integral", 100m, 1),
+            ("ANA", "00123", "Leite integral atualizado", 50m, 2),
+            ("ANA", "00456", "Leite integral", 200m, 1),
+            ("ANA", "", "Leite integral", 25m, 1),
+            ("BOB", "PRIVATE-CODE", "Leite integral", 9000m, 1)
+        })
+            db.Add(CommercialMovement.CreateFromImport(batch.Id, new(2026, 8, day), seller, "NESTLE", "REDE", "VENDA", "CIDADE", "Cliente", name, amount, 1, 0, "SHARED", $"{seller}-{day}", code));
+        await db.SaveChangesAsync();
+
+        var products = await Service(db).GetProductsAsync("ANA", August, default);
+        Assert.Equal(3, products.TotalCount);
+        var updated = Assert.Single(products.Items, item => item.ProductCode == "00123");
+        Assert.Equal("Leite integral atualizado", updated.Label);
+        Assert.Equal(150m, updated.NetRevenue);
+        Assert.Equal(2m, updated.Quantity);
+        Assert.Equal(200m, Assert.Single(products.Items, item => item.ProductCode == "00456").NetRevenue);
+        Assert.Equal(25m, Assert.Single(products.Items, item => item.ProductCode is null).NetRevenue);
+        Assert.Equal(375m, products.Items.Sum(item => item.NetRevenue));
+        Assert.DoesNotContain(products.Items, item => item.ProductCode == "PRIVATE-CODE");
+        var brand = Assert.Single((await Service(db).GetBrandsAsync("ANA", August, default)).Items);
+        Assert.Equal("NESTLE", brand.Label);
+        Assert.Null(brand.ProductCode);
+        Assert.Equal(375m, brand.NetRevenue);
     }
 
     private static PortalQueryService Service(OroBiDbContext db) => new(db, new SellerClosingQueryService(db));

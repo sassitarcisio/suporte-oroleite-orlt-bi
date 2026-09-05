@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Data;
 using Microsoft.EntityFrameworkCore;
 using OroBI.Application.Analytics;
@@ -76,6 +77,25 @@ public sealed class PortalClosingService(OroBiDbContext db, ISellerClosingQueryS
         var result = await calculator.GetAsync(importedName, year, month, cancellationToken);
         if (result is null || result.Monthly.MovementCount == 0)
             throw new InvalidOperationException("Fechamento indisponível: confira os movimentos e configurações do período.");
+        if (result.Monthly.Scope == "seller")
+        {
+            var names = SellerAliasCatalog.GetMatchingNames(importedName);
+            var duplicates = await ImportedBatchSelection.GetDuplicateIdsAsync(db, cancellationToken);
+            var goals = await db.GoalRecords.AsNoTracking()
+                .Where(item => names.Contains(item.Seller.Trim().ToUpper()) && item.Year == year && item.Month == month
+                    && !duplicates.Contains(item.ImportBatchId) && (item.GoalType == "FATURAMENTO" || item.GoalType == "POSITIVACAO"))
+                .Select(item => item.Description).ToListAsync(cancellationToken);
+            // BrandAwards contains only the prize values from the configuration used by this calculation.
+            // Missing values must not become an immutable zero award, even if commission is calculable.
+            var configuredBrands = result.BrandAwards.Select(item => item.Brand).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            foreach (var description in goals)
+            {
+                var match = Regex.Match(description, @"^Marca\s+(.+?)\s*/", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+                var brand = match.Success ? match.Groups[1].Value.Trim() : description;
+                if (!configuredBrands.Contains(brand))
+                    throw new InvalidOperationException("Fechamento indisponível: faltam valores de prêmio para uma ou mais metas do período.");
+            }
+        }
         return result;
     }
 }

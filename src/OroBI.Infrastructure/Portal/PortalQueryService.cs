@@ -71,7 +71,7 @@ public sealed class PortalQueryService(OroBiDbContext dbContext, ISellerClosingQ
     }
 
     public Task<PortalRanking> GetProductsAsync(string seller, CommercialFilter filter, CancellationToken cancellationToken) =>
-        RankingAsync(seller, filter, item => item.ProductName, cancellationToken);
+        RankingAsync(seller, filter, item => item.ProductName, cancellationToken, products: true);
 
     public Task<PortalRanking> GetBrandsAsync(string seller, CommercialFilter filter, CancellationToken cancellationToken) =>
         RankingAsync(seller, filter, item => item.Brand, cancellationToken);
@@ -159,17 +159,25 @@ public sealed class PortalQueryService(OroBiDbContext dbContext, ISellerClosingQ
         return import.HasValue ? new("csv", import, "import-started") : new("unavailable", null, "unavailable");
     }
 
-    private async Task<PortalRanking> RankingAsync(string seller, CommercialFilter filter, Func<CommercialMovement, string> key, CancellationToken cancellationToken)
+    private async Task<PortalRanking> RankingAsync(string seller, CommercialFilter filter, Func<CommercialMovement, string> key, CancellationToken cancellationToken, bool products = false)
     {
         var rows = await (await QueryAsync(seller, filter, cancellationToken)).ToListAsync(cancellationToken);
         var total = rows.Sum(item => item.TotalValue);
-        var groups = rows.GroupBy(item => string.IsNullOrWhiteSpace(key(item)) ? "SEM INFORMACAO" : key(item).Trim(), StringComparer.OrdinalIgnoreCase)
+        string Label(CommercialMovement item) => string.IsNullOrWhiteSpace(key(item)) ? "SEM INFORMACAO" : key(item).Trim();
+        var groups = rows.GroupBy(item => products
+                ? !string.IsNullOrWhiteSpace(item.ProductCode) ? $"code:{item.ProductCode.Trim()}" : $"name:{Label(item)}"
+                : Label(item), StringComparer.OrdinalIgnoreCase)
             .Select(group =>
             {
                 var summary = Revenue(group);
-                return new PortalRankingItem(group.Key, summary.GrossSales, summary.NetRevenue, group.Sum(item => item.Quantity),
-                    summary.MovementCount, summary.CustomerCount, total > 0 ? summary.NetRevenue / total * 100m : null);
-            }).OrderByDescending(item => item.NetRevenue).ThenBy(item => item.Label, StringComparer.Ordinal).ToArray();
+                var latest = group.OrderByDescending(item => item.MovementDate).ThenBy(item => item.Id).First();
+                return new PortalRankingItem(products ? Label(latest) : group.Key, summary.GrossSales, summary.NetRevenue, group.Sum(item => item.Quantity),
+                    summary.MovementCount, summary.CustomerCount, total > 0 ? summary.NetRevenue / total * 100m : null)
+                {
+                    ProductCode = products && !string.IsNullOrWhiteSpace(latest.ProductCode) ? latest.ProductCode.Trim() : null
+                };
+            }).OrderByDescending(item => item.NetRevenue).ThenBy(item => item.Label, StringComparer.Ordinal)
+            .ThenBy(item => item.ProductCode, StringComparer.Ordinal).ToArray();
         return new(groups.Take(ListLimit).ToArray(), groups.Length, groups.Length > ListLimit);
     }
 

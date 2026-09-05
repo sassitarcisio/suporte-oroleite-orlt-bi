@@ -18,8 +18,7 @@ public static class DashboardCalculator
         var saleQuantity = rows.Where(movement => movement.MovementType == "VENDA").Sum(movement => movement.Quantity);
         var customerCount = rows.Select(movement => string.IsNullOrWhiteSpace(movement.CustomerCode) ? movement.CustomerName : movement.CustomerCode)
             .Where(value => !string.IsNullOrWhiteSpace(value)).Distinct(StringComparer.OrdinalIgnoreCase).Count();
-        var documentCount = rows.Select(movement => movement.DocumentNumber).Where(value => !string.IsNullOrWhiteSpace(value))
-            .Distinct(StringComparer.OrdinalIgnoreCase).Count();
+        var documentCount = CountDocuments(rows);
 
         return new DashboardSummary(grossSales, negativeMovements, negativePercent, netResult, saleQuantity, rows.Length, customerCount, documentCount);
     }
@@ -44,8 +43,7 @@ public static class DashboardCalculator
                 group.Where(row => row.MovementType == "VENDA").Sum(row => row.TotalValue),
                 group.Where(row => row.TotalValue < 0m).Sum(row => decimal.Abs(row.TotalValue)),
                 group.Sum(row => row.Quantity), group.Count(),
-                group.Select(row => row.DocumentNumber).Where(value => !string.IsNullOrWhiteSpace(value))
-                    .Distinct(StringComparer.OrdinalIgnoreCase).Count()))
+                CountDocuments(group)))
             .OrderByDescending(row => row.NetResult).ThenBy(row => row.Label, StringComparer.Ordinal).ToArray();
 
         return new DashboardDetails(dailyTrend, sellerResults)
@@ -64,4 +62,9 @@ public static class DashboardCalculator
             }
         };
     }
+
+    private static int CountDocuments(IEnumerable<CommercialMovement> movements) => movements
+        .Where(item => !string.IsNullOrWhiteSpace(item.DocumentNumber))
+        .Select(item => new { item.DocumentNumber, item.MovementDate, item.Seller, item.CustomerCode, item.MovementType })
+        .Distinct().Count();
 }

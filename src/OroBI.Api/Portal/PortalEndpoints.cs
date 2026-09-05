@@ -65,6 +65,8 @@ public static class PortalEndpoints
         if (!PortalRequest.TryRead(http.Request, out var request)) return Results.BadRequest(new { error = "Período ou paginação inválidos. Use datas yyyy-MM-dd e mês yyyy-MM." });
         var p = access.Permissions;
         if (!CanRead(resource, p)) return Results.Forbid();
+        if (!p.CanViewCustomers && (!string.IsNullOrWhiteSpace(request.Filter.CustomerContains) || !string.IsNullOrWhiteSpace(request.Filter.City)))
+            return Results.Forbid();
         var name = access.ImportedName;
         switch (resource)
         {
@@ -87,12 +89,13 @@ public static class PortalEndpoints
                 return Results.Ok(p.CanViewCustomers ? ranking : ranking with { Items = ranking.Items.Select(item => item with { CustomerCount = null }).ToArray() });
             case "goals":
                 var goals = await queries.GetGoalsAsync(name, request.Year, request.Month, ct);
-                return Results.Ok(goals with { Items = goals.Items.Where(g => p.CanViewRevenue || g.Type != "FATURAMENTO")
+                return Results.Ok(goals with { Items = goals.Items
+                    .Where(g => (p.CanViewRevenue || g.Type != "FATURAMENTO") && (p.CanViewCustomers || g.Type != "POSITIVACAO"))
                     .Select(g => p.CanViewPrize ? g : g with { MaximumPrize = null, CurrentPrize = null, NextTierPrize = null }).ToArray() });
             case "ppp":
                 var ppp = await queries.GetPppAsync(name, request.Year, request.Month, ct);
                 return Results.Ok(ppp with { Award = p.CanViewPrize ? ppp.Award : null,
-                    Segments = p.CanViewCustomers ? ppp.Segments : ppp.Segments.Select(item => item with { CustomerCount = null }).ToArray() });
+                    Segments = p.CanViewCustomers ? ppp.Segments : ppp.Segments.Select(item => item with { CustomerCount = null, GroupsPlaced = null }).ToArray() });
             case "trades": return Results.Ok(await queries.GetTradesAsync(name, request.Filter, ct));
             case "history": return Results.Ok(await closings.GetHistoryAsync(access.SellerId, name, ct));
             case "commission":

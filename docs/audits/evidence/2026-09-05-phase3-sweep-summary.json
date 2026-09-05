@@ -1,0 +1,59 @@
+﻿{
+    "generatedAtUtc":  "2026-09-05T20:10:49.3491301Z",
+    "sourceBase":  "cf25d3926fd1a748a085c477e8e1569c9ae7711d plus local audit corrections",
+    "dotnet":  [
+                   {
+                       "file":  "phase3-sweep-final_net10.0_20260905170912.trx",
+                       "total":  141,
+                       "passed":  141,
+                       "failed":  0,
+                       "outcome":  "Completed"
+                   },
+                   {
+                       "file":  "phase3-sweep-final_net10.0_20260905170918.trx",
+                       "total":  78,
+                       "passed":  78,
+                       "failed":  0,
+                       "outcome":  "Completed"
+                   },
+                   {
+                       "file":  "phase3-sweep-final_net10.0_20260905170928.trx",
+                       "total":  119,
+                       "passed":  119,
+                       "failed":  0,
+                       "outcome":  "Completed"
+                   }
+               ],
+    "dotnetTotal":  338,
+    "web":  {
+                "passed":  103,
+                "build":  "success",
+                "files":  19,
+                "failed":  0,
+                "preexistingLintWarnings":  3,
+                "lintErrors":  0
+            },
+    "browser":  [
+                    {
+                        "file":  "phase3-sweep-ui-verification.json",
+                        "passed":  true,
+                        "checks":  190,
+                        "failures":  0
+                    },
+                    {
+                        "file":  "mobile-scroll-ui-verification.json",
+                        "passed":  true,
+                        "checks":  23,
+                        "failures":  0
+                    },
+                    {
+                        "file":  "fixed-sidebar-ui-verification.json",
+                        "passed":  true,
+                        "checks":  78,
+                        "failures":  0
+                    }
+                ],
+    "browserTotal":  291,
+    "publishedAnonymousChecks":  15,
+    "publication":  "Corrections local only"
+}

@@ -7,6 +7,20 @@ namespace OroBI.Application.Tests.Analytics;
 public sealed class DashboardCalculatorTests
 {
     [Fact]
+    public void Reused_document_numbers_keep_distinct_business_documents_and_merge_their_lines()
+    {
+        var batch = Guid.NewGuid();
+        CommercialMovement Row(int day = 1, string seller = "ANA", string customer = "C1", string type = "VENDA", string document = "123") =>
+            CommercialMovement.CreateFromImport(batch, new(2026, 8, day), seller, "MARCA", "REDE", type,
+                "CIDADE", customer, "PRODUTO", 100m, 1m, 0m, customer, document);
+        var rows = new[] { Row(), Row(), Row(day: 2), Row(seller: "BOB"), Row(customer: "C2"),
+            Row(type: "DEVOLUCAO"), Row(document: "124"), Row(document: "") };
+
+        Assert.Equal(6, DashboardCalculator.Calculate(rows).DocumentCount);
+        Assert.Equal(6, Assert.Single(DashboardCalculator.BuildDetails(rows).Groups["brand"]).DocumentCount);
+    }
+
+    [Fact]
     public void Groups_signed_values_all_metrics_and_distinct_documents_without_truncating_dynamic_data()
     {
         var id = Guid.NewGuid();
@@ -54,7 +68,7 @@ public sealed class DashboardCalculatorTests
         Assert.Equal(2m, result.SaleQuantity);
         Assert.Equal(3, result.MovementCount);
         Assert.Equal(2, result.CustomerCount);
-        Assert.Equal(2, result.DocumentCount);
+        Assert.Equal(3, result.DocumentCount);
     }
 
     [Fact]
