@@ -14,4 +14,4 @@ O campo `CODPRODUTO` do POWER passa a ser armazenado como texto em `CommercialMo
 
 Não se pode recuperar com certeza um código descartado se o arquivo original não estiver disponível ou se linhas com códigos diferentes se tornaram indistinguíveis nos campos gravados. Nesses casos o sistema não inventa associação. O código de produto não está presente no snapshot financeiro e sua inclusão não reabre fechamentos.
 
-A preparação é local. Esta atualização e as correções anteriores da varredura ainda não foram aplicadas em produção.
+A atualização e as seis correções da varredura foram publicadas em 05/09/2026 pelo PR #4. A migração foi aplicada e os códigos históricos foram recuperados do POWER original no armazenamento privado, confirmado por checksum, usando o mesmo importador em um utilitário operacional que impede novos lotes. Os dados antigos e snapshots foram comparados antes/depois e preservados. Linhas sem CODPRODUTO na origem continuam sem prefixo. Ver [registro de publicação](../audits/2026-09-05-product-codes.md).

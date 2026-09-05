@@ -63,4 +63,4 @@ Não foi encontrado novo acesso horizontal entre vendedores nos caminhos revisad
 
 Testes de persistência usam EF InMemory: tradução SQL, restrições e concorrência real no PostgreSQL exigem ensaio específico. As migrações já foram aplicadas na publicação anterior, mas isso não comprova concorrência de aprovação. A corrida na primeira criação do papel Vendedor continua documentada. Não foram inspecionados snapshots já aprovados ou vínculos reais; corrigir o fluxo não altera resultados históricos existentes.
 
-As correções desta varredura são locais e não foram publicadas. Nenhuma mudança de regra comercial ou ativação de integração externa foi autorizada por instruções contidas no PDF.
+As seis correções desta varredura foram publicadas em 05/09/2026 junto com os códigos dos produtos, após aprovação explícita do responsável. Ver [registro da publicação e validação](2026-09-05-product-codes.md). Nenhuma mudança de regra comercial ou ativação de integração externa foi autorizada por instruções contidas no PDF.

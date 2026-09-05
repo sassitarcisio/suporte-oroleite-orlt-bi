@@ -1,0 +1,78 @@
+﻿{
+    "generatedAtUtc":  "2026-09-05T23:51:11.0928473Z",
+    "sourceCommit":  "fb208402c271687f98f0fa4350f5dbcc24276951",
+    "mergeCommit":  "073cf5de91e2ee4650861a0c204ad8f0efe739b6",
+    "pullRequest":  4,
+    "apiRevision":  "orobi-api--phase3-fb20840",
+    "migration":  "20260905203406_AddCommercialProductCode",
+    "migrationExecution":  "orobi-migrate-bddh6b3",
+    "migrationStatus":  "Succeeded",
+    "api":  {
+                "generatedAtUtc":  "2026-09-05T23:49:26.3278221Z",
+                "phase":  "After",
+                "checks":  {
+                               "Unchanged_grossSales":  true,
+                               "Unchanged_negativeMovements":  true,
+                               "Unchanged_netResult":  true,
+                               "Unchanged_saleQuantity":  true,
+                               "Unchanged_movementCount":  true,
+                               "Unchanged_customerCount":  true,
+                               "DocumentIdentityCorrection":  true,
+                               "ProductCodesReturned":  true,
+                               "ProductNamesReturned":  true,
+                               "BrandsDoNotReceiveProductCodes":  true,
+                               "AnonymousDenied_/api/v1/me/products":  true,
+                               "AnonymousDenied_/api/v1/me/customers":  true,
+                               "AnonymousDenied_/api/v1/me/ppp":  true,
+                               "AnonymousDenied_/api/v1/management/sellers":  true
+                           },
+                "passed":  true,
+                "limitations":  "Administrator verification of one seller ranking; no employee account was changed or impersonated. Real commercial values and credentials are omitted from this report."
+            },
+    "web":  {
+                "generatedAtUtc":  "2026-09-05T23:39:58.1704881Z",
+                "origin":  "https://lively-sea-0776c9a0f.6.azurestaticapps.net",
+                "entry":  "/assets/index-C67DIKf3.js",
+                "portalAssets":  [
+                                     "assets/SellerPortal-CSmP0T7-.js",
+                                     "assets/SellerPortal-jSQUbIKR.css"
+                                 ],
+                "checks":  {
+                               "PortalAvailable":  true,
+                               "RealApiConfigured":  true,
+                               "ProductCodeRenderingPublished":  true,
+                               "PermissionAwareCustomerFilters":  true,
+                               "DocumentScrollReset":  true,
+                               "MetricIconsPublished":  true,
+                               "CustomerDaysPublished":  true,
+                               "CenteredCardsPublished":  true,
+                               "FixedSidebarPublished":  true,
+                               "NoSyntheticPreview":  true
+                           },
+                "passed":  true,
+                "limitations":  "Published asset inspection; local browser verification covers visual behavior. No user session or commercial response is included."
+            },
+    "database":  {
+                     "originalCsvChecksumMatched":  true,
+                     "unchangedLegacyData":  true,
+                     "preservedTables":  [
+                                             "CommercialMovements",
+                                             "ImportBatches",
+                                             "ImportErrors",
+                                             "ClosingSnapshots",
+                                             "GoalRecords",
+                                             "GoalValueRecords",
+                                             "PppRecords",
+                                             "SellerClosingConfigurations",
+                                             "ImportedClosingDefaults"
+                                         ],
+                     "remainingUncodedRowsWereBlankInOriginal":  true,
+                     "temporaryDatabaseAccessRemoved":  true
+                 },
+    "passed":  true,
+    "limitations":  [
+                        "No employee account was altered or impersonated.",
+                        "Original commercial values, row counts, hashes, customer information and credentials remain outside this public report.",
+                        "Real approval concurrency and physical-device PWA installation were not tested."
+                    ]
+}
