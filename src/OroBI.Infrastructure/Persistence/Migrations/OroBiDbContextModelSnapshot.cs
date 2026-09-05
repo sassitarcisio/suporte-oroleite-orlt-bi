@@ -154,6 +154,56 @@ namespace OroBI.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("OroBI.Domain.Closings.ClosingSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("ApprovedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ApprovedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("ReviewedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReviewedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<Guid>("Revision")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SellerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SnapshotJson")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SellerId", "Year", "Month")
+                        .IsUnique();
+
+                    b.ToTable("ClosingSnapshots");
+                });
+
             modelBuilder.Entity("OroBI.Domain.Closings.ImportedClosingDefaults", b =>
                 {
                     b.Property<Guid>("Id")
@@ -475,6 +525,33 @@ namespace OroBI.Infrastructure.Persistence.Migrations
                     b.ToTable("PppRecords");
                 });
 
+            modelBuilder.Entity("OroBI.Domain.Sellers.Seller", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ImportedName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ImportedName")
+                        .IsUnique();
+
+                    b.ToTable("Sellers");
+                });
+
             modelBuilder.Entity("OroBI.Domain.Synchronization.SynchronizationCheckpoint", b =>
                 {
                     b.Property<string>("SourceSystem")
@@ -528,6 +605,40 @@ namespace OroBI.Infrastructure.Persistence.Migrations
                     b.ToTable("SynchronizationRuns");
                 });
 
+            modelBuilder.Entity("OroBI.Infrastructure.Identity.AccountAuditEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("ActorUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("DetailsJson")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("OccurredAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TargetId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OccurredAtUtc");
+
+                    b.ToTable("AccountAuditEvents");
+                });
+
             modelBuilder.Entity("OroBI.Infrastructure.Identity.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -551,6 +662,16 @@ namespace OroBI.Infrastructure.Persistence.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsRegistrationPending")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
 
@@ -573,6 +694,10 @@ namespace OroBI.Infrastructure.Persistence.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("RegistrationName")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
@@ -601,6 +726,24 @@ namespace OroBI.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("OroBI.Infrastructure.Identity.UserSellerAccess", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("SellerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("UserId", "SellerId");
+
+                    b.HasIndex("SellerId");
+
+                    b.ToTable("UserSellerAccesses");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -652,6 +795,72 @@ namespace OroBI.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("OroBI.Domain.Closings.ClosingSnapshot", b =>
+                {
+                    b.HasOne("OroBI.Domain.Sellers.Seller", null)
+                        .WithMany()
+                        .HasForeignKey("SellerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("OroBI.Infrastructure.Identity.UserSellerAccess", b =>
+                {
+                    b.HasOne("OroBI.Domain.Sellers.Seller", "Seller")
+                        .WithMany()
+                        .HasForeignKey("SellerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OroBI.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.OwnsOne("OroBI.Domain.Sellers.SellerPortalPermissions", "Permissions", b1 =>
+                        {
+                            b1.Property<string>("UserSellerAccessUserId")
+                                .HasColumnType("text");
+
+                            b1.Property<Guid>("UserSellerAccessSellerId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<bool>("CanViewCommission")
+                                .HasColumnType("boolean");
+
+                            b1.Property<bool>("CanViewCustomers")
+                                .HasColumnType("boolean");
+
+                            b1.Property<bool>("CanViewGoals")
+                                .HasColumnType("boolean");
+
+                            b1.Property<bool>("CanViewPPP")
+                                .HasColumnType("boolean");
+
+                            b1.Property<bool>("CanViewPrize")
+                                .HasColumnType("boolean");
+
+                            b1.Property<bool>("CanViewRevenue")
+                                .HasColumnType("boolean");
+
+                            b1.Property<bool>("CanViewTrades")
+                                .HasColumnType("boolean");
+
+                            b1.HasKey("UserSellerAccessUserId", "UserSellerAccessSellerId");
+
+                            b1.ToTable("UserSellerAccesses");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UserSellerAccessUserId", "UserSellerAccessSellerId");
+                        });
+
+                    b.Navigation("Permissions")
+                        .IsRequired();
+
+                    b.Navigation("Seller");
                 });
 #pragma warning restore 612, 618
         }

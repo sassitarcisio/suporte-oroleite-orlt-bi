@@ -5,6 +5,14 @@ import { sessionExpiredEvent } from '../auth/session'
 afterEach(() => { sessionStorage.clear(); vi.unstubAllGlobals() })
 
 describe('Authenticated requests', () => {
+  it('preserves safe validation messages returned by account endpoints', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ errors: ['A senha deve conter um número.', 'E-mail já cadastrado.'] }), { status: 400 })))
+    await expect(apiRequest('/api/v1/admin/users', 'current')).rejects.toThrow('A senha deve conter um número. E-mail já cadastrado.')
+  })
+  it('accepts successful no-content mutations', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(null, { status: 204 })))
+    await expect(apiRequest('/api/v1/auth/logout', 'current', { method: 'POST' })).resolves.toBeUndefined()
+  })
   it.each(['json', 'download'])('expires the current session once for %s requests', async kind => {
     sessionStorage.setItem('orobi.access-token', 'current')
     const expired = vi.fn()

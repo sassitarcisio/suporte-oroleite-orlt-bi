@@ -25,12 +25,10 @@ public static class ClosingEndpoints
         }).RequireAuthorization(AuthorizationPolicies.AdministratorOnly);
         endpoints.MapGet($"{prefix}/closings", async (string seller, string month, ClaimsPrincipal user, ISellerClosingQueryService service, CancellationToken cancellationToken) =>
         {
-            if (!user.IsInRole("Administrador") && !user.IsInRole("Gestor"))
+            if (!user.IsInRole("Administrador") && !user.IsInRole("Diretoria"))
             {
-                var assignedSeller = user.FindFirstValue("seller");
-                if (string.IsNullOrWhiteSpace(assignedSeller) ||
-                    SellerAliasCatalog.ResolveImportedName(assignedSeller) != SellerAliasCatalog.ResolveImportedName(seller))
-                    return Results.Forbid();
+                // Full legacy payroll DTO includes salary and team data. Scoped accounts use the safe portal projection.
+                return Results.Forbid();
             }
             if (!DateOnly.TryParseExact($"{month}-01", "yyyy-MM-dd", out var period)) return Results.BadRequest(new { error = "month must use yyyy-MM." });
             var result = await service.GetAsync(seller, period.Year, period.Month, cancellationToken);

@@ -18,15 +18,18 @@ public sealed partial class SellerClosingQueryService(OroBiDbContext dbContext) 
     ];
 
     public Task<SellerClosingSummary?> GetAsync(string seller, int year, int month, CancellationToken cancellationToken) =>
-        GetSellerAsync(seller, year, month, false, cancellationToken);
+        GetOfficialOrCurrentAsync(seller, year, month, cancellationToken);
 
     private async Task<SellerClosingSummary?> GetSellerAsync(string seller, int year, int month, bool payroll, CancellationToken cancellationToken)
     {
-        var requestedSeller = seller.Trim().ToUpperInvariant();
+        var requestedSeller = CanonicalClosingSeller(seller);
         var importedSeller = SellerAliasCatalog.ResolveImportedName(requestedSeller);
-        var sellerNames = new[] { requestedSeller, importedSeller, PayrollCatalog.DisplayName(requestedSeller) };
+        var sellerNames = SellerAliasCatalog.GetMatchingNames(requestedSeller)
+            .Append(seller.Trim().ToUpperInvariant()).Distinct(StringComparer.Ordinal).ToArray();
         var configuration = await dbContext.SellerClosingConfigurations.AsNoTracking()
-            .SingleOrDefaultAsync(item => item.Seller == requestedSeller && item.Year == year && item.Month == month, cancellationToken);
+            .Where(item => sellerNames.Contains(item.Seller.Trim().ToUpper()) && item.Year == year && item.Month == month)
+            .OrderByDescending(item => item.Seller == requestedSeller).ThenBy(item => item.Seller)
+            .FirstOrDefaultAsync(cancellationToken);
         var importedDefaults = await GetImportedDefaultsAsync(cancellationToken);
         var duplicates = await ImportedBatchSelection.GetDuplicateIdsAsync(dbContext, cancellationToken);
         if (requestedSeller == "VALDIR ZACARIAS")
@@ -44,13 +47,13 @@ public sealed partial class SellerClosingQueryService(OroBiDbContext dbContext) 
         if (baseSalary is null || commissionPercent is null || pppMaximumAward is null) return null;
         var movements = await dbContext.CommercialMovements.AsNoTracking()
             .Where(item => !duplicates.Contains(item.ImportBatchId))
-            .Where(item => sellerNames.Contains(item.Seller) && item.MovementDate.Year == year && item.MovementDate.Month == month).ToListAsync(cancellationToken);
+            .Where(item => sellerNames.Contains(item.Seller.Trim().ToUpper()) && item.MovementDate.Year == year && item.MovementDate.Month == month).ToListAsync(cancellationToken);
         var goals = await dbContext.GoalRecords.AsNoTracking()
             .Where(item => !duplicates.Contains(item.ImportBatchId))
-            .Where(item => sellerNames.Contains(item.Seller) && item.Year == year && item.Month == month).ToListAsync(cancellationToken);
+            .Where(item => sellerNames.Contains(item.Seller.Trim().ToUpper()) && item.Year == year && item.Month == month).ToListAsync(cancellationToken);
         var ppp = await dbContext.PppRecords.AsNoTracking()
             .Where(item => !duplicates.Contains(item.ImportBatchId))
-            .Where(item => sellerNames.Contains(item.Seller) && item.Year == year && item.Month == month).ToListAsync(cancellationToken);
+            .Where(item => sellerNames.Contains(item.Seller.Trim().ToUpper()) && item.Year == year && item.Month == month).ToListAsync(cancellationToken);
         var values = importedDefaults is null
             ? new List<OroBI.Domain.Goals.GoalValueRecord>()
             : await dbContext.GoalValueRecords.AsNoTracking()
@@ -71,10 +74,14 @@ public sealed partial class SellerClosingQueryService(OroBiDbContext dbContext) 
 
     public async Task<ClosingConfigurationStatus> GetConfigurationStatusAsync(string seller, int year, int month, CancellationToken cancellationToken)
     {
-        var requestedSeller = seller.Trim().ToUpperInvariant();
+        var requestedSeller = CanonicalClosingSeller(seller);
         var importedSeller = SellerAliasCatalog.ResolveImportedName(requestedSeller);
+        var sellerNames = SellerAliasCatalog.GetMatchingNames(requestedSeller)
+            .Append(seller.Trim().ToUpperInvariant()).Distinct(StringComparer.Ordinal).ToArray();
         var configuration = await dbContext.SellerClosingConfigurations.AsNoTracking()
-            .SingleOrDefaultAsync(item => item.Seller == requestedSeller && item.Year == year && item.Month == month, cancellationToken);
+            .Where(item => sellerNames.Contains(item.Seller.Trim().ToUpper()) && item.Year == year && item.Month == month)
+            .OrderByDescending(item => item.Seller == requestedSeller).ThenBy(item => item.Seller)
+            .FirstOrDefaultAsync(cancellationToken);
         var importedDefaults = await GetImportedDefaultsAsync(cancellationToken);
         if (importedDefaults is null) return new(false, false, false, false);
 
@@ -191,6 +198,18 @@ public sealed partial class SellerClosingQueryService(OroBiDbContext dbContext) 
     }
 
     private static string ClosingSellerName(string seller) => SellerAliasCatalog.ResolveImportedName(PayrollCatalog.CanonicalName(seller));
+
+    private static string CanonicalClosingSeller(string seller)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(seller);
+        var imported = SellerAliasCatalog.ResolveImportedName(seller);
+        foreach (var prefix in new[] { "VENDEDOR:", "SUPERVISOR:" })
+        {
+            if (imported.StartsWith(prefix, StringComparison.Ordinal))
+                return PayrollCatalog.CanonicalName(imported[prefix.Length..].Trim());
+        }
+        return PayrollCatalog.CanonicalName(imported);
+    }
 
     private static ClosingBrandInput[] BuildPayrollBrandInputs(IEnumerable<GoalValueRecord> values, IEnumerable<GoalRecord> goals, IEnumerable<CommercialMovement> movements)
     {

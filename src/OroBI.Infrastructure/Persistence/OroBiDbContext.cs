@@ -11,7 +11,7 @@ using OroBI.Infrastructure.Identity;
 
 namespace OroBI.Infrastructure.Persistence;
 
-public sealed class OroBiDbContext(DbContextOptions<OroBiDbContext> options)
+public sealed partial class OroBiDbContext(DbContextOptions<OroBiDbContext> options)
     : IdentityDbContext<ApplicationUser, IdentityRole, string>(options)
 {
     public DbSet<CommercialMovement> CommercialMovements => Set<CommercialMovement>();
@@ -28,6 +28,8 @@ public sealed class OroBiDbContext(DbContextOptions<OroBiDbContext> options)
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        ConfigureIdentityModel(modelBuilder);
+        ConfigurePortalModel(modelBuilder);
 
         modelBuilder.Entity<ApplicationUser>(entity =>
         {
@@ -91,4 +93,7 @@ public sealed class OroBiDbContext(DbContextOptions<OroBiDbContext> options)
             entity.HasIndex(run => new { run.SourceSystem, run.StartedAtUtc });
         });
     }
+
+    partial void ConfigureIdentityModel(ModelBuilder modelBuilder);
+    partial void ConfigurePortalModel(ModelBuilder modelBuilder);
 }

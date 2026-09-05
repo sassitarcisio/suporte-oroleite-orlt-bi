@@ -14,6 +14,8 @@ using OroBI.Infrastructure.Closings;
 using OroBI.Application.Closings;
 using OroBI.Infrastructure.Identity;
 using OroBI.Infrastructure.Persistence;
+using OroBI.Application.Portal;
+using OroBI.Infrastructure.Portal;
 
 namespace OroBI.Infrastructure;
 
@@ -59,6 +61,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDashboardQueryService, DashboardQueryService>();
         services.AddScoped<ICommercialAnalyticsQueryService, DashboardQueryService>();
         services.AddScoped<ICommercialFilterOptionsQueryService, CommercialFilterOptionsQueryService>();
+        services.AddScoped<IPortalQueryService, PortalQueryService>();
+        services.AddScoped<IPortalClosingService, PortalClosingService>();
         return services;
     }
 }
