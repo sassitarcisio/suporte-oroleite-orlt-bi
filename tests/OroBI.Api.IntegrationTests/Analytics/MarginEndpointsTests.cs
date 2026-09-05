@@ -107,6 +107,8 @@ public sealed class MarginEndpointsTests : IClassFixture<WebApplicationFactory<P
     {
         using var forbidden = await Send(route, "Vendedor");
         Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
+        using var manager = await Send(route, "Gestor");
+        Assert.Equal(HttpStatusCode.Forbidden, manager.StatusCode);
         using var unauthorized = await Send(route, null);
         Assert.Equal(HttpStatusCode.Unauthorized, unauthorized.StatusCode);
         using var administrator = await Send(route, "Administrador");
@@ -134,7 +136,7 @@ public sealed class MarginEndpointsTests : IClassFixture<WebApplicationFactory<P
         Assert.Equal(["VENDA", "DEVOLUCAO"], filter.MovementTypes);
     }
 
-    private Task<HttpResponseMessage> Send(string route, string? role = "Gestor")
+    private Task<HttpResponseMessage> Send(string route, string? role = "Administrador")
     {
         var request = new HttpRequestMessage(HttpMethod.Get, route);
         if (role is not null) request.Headers.Add("X-Margin-Test-Role", role);

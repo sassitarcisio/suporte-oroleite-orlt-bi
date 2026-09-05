@@ -1,0 +1,825 @@
+{
+  "generatedAtUtc": "2026-09-05T17:42:26.683Z",
+  "environment": "Local Chrome headless, synthetic API fixtures only",
+  "limitations": [
+    "No production endpoint or account was contacted.",
+    "Viewport emulation does not certify physical Android/iOS installation, touch input or device rendering.",
+    "HTTP server emulates SPA fallback; actual Azure deployment is not exercised.",
+    "Optional Google Fonts requests were blocked before network access; screenshots use the local fallback font."
+  ],
+  "browserVersion": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/152.0.7977.82",
+    "revision": "@d04cdb24d67b081f6cf80200ffc5233f44b61109",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+    "jsVersion": "15.2.124.21"
+  },
+  "viewports": [
+    {
+      "width": 360,
+      "height": 1000,
+      "routes": [
+        "/portal",
+        "portal sales view"
+      ],
+      "dashboard": {
+        "view": "dashboard",
+        "screenshot": "docs/audits/evidence/portal-ui-360-dashboard.png",
+        "viewportWidth": 360,
+        "documentWidth": 360,
+        "heading": "Meu desempenho",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": [
+          {
+            "tag": "BUTTON",
+            "className": "",
+            "right": 375.046875
+          },
+          {
+            "tag": "BUTTON",
+            "className": "",
+            "right": 479.984375
+          }
+        ]
+      },
+      "sales": {
+        "view": "sales",
+        "screenshot": "docs/audits/evidence/portal-ui-360-sales.png",
+        "viewportWidth": 360,
+        "documentWidth": 360,
+        "heading": "Minhas vendas",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": [
+          {
+            "tag": "BUTTON",
+            "className": "",
+            "right": 375.046875
+          },
+          {
+            "tag": "BUTTON",
+            "className": "",
+            "right": 479.984375
+          }
+        ]
+      }
+    },
+    {
+      "width": 390,
+      "height": 1000,
+      "routes": [
+        "/portal",
+        "portal sales view"
+      ],
+      "dashboard": {
+        "view": "dashboard",
+        "screenshot": "docs/audits/evidence/portal-ui-390-dashboard.png",
+        "viewportWidth": 390,
+        "documentWidth": 390,
+        "heading": "Meu desempenho",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": [
+          {
+            "tag": "BUTTON",
+            "className": "",
+            "right": 479.984375
+          }
+        ]
+      },
+      "sales": {
+        "view": "sales",
+        "screenshot": "docs/audits/evidence/portal-ui-390-sales.png",
+        "viewportWidth": 390,
+        "documentWidth": 390,
+        "heading": "Minhas vendas",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": [
+          {
+            "tag": "BUTTON",
+            "className": "",
+            "right": 479.984375
+          }
+        ]
+      }
+    },
+    {
+      "width": 430,
+      "height": 1000,
+      "routes": [
+        "/portal",
+        "portal sales view"
+      ],
+      "dashboard": {
+        "view": "dashboard",
+        "screenshot": "docs/audits/evidence/portal-ui-430-dashboard.png",
+        "viewportWidth": 430,
+        "documentWidth": 430,
+        "heading": "Meu desempenho",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": [
+          {
+            "tag": "BUTTON",
+            "className": "",
+            "right": 479.984375
+          }
+        ]
+      },
+      "sales": {
+        "view": "sales",
+        "screenshot": "docs/audits/evidence/portal-ui-430-sales.png",
+        "viewportWidth": 430,
+        "documentWidth": 430,
+        "heading": "Minhas vendas",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": [
+          {
+            "tag": "BUTTON",
+            "className": "",
+            "right": 479.984375
+          }
+        ]
+      }
+    },
+    {
+      "width": 768,
+      "height": 1000,
+      "routes": [
+        "/portal",
+        "portal sales view"
+      ],
+      "dashboard": {
+        "view": "dashboard",
+        "screenshot": "docs/audits/evidence/portal-ui-768-dashboard.png",
+        "viewportWidth": 768,
+        "documentWidth": 753,
+        "heading": "Meu desempenho",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": []
+      },
+      "sales": {
+        "view": "sales",
+        "screenshot": "docs/audits/evidence/portal-ui-768-sales.png",
+        "viewportWidth": 768,
+        "documentWidth": 768,
+        "heading": "Minhas vendas",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    },
+    {
+      "width": 1440,
+      "height": 1000,
+      "routes": [
+        "/portal",
+        "portal sales view"
+      ],
+      "dashboard": {
+        "view": "dashboard",
+        "screenshot": "docs/audits/evidence/portal-ui-1440-dashboard.png",
+        "viewportWidth": 1440,
+        "documentWidth": 1425,
+        "heading": "Meu desempenho",
+        "headerVisible": true,
+        "bottomNavigationVisible": false,
+        "desktopNavigationVisible": true,
+        "alerts": [],
+        "outlyingElements": []
+      },
+      "sales": {
+        "view": "sales",
+        "screenshot": "docs/audits/evidence/portal-ui-1440-sales.png",
+        "viewportWidth": 1440,
+        "documentWidth": 1440,
+        "heading": "Minhas vendas",
+        "headerVisible": true,
+        "bottomNavigationVisible": false,
+        "desktopNavigationVisible": true,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    }
+  ],
+  "browserErrors": [],
+  "blockedExternalRequests": [
+    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+  ],
+  "assertions": [
+    {
+      "name": "360px dashboard: no document horizontal overflow",
+      "passed": true,
+      "details": {
+        "viewportWidth": 360,
+        "documentWidth": 360,
+        "heading": "Meu desempenho",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": [
+          {
+            "tag": "BUTTON",
+            "className": "",
+            "right": 375.046875
+          },
+          {
+            "tag": "BUTTON",
+            "className": "",
+            "right": 479.984375
+          }
+        ]
+      }
+    },
+    {
+      "name": "360px dashboard: header and correct navigation visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "360px dashboard: no error alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "360px sales: no document horizontal overflow",
+      "passed": true,
+      "details": {
+        "viewportWidth": 360,
+        "documentWidth": 360,
+        "heading": "Minhas vendas",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": [
+          {
+            "tag": "BUTTON",
+            "className": "",
+            "right": 375.046875
+          },
+          {
+            "tag": "BUTTON",
+            "className": "",
+            "right": 479.984375
+          }
+        ]
+      }
+    },
+    {
+      "name": "360px sales: header and correct navigation visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "360px sales: no error alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "360px expanded navigation is visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "360px logout clears token and removes commercial data",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "390px dashboard: no document horizontal overflow",
+      "passed": true,
+      "details": {
+        "viewportWidth": 390,
+        "documentWidth": 390,
+        "heading": "Meu desempenho",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": [
+          {
+            "tag": "BUTTON",
+            "className": "",
+            "right": 479.984375
+          }
+        ]
+      }
+    },
+    {
+      "name": "390px dashboard: header and correct navigation visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "390px dashboard: no error alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "390px sales: no document horizontal overflow",
+      "passed": true,
+      "details": {
+        "viewportWidth": 390,
+        "documentWidth": 390,
+        "heading": "Minhas vendas",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": [
+          {
+            "tag": "BUTTON",
+            "className": "",
+            "right": 479.984375
+          }
+        ]
+      }
+    },
+    {
+      "name": "390px sales: header and correct navigation visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "390px sales: no error alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "390px expanded navigation is visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "390px logout clears token and removes commercial data",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "430px dashboard: no document horizontal overflow",
+      "passed": true,
+      "details": {
+        "viewportWidth": 430,
+        "documentWidth": 430,
+        "heading": "Meu desempenho",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": [
+          {
+            "tag": "BUTTON",
+            "className": "",
+            "right": 479.984375
+          }
+        ]
+      }
+    },
+    {
+      "name": "430px dashboard: header and correct navigation visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "430px dashboard: no error alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "430px sales: no document horizontal overflow",
+      "passed": true,
+      "details": {
+        "viewportWidth": 430,
+        "documentWidth": 430,
+        "heading": "Minhas vendas",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": [
+          {
+            "tag": "BUTTON",
+            "className": "",
+            "right": 479.984375
+          }
+        ]
+      }
+    },
+    {
+      "name": "430px sales: header and correct navigation visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "430px sales: no error alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "430px expanded navigation is visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "430px logout clears token and removes commercial data",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "768px dashboard: no document horizontal overflow",
+      "passed": true,
+      "details": {
+        "viewportWidth": 768,
+        "documentWidth": 753,
+        "heading": "Meu desempenho",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    },
+    {
+      "name": "768px dashboard: header and correct navigation visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "768px dashboard: no error alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "768px sales: no document horizontal overflow",
+      "passed": true,
+      "details": {
+        "viewportWidth": 768,
+        "documentWidth": 768,
+        "heading": "Minhas vendas",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    },
+    {
+      "name": "768px sales: header and correct navigation visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "768px sales: no error alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "768px expanded navigation is visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "768px logout clears token and removes commercial data",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "1440px dashboard: no document horizontal overflow",
+      "passed": true,
+      "details": {
+        "viewportWidth": 1440,
+        "documentWidth": 1425,
+        "heading": "Meu desempenho",
+        "headerVisible": true,
+        "bottomNavigationVisible": false,
+        "desktopNavigationVisible": true,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    },
+    {
+      "name": "1440px dashboard: header and correct navigation visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "1440px dashboard: no error alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "1440px sales: no document horizontal overflow",
+      "passed": true,
+      "details": {
+        "viewportWidth": 1440,
+        "documentWidth": 1440,
+        "heading": "Minhas vendas",
+        "headerVisible": true,
+        "bottomNavigationVisible": false,
+        "desktopNavigationVisible": true,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    },
+    {
+      "name": "1440px sales: header and correct navigation visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "1440px sales: no error alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "1440px logout clears token and removes commercial data",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Manifest starts portal in standalone mode",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Manifest icon exists: /portal-icon-192.png",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Manifest PNG dimensions match: /portal-icon-192.png",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Manifest icon exists: /portal-icon-512.png",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Manifest PNG dimensions match: /portal-icon-512.png",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Manifest icon exists: /portal-icon.svg",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Service Worker cached its public offline assets",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Service Worker cache contains no API response",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Offline navigation shows public fallback without commercial data",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "No browser runtime exception",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "No unexpected external API or asset request attempted",
+      "passed": true,
+      "details": []
+    }
+  ],
+  "apiRequests": [
+    {
+      "method": "GET",
+      "path": "/api/v1/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/dashboard?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/commission?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/ppp?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/trades?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/sales?startDate=2026-09-01&endDate=2026-09-30&page=1&pageSize=20"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/logout"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/dashboard?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/commission?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/ppp?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/trades?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/sales?startDate=2026-09-01&endDate=2026-09-30&page=1&pageSize=20"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/logout"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/dashboard?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/commission?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/ppp?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/trades?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/sales?startDate=2026-09-01&endDate=2026-09-30&page=1&pageSize=20"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/logout"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/dashboard?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/commission?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/ppp?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/trades?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/sales?startDate=2026-09-01&endDate=2026-09-30&page=1&pageSize=20"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/logout"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/dashboard?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/commission?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/ppp?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/trades?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/sales?startDate=2026-09-01&endDate=2026-09-30&page=1&pageSize=20"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/logout"
+    }
+  ],
+  "manifest": {
+    "id": "/portal",
+    "name": "Oroleite · Portal do Vendedor",
+    "short_name": "Oroleite",
+    "lang": "pt-BR",
+    "start_url": "/portal",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#160f0a",
+    "theme_color": "#21150c",
+    "description": "Seus resultados comerciais, metas e fechamento mensal.",
+    "icons": [
+      {
+        "src": "/portal-icon-192.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "any maskable"
+      },
+      {
+        "src": "/portal-icon-512.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any maskable"
+      },
+      {
+        "src": "/portal-icon.svg",
+        "sizes": "any",
+        "type": "image/svg+xml",
+        "purpose": "any maskable"
+      }
+    ]
+  },
+  "cachedUrls": [
+    "http://127.0.0.1:57770/offline.html",
+    "http://127.0.0.1:57770/portal-icon.svg",
+    "http://127.0.0.1:57770/portal-icon-192.png",
+    "http://127.0.0.1:57770/portal-icon-512.png",
+    "http://127.0.0.1:57770/apple-touch-icon.png",
+    "http://127.0.0.1:57770/logoOroleite.png",
+    "http://127.0.0.1:57770/manifest.webmanifest"
+  ],
+  "passed": true
+}

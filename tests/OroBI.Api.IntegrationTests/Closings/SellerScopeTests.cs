@@ -8,7 +8,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using OroBI.Application.Closings;
+using OroBI.Infrastructure.Persistence;
 
 namespace OroBI.Api.IntegrationTests.Closings;
 
@@ -18,13 +21,13 @@ public sealed class SellerScopeTests
     {
         foreach (var prefix in new[] { "/api", "/api/v1" })
         {
-            yield return [prefix, "Vendedor", "ANA", "ANA", HttpStatusCode.OK];
+            yield return [prefix, "Vendedor", "ANA", "ANA", HttpStatusCode.Forbidden];
             yield return [prefix, "Vendedor", "ANA", "OUTRO", HttpStatusCode.Forbidden];
             yield return [prefix, "Vendedor", null, "ANA", HttpStatusCode.Forbidden];
             yield return [prefix, "Vendedor", " ", "ANA", HttpStatusCode.Forbidden];
-            yield return [prefix, "Vendedor", "RODRIGO KEHL", "VENDEDOR: RODRIGO", HttpStatusCode.OK];
-            yield return [prefix, "Vendedor", "VENDEDOR: MARCELO IVONEI DA ROSA", "marcelo da rosa", HttpStatusCode.OK];
-            yield return [prefix, "Gestor", null, "OUTRO", HttpStatusCode.OK];
+            yield return [prefix, "Vendedor", "RODRIGO KEHL", "VENDEDOR: RODRIGO", HttpStatusCode.Forbidden];
+            yield return [prefix, "Vendedor", "VENDEDOR: MARCELO IVONEI DA ROSA", "marcelo da rosa", HttpStatusCode.Forbidden];
+            yield return [prefix, "Gestor", null, "OUTRO", HttpStatusCode.Forbidden];
             yield return [prefix, "Administrador", null, "OUTRO", HttpStatusCode.OK];
             yield return [prefix, "OutroPerfil", "ANA", "ANA", HttpStatusCode.Forbidden];
             yield return [prefix, null, null, "ANA", HttpStatusCode.Unauthorized];
@@ -41,6 +44,10 @@ public sealed class SellerScopeTests
             builder.ConfigureLogging(logging => logging.ClearProviders());
             builder.ConfigureServices(services =>
             {
+                services.RemoveAll<OroBiDbContext>();
+                services.RemoveAll<DbContextOptions<OroBiDbContext>>();
+                services.RemoveAll<IDbContextOptionsConfiguration<OroBiDbContext>>();
+                services.AddDbContext<OroBiDbContext>(options => options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
                 services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = "SellerTest";

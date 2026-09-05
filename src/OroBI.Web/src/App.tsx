@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { apiRequest, apiBaseUrl, authenticatedFetch } from './api/client'
 import { clearAccessToken, readAccessToken, saveAccessToken, sessionExpiredEvent } from './auth/session'
@@ -13,11 +13,13 @@ import type { PayrollClosing } from './features/closings/closingTypes'
 import { DashboardPage } from './features/dashboard/DashboardPage'
 import type { DashboardDetails, DashboardFilterOptions, DashboardFilters, DashboardSummary } from './features/dashboard/DashboardPage'
 import { ImportPage } from './features/imports/ImportPage'
+import RegistrationForm from './auth/RegistrationForm'
 import './App.css'
 import './ExecutiveGold.css'
 import './CardPresentation.css'
 
-type LoginResponse = { accessToken: string }
+const SellerPortal = lazy(() => import('./features/portal/SellerPortal'))
+type LoginResponse = { accessToken: string; roles?: string[] }
 type CurrentUser = { roles: string[] }
 type PageState = 'idle' | 'loading' | 'ready' | 'error'
 type View = 'dashboard' | 'import' | 'trades' | 'sales-trades' | 'margins' | 'net-margin' | 'closings' | 'closing-rh' | 'closing-supervisor' | 'closing-valdir'
@@ -84,9 +86,11 @@ function filterQuery(filters: DashboardFilters): string {
 
 export default function App() {
   const [token, setToken] = useState(readAccessToken)
+  const [portalRoute, setPortalRoute] = useState(() => window.location.pathname.startsWith('/portal'))
   const [email, setEmail] = useState(() => window.localStorage.getItem('orobi:last-email') ?? '')
   const [password, setPassword] = useState('')
   const [passwordVisible, setPasswordVisible] = useState(false)
+  const [registrationOpen, setRegistrationOpen] = useState(false)
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [dashboardDetails, setDashboardDetails] = useState<DashboardDetails | null>(null)
   const [dashboardFilters, setDashboardFilters] = useState<DashboardFilters>(() => createDashboardFilters(readSellerFilter()))
@@ -215,7 +219,27 @@ export default function App() {
     setPasswordVisible(false)
     setMenuOpen(false)
     setSessionMessage(message)
+    setRegistrationOpen(false)
   }
+
+  function logout() {
+    const previousToken = token
+    endSession()
+    void apiRequest('/api/v1/auth/logout', previousToken, { method: 'POST' }).catch(() => {
+      if (!readAccessToken()) setSessionMessage('Sessão encerrada neste dispositivo. Não foi possível confirmar a revogação no servidor.')
+    })
+  }
+
+  const openPortal = useCallback(() => {
+    dashboardRequestId.current += 1
+    clearClosingRequests()
+    setSummary(null)
+    setDashboardDetails(null)
+    setTradeAnalysis(null)
+    setView('dashboard')
+    setPortalRoute(true)
+    window.history.replaceState({}, '', '/portal')
+  }, [clearClosingRequests])
 
   const expireSession = useEffectEvent(() => endSession('Sua sessão expirou. Entre novamente para continuar.'))
   useEffect(() => {
@@ -315,25 +339,30 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (!token) return
+    if (!token || portalRoute) return
     let active = true
     const version = sessionVersion.current
     const current = () => active && version === sessionVersion.current
 
-    void loadDashboard(appliedFiltersRef.current)
-    void apiRequest<CurrentUser>('/api/me', token).then(user => { if (current()) setRoles(user.roles) }).catch(() => { if (current()) setRoles([]) })
-    void apiRequest<string[]>('/api/sellers', token).then(result => { if (current()) setSellers(Array.isArray(result) ? result : []) }).catch(() => { if (current()) setSellers([]) })
-    void apiRequest<DashboardFilterOptions>('/api/dashboard/filter-options', token).then(result => { if (current()) setDashboardFilterOptions({
+    void apiRequest<CurrentUser>('/api/me', token).then(user => {
+      if (!current()) return
+      const userRoles = Array.isArray(user.roles) ? user.roles : []
+      setRoles(userRoles)
+      if (userRoles.some(role => ['Vendedor', 'Gestor', 'Gerente'].includes(role)) && !userRoles.some(role => ['Administrador', 'Diretoria'].includes(role))) { openPortal(); return }
+      void loadDashboard(appliedFiltersRef.current)
+      void apiRequest<string[]>('/api/sellers', token).then(result => { if (current()) setSellers(Array.isArray(result) ? result : []) }).catch(() => { if (current()) setSellers([]) })
+      void apiRequest<DashboardFilterOptions>('/api/dashboard/filter-options', token).then(result => { if (current()) setDashboardFilterOptions({
       brands: Array.isArray(result.brands) ? result.brands : [],
       groups: Array.isArray(result.groups) ? result.groups : [],
       cities: Array.isArray(result.cities) ? result.cities : [],
       movementTypes: Array.isArray(result.movementTypes) ? result.movementTypes : [],
-    }) }).catch(() => { if (current()) setDashboardFilterOptions(emptyDashboardFilterOptions) })
+      }) }).catch(() => { if (current()) setDashboardFilterOptions(emptyDashboardFilterOptions) })
+    }).catch(() => { if (current()) { setRoles([]); setState('error') } })
     return () => { active = false }
-  }, [token, loadDashboard])
+  }, [token, portalRoute, loadDashboard, openPortal])
 
   useEffect(() => {
-    if (!token || (view !== 'trades' && view !== 'sales-trades')) return
+    if (!token || portalRoute || (view !== 'trades' && view !== 'sales-trades')) return
 
     let active = true
     const version = sessionVersion.current
@@ -344,7 +373,7 @@ export default function App() {
       .then(result => { if (active && version === sessionVersion.current) { setTradeAnalysis(result); setAnalysisState('ready') } })
       .catch(() => { if (active && version === sessionVersion.current) setAnalysisState('error') })
     return () => { active = false }
-  }, [token, view, dashboardFilters])
+  }, [token, portalRoute, view, dashboardFilters])
 
   async function login(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -363,6 +392,7 @@ export default function App() {
       saveAccessToken(result.accessToken)
       window.localStorage.setItem('orobi:last-email', email.trim())
       setToken(result.accessToken)
+      if (result.roles?.some(role => ['Vendedor', 'Gestor', 'Gerente'].includes(role)) && !result.roles.some(role => ['Administrador', 'Diretoria'].includes(role))) openPortal()
       setPassword('')
     } catch {
       if (version === sessionVersion.current) setState('error')
@@ -393,13 +423,16 @@ export default function App() {
     if (nextFile && /^VALOR[_ -]?METAS\.csv$/i.test(nextFile.name)) setFileType('GoalValues')
   }
 
-  if (!token) return <main className="shell login-shell"><section className="login-layout shadow-lg"><aside className="login-brand-panel"><img className="login-brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /><div><p className="eyebrow">OROLEITE BI</p><h1 aria-label="Central de resultados">Central de<br /><span>resultados.</span></h1><p>Inteligencia comercial para decisoes mais seguras, todos os dias.</p></div><p className="login-brand-footer"><i className="fa-solid fa-shield-halved" aria-hidden="true" /> Ambiente corporativo protegido</p></aside><section className="login-form-panel"><div className="login-form-heading"><p className="eyebrow">ACESSO RESTRITO</p><h2>Bem-vindo de volta.</h2><p>Informe suas credenciais para acessar os indicadores da operacao.</p></div>{sessionMessage && <p className="notice" role="status">{sessionMessage}</p>}<form onSubmit={login}><label>E-MAIL<input type="email" autoComplete="username" required value={email} onChange={event => setEmail(event.target.value)} /></label><label>SENHA<span className="password-field"><input type={passwordVisible ? 'text' : 'password'} autoComplete="current-password" required value={password} onChange={event => setPassword(event.target.value)} /><button type="button" className="password-toggle" onClick={() => setPasswordVisible(visible => !visible)} aria-label={passwordVisible ? 'Ocultar senha' : 'Mostrar senha'}><i className={`fa-solid ${passwordVisible ? 'fa-eye-slash' : 'fa-eye'}`} aria-hidden="true" /></button></span></label><button className="btn btn-dark" type="submit" disabled={state === 'loading'}>{state === 'loading' ? 'Entrando...' : 'Entrar'} <i className="fa-solid fa-arrow-right" aria-hidden="true" /></button></form>{state === 'error' && <p className="notice error">Credenciais invalidas ou API indisponivel.</p>}</section></section></main>
+  if (!token && registrationOpen) return <main className="shell login-shell"><section className="login-layout registration-layout shadow-lg"><aside className="login-brand-panel"><img className="login-brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /><div><p className="eyebrow">PORTAL DO VENDEDOR</p><h1>Seus resultados.<br /><span>Seu espaço.</span></h1><p>Acompanhe suas vendas, metas e fechamento em um só lugar.</p></div><p className="login-brand-footer">Acesso liberado após aprovação do administrador.</p></aside><section className="login-form-panel"><RegistrationForm onBack={() => setRegistrationOpen(false)} onAccepted={(message, registeredEmail) => { setRegistrationOpen(false); setEmail(registeredEmail); setSessionMessage(message); setState('idle') }} /></section></section></main>
+  if (!token) return <main className="shell login-shell"><section className="login-layout shadow-lg"><aside className="login-brand-panel"><img className="login-brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /><div><p className="eyebrow">OROLEITE BI</p><h1 aria-label="Central de resultados">Central de<br /><span>resultados.</span></h1><p>Inteligencia comercial para decisoes mais seguras, todos os dias.</p></div><p className="login-brand-footer"><i className="fa-solid fa-shield-halved" aria-hidden="true" /> Ambiente corporativo protegido</p></aside><section className="login-form-panel"><div className="login-form-heading"><p className="eyebrow">ACESSO RESTRITO</p><h2>Bem-vindo de volta.</h2><p>Informe suas credenciais para acessar os indicadores da operacao.</p></div>{sessionMessage && <p className="notice" role="status">{sessionMessage}</p>}<form onSubmit={login}><label>E-MAIL<input type="email" autoComplete="username" required value={email} onChange={event => setEmail(event.target.value)} /></label><label>SENHA<span className="password-field"><input type={passwordVisible ? 'text' : 'password'} autoComplete="current-password" required value={password} onChange={event => setPassword(event.target.value)} /><button type="button" className="password-toggle" onClick={() => setPasswordVisible(visible => !visible)} aria-label={passwordVisible ? 'Ocultar senha' : 'Mostrar senha'}><i className={`fa-solid ${passwordVisible ? 'fa-eye-slash' : 'fa-eye'}`} aria-hidden="true" /></button></span></label><button className="btn btn-dark" type="submit" disabled={state === 'loading'}>{state === 'loading' ? 'Entrando...' : 'Entrar'} <i className="fa-solid fa-arrow-right" aria-hidden="true" /></button></form>{state === 'error' && <p className="notice error">Credenciais invalidas ou API indisponivel.</p>}<button type="button" className="registration-link" disabled={state === 'loading'} onClick={() => { setPassword(''); setPasswordVisible(false); setSessionMessage(''); setState('idle'); setRegistrationOpen(true) }}>Criar minha conta</button></section></section></main>
+
+  if (portalRoute) return <Suspense fallback={<main className="shell" role="status">Abrindo portal...</main>}><SellerPortal token={token} onLogout={logout} onSessionEnd={endSession} onAdmin={() => { setPortalRoute(false); window.history.replaceState({}, '', '/') }} /></Suspense>
 
   if (view === 'import') return <main className="shell import-workspace"><ImportPage file={file} fileType={fileType} state={state} onBack={() => setView('dashboard')} onFileChange={selectImportFile} onFileTypeChange={setFileType} onSubmit={() => void upload()} /></main>
 
   return <main className="executive-layout">
     <aside className={`side-rail ${menuOpen ? 'is-open' : ''}`}><div className="brand"><img className="brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /></div><p className="rail-label">CENTRAL DE RESULTADOS</p><nav id="main-navigation" className="side-navigation" aria-label="Modulos do BI">{navigationItems.map(item => <button className={view === item.view ? 'active' : ''} key={item.view} onClick={() => navigate(item.view)}><i className={`fa-solid ${item.icon}`} aria-hidden="true" /><span>{item.label}</span></button>)}</nav><div className="rail-footer"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Dados sincronizados</div></aside>
-    <section className={`main-canvas ${view === 'dashboard' ? 'dashboard-workspace' : 'analysis-workspace'}`}><header className="command-bar"><button className="menu-toggle" type="button" aria-label="Alternar navegacao" aria-controls="main-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(open => !open)}><i className="fa-solid fa-bars" aria-hidden="true" /></button><div><p>PAINEL EXECUTIVO</p><strong>{navigationItems.find(item => item.view === view)?.label ?? 'Importar'}</strong></div><div className="command-actions">{roles.includes('Administrador') && <button className="btn btn-accent" onClick={() => { clearClosingRequests(); setView('import') }}><i className="fa-solid fa-file-arrow-up" aria-hidden="true" /> Importar</button>}<button className="btn btn-ghost" onClick={() => endSession()} aria-label="Sair"><i className="fa-solid fa-right-from-bracket" aria-hidden="true" /></button></div></header>
+    <section className={`main-canvas ${view === 'dashboard' ? 'dashboard-workspace' : 'analysis-workspace'}`}><header className="command-bar"><button className="menu-toggle" type="button" aria-label="Alternar navegacao" aria-controls="main-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(open => !open)}><i className="fa-solid fa-bars" aria-hidden="true" /></button><div><p>PAINEL EXECUTIVO</p><strong>{navigationItems.find(item => item.view === view)?.label ?? 'Importar'}</strong></div><div className="command-actions"><button className="btn btn-ghost" onClick={openPortal}>Portal do vendedor</button>{roles.includes('Administrador') && <button className="btn btn-accent" onClick={() => { clearClosingRequests(); setView('import') }}><i className="fa-solid fa-file-arrow-up" aria-hidden="true" /> Importar</button>}<button className="btn btn-ghost" onClick={logout} aria-label="Sair"><i className="fa-solid fa-right-from-bracket" aria-hidden="true" /></button></div></header>
       {view === 'dashboard' && <DashboardPage summary={summary} details={dashboardDetails} filters={dashboardDraft} appliedFilters={dashboardFilters} options={dashboardFilterOptions} sellers={sellers} state={state} onFiltersChange={setDashboardDraft} onSubmit={() => applyDashboardFilter(dashboardDraft)} onClear={clearDashboardFilters} />}
       {(view === 'margins' || view === 'net-margin') && <MarginAnalysisPage key={view} mode={view === 'margins' ? 'products' : 'net'} data={marginData} state={marginState} filters={marginFilters} options={dashboardFilterOptions} sellers={sellers} onSubmit={filters => void loadMargins(view, filters)} />}
       {(view === 'trades' || view === 'sales-trades') && <TradeAnalysisPage mode={view} data={tradeAnalysis} state={analysisState} />}

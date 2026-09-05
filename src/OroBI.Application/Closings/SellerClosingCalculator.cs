@@ -35,6 +35,7 @@ public sealed record SellerClosingSummary(
     CompensationSummary Compensation,
     decimal TotalAwards)
 {
+    public bool IsApproved { get; init; }
     public IReadOnlyCollection<ClosingBrandAward> BrandAwards { get; init; } = [];
     public ClosingMonthlySummary Monthly { get; init; } = new("seller", 0m, 0m, 0m, 0m, 0, 0, []);
     public IReadOnlyCollection<ClosingPppSegment> PppSegments { get; init; } = [];

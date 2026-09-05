@@ -44,8 +44,8 @@ public sealed class PayrollEndpointsTests : IClassFixture<WebApplicationFactory<
     [InlineData("/api/closings/payroll/export", "Vendedor", HttpStatusCode.Forbidden)]
     [InlineData("/api/closings/payroll", null, HttpStatusCode.Unauthorized)]
     [InlineData("/api/closings/payroll/export", null, HttpStatusCode.Unauthorized)]
-    [InlineData("/api/closings/payroll", "Gestor", HttpStatusCode.OK)]
-    [InlineData("/api/closings/payroll/export", "Gestor", HttpStatusCode.OK)]
+    [InlineData("/api/closings/payroll", "Gestor", HttpStatusCode.Forbidden)]
+    [InlineData("/api/closings/payroll/export", "Gestor", HttpStatusCode.Forbidden)]
     [InlineData("/api/closings/payroll", "Administrador", HttpStatusCode.OK)]
     [InlineData("/api/closings/payroll/export", "Administrador", HttpStatusCode.OK)]
     public async Task Payroll_requires_a_manager_or_administrator(string route, string? role, HttpStatusCode expected)
@@ -126,7 +126,7 @@ public sealed class PayrollEndpointsTests : IClassFixture<WebApplicationFactory<
         Assert.Equal(body.GetProperty("total").GetDecimal(), decimal.Parse(totalCell.Element(spreadsheet + "v")!.Value, CultureInfo.InvariantCulture));
     }
 
-    private Task<HttpResponseMessage> Send(string path, string? role = "Gestor")
+    private Task<HttpResponseMessage> Send(string path, string? role = "Administrador")
     {
         var request = new HttpRequestMessage(HttpMethod.Get, path);
         if (role is not null) request.Headers.Add("X-Payroll-Test-Role", role);

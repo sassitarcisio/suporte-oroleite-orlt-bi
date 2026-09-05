@@ -16,10 +16,12 @@ export async function authenticatedFetch(path: string, token: string, init: Requ
 export async function apiRequest<T>(path: string, token: string, init: RequestInit = {}): Promise<T> {
   const response = await authenticatedFetch(path, token, init)
   if (!response.ok) {
-    const error = await response.json().catch(() => null) as { error?: unknown } | null
-    const message = typeof error?.error === 'string' ? error.error : `API request failed: ${response.status}`
+    const error = await response.json().catch(() => null) as { error?: unknown; errors?: unknown } | null
+    const validation = Array.isArray(error?.errors) ? error.errors.filter((item): item is string => typeof item === 'string').join(' ') : ''
+    const message = typeof error?.error === 'string' ? error.error : validation || `API request failed: ${response.status}`
     throw new Error(message)
   }
+  if (response.status === 204) return undefined as T
   return response.json() as Promise<T>
 }
 

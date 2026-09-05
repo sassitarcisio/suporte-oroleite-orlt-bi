@@ -10,18 +10,21 @@ using OroBI.Api.Closings;
 using OroBI.Api.Imports;
 using OroBI.Api.Migrations;
 using OroBI.Api.Analytics;
+using OroBI.Api.Portal;
 using OroBI.Infrastructure;
 using OroBI.Infrastructure.Identity;
 using OroBI.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOroBiInfrastructure(builder.Configuration);
+builder.Services.AddSellerPortalIdentity();
 builder.Services.Configure<IdentityOptions>(options =>
 {
     options.Lockout.MaxFailedAccessAttempts = 5;
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
 });
 builder.Services.AddSingleton<LoginRateLimiter>();
+builder.Services.AddSingleton<RegistrationRateLimiter>();
 
 if (args.Contains("--migrate", StringComparer.OrdinalIgnoreCase) ||
     args.Contains("--provision-admin", StringComparer.OrdinalIgnoreCase))
@@ -65,6 +68,7 @@ var jwtOptions = jwtSection.Get<JwtOptions>() ?? throw new InvalidOperationExcep
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.Events = new JwtBearerEvents { OnTokenValidated = SessionTokenValidation.ValidateAsync };
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -79,9 +83,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(AuthorizationPolicies.AdministratorOnly, policy => policy.RequireRole("Administrador"));
-    options.AddPolicy(AuthorizationPolicies.ManagerOrAdministrator, policy => policy.RequireRole("Administrador", "Gestor"));
+    options.AddPolicy(AuthorizationPolicies.ManagerOrAdministrator, policy => policy.RequireRole("Administrador", "Diretoria"));
     options.AddPolicy(AuthorizationPolicies.SellerScope, policy =>
-        policy.RequireAuthenticatedUser().RequireRole("Administrador", "Gestor", "Vendedor"));
+        policy.RequireAuthenticatedUser().RequireRole("Administrador", "Diretoria", "Gestor", "Gerente", "Vendedor"));
 });
 var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
 builder.Services.AddCors(options => options.AddPolicy("Web", policy =>
@@ -94,12 +98,19 @@ builder.Services.AddCors(options => options.AddPolicy("Web", policy =>
 var app = builder.Build();
 
 app.UseHttpsRedirection();
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api"))
+        context.Response.Headers.CacheControl = "no-store";
+    await next(context);
+});
 app.UseCors("Web");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapHealthEndpoints();
 app.MapAuthEndpoints();
 app.MapAuthEndpoints("/api/v1");
+app.MapSellerPortalAccountEndpoints();
 app.MapCurrentUserEndpoints();
 app.MapCurrentUserEndpoints("/api/v1");
 app.MapImportEndpoints();
@@ -114,6 +125,7 @@ app.MapCommercialAnalyticsEndpoints();
 app.MapCommercialAnalyticsEndpoints("/api/v1");
 app.MapClosingEndpoints();
 app.MapClosingEndpoints("/api/v1");
+app.MapPortalEndpoints();
 
 app.Run();
 

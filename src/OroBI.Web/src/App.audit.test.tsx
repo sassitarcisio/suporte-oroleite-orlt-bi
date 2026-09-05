@@ -107,13 +107,13 @@ describe('Audit regressions: applied filters and session lifecycle', () => {
       const path = new URL(String(input), 'https://orobi.test').pathname
       const old = new Headers(init?.headers).get('Authorization') === 'Bearer old-token'
       if (path === '/api/me' && old) return new Promise(resolve => { finishOldRoles = resolve })
-      if (path === '/api/me') return Promise.resolve(json({ roles: ['Gestor'] }))
+      if (path === '/api/me') return Promise.resolve(json({ roles: ['Diretoria'] }))
       return Promise.resolve(response(input))
     })
     render(<App />)
-    await screen.findByTestId('dashboard-metrics')
-    fireEvent.click(screen.getByRole('button', { name: 'Sair' }))
-    fireEvent.change(screen.getByLabelText('E-MAIL'), { target: { value: 'gestor@example.test' } })
+    // Identity must resolve before commercial requests can start.
+    fireEvent.click(await screen.findByRole('button', { name: 'Sair' }))
+    fireEvent.change(screen.getByLabelText('E-MAIL'), { target: { value: 'diretoria@example.test' } })
     fireEvent.change(screen.getByLabelText('SENHA'), { target: { value: 'not-a-real-password' } })
     fireEvent.click(screen.getByRole('button', { name: /Entrar/ }))
     await screen.findByTestId('dashboard-metrics')

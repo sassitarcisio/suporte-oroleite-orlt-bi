@@ -19,14 +19,27 @@ public static class SellerAliasCatalog
 
     public static string ResolveImportedName(string seller)
     {
-        var normalized = seller.Trim().ToUpperInvariant();
+        var normalized = WithoutRolePrefix(seller.Trim().ToUpperInvariant());
         return ImportedNames.TryGetValue(normalized, out var importedName) ? importedName : normalized;
     }
 
     public static string[] GetMatchingNames(string seller)
     {
         var importedName = ResolveImportedName(seller);
-        return ImportedNames.Where(pair => pair.Value == importedName).Select(pair => pair.Key)
+        var names = ImportedNames.Where(pair => pair.Value == importedName).Select(pair => pair.Key)
+            .Append(WithoutRolePrefix(importedName));
+        return names.SelectMany(name => new[] { name, $"VENDEDOR: {name}", $"SUPERVISOR: {name}" })
             .Append(importedName).Distinct(StringComparer.Ordinal).ToArray();
+    }
+
+    private static string WithoutRolePrefix(string name)
+    {
+        // Prefixes describe the imported row, not a separate person. Resolve aliases only after removing them.
+        while (true)
+        {
+            if (name.StartsWith("VENDEDOR:", StringComparison.Ordinal)) name = name[9..].Trim();
+            else if (name.StartsWith("SUPERVISOR:", StringComparison.Ordinal)) name = name[11..].Trim();
+            else return name;
+        }
     }
 }

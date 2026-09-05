@@ -28,7 +28,31 @@ public sealed class LocalAuthenticationServiceTests : IDisposable
             ["Jwt:Issuer"] = "test", ["Jwt:Audience"] = "test",
             ["Jwt:SigningKey"] = "synthetic-test-signing-key-with-thirty-two-characters"
         }).Build();
-        _service = new LocalAuthenticationService(_manager, config);
+        _service = new LocalAuthenticationService(_manager, config, _context);
+    }
+
+    [Fact]
+    public async Task Token_contains_persisted_session_version()
+    {
+        var user = await CreateUserAsync();
+        var result = await _service.LoginAsync(Email, Password, default);
+        Assert.NotNull(result);
+        var token = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().ReadJwtToken(result.AccessToken);
+        Assert.Equal(user.SecurityStamp, token.Claims.SingleOrDefault(claim => claim.Type == "session_version")?.Value);
+    }
+
+    [Fact]
+    public async Task Login_audit_records_outcomes_without_credentials()
+    {
+        await CreateUserAsync();
+        await _service.LoginAsync(Email, "Wrong-Synthetic-Password!", default);
+        await _service.LoginAsync(Email, Password, default);
+        var events = await _context.AccountAuditEvents.OrderBy(item => item.OccurredAtUtc).ToArrayAsync();
+        Assert.Equal(new[] { "LoginFailed", "LoginSucceeded" }, events.Select(item => item.Action));
+        var json = System.Text.Json.JsonSerializer.Serialize(events);
+        Assert.DoesNotContain(Password, json);
+        Assert.DoesNotContain("Wrong-Synthetic-Password!", json);
+        Assert.DoesNotContain("accessToken", json);
     }
 
     [Fact]

@@ -5,12 +5,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using OroBI.Application.Identity;
+using OroBI.Infrastructure.Persistence;
 
 namespace OroBI.Infrastructure.Identity;
 
 public sealed class LocalAuthenticationService(
     UserManager<ApplicationUser> userManager,
-    IConfiguration configuration) : ILocalAuthenticationService
+    IConfiguration configuration,
+    OroBiDbContext db) : ILocalAuthenticationService
 {
     public async Task<LocalLoginResult?> LoginAsync(string email, string password, CancellationToken cancellationToken)
     {
@@ -18,18 +20,24 @@ public sealed class LocalAuthenticationService(
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrEmpty(password)) return null;
 
         var user = await userManager.FindByEmailAsync(email.Trim());
-        if (user is null || await userManager.IsLockedOutAsync(user))
+        if (user is null || !user.IsActive || await userManager.IsLockedOutAsync(user))
         {
+            await AuditAsync("LoginFailed", user?.Id, email, cancellationToken);
             return null;
         }
 
         if (!await userManager.CheckPasswordAsync(user, password))
         {
             await userManager.AccessFailedAsync(user);
+            await AuditAsync("LoginFailed", user.Id, email, cancellationToken);
             return null;
         }
 
-        if (await userManager.IsLockedOutAsync(user)) return null;
+        if (await userManager.IsLockedOutAsync(user))
+        {
+            await AuditAsync("LoginFailed", user.Id, email, cancellationToken);
+            return null;
+        }
         var resetResult = await userManager.ResetAccessFailedCountAsync(user);
         if (!resetResult.Succeeded) return null;
 
@@ -37,6 +45,7 @@ public sealed class LocalAuthenticationService(
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, user.Id),
+            new("session_version", await userManager.GetSecurityStampAsync(user)),
             new(JwtRegisteredClaimNames.Email, user.Email ?? user.UserName ?? string.Empty),
             new(ClaimTypes.Name, user.UserName ?? string.Empty)
         };
@@ -59,6 +68,18 @@ public sealed class LocalAuthenticationService(
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),
                 SecurityAlgorithms.HmacSha256));
 
+        await AuditAsync("LoginSucceeded", user.Id, email, cancellationToken);
         return new LocalLoginResult(new JwtSecurityTokenHandler().WriteToken(token), expiresAt, roles.ToArray());
+    }
+
+    private async Task AuditAsync(string action, string? userId, string email, CancellationToken cancellationToken)
+    {
+        var target = userId ?? email.Trim().ToUpperInvariant();
+        db.AccountAuditEvents.Add(new AccountAuditEvent
+        {
+            Action = action, ActorUserId = userId ?? string.Empty,
+            TargetId = target.Length > 450 ? target[..450] : target
+        });
+        await db.SaveChangesAsync(cancellationToken);
     }
 }

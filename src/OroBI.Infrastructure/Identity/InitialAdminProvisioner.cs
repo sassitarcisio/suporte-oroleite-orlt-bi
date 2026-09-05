@@ -31,6 +31,11 @@ public sealed class InitialAdminProvisioner(
         {
             cancellationToken.ThrowIfCancellationRequested();
             var user = await userManager.FindByEmailAsync(credential.Email);
+            if (user is not null && (user.IsRegistrationPending ||
+                (user.RegistrationName is not null && !await userManager.IsInRoleAsync(user, AdministratorRole))))
+            {
+                throw new InvalidOperationException("Self-registered accounts require explicit administrator review and cannot be promoted by initial provisioning.");
+            }
             if (user is null)
             {
                 user = new ApplicationUser
