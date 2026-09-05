@@ -13,7 +13,9 @@ using Microsoft.Extensions.Logging;
 using OroBI.Application.Identity;
 using OroBI.Domain.Closings;
 using OroBI.Domain.Commercial;
+using OroBI.Domain.Goals;
 using OroBI.Domain.Imports;
+using OroBI.Domain.Ppp;
 using OroBI.Domain.Sellers;
 using OroBI.Infrastructure.Identity;
 using OroBI.Infrastructure.Persistence;
@@ -114,6 +116,99 @@ public sealed class PortalEndpointsTests
         Assert.Equal(JsonValueKind.Null, ppp.GetProperty("segments")[0].GetProperty("customerCount").ValueKind);
         var dashboard = JsonDocument.Parse(await fixture.Client.GetStringAsync("/api/v1/me/dashboard?month=2026-08")).RootElement;
         Assert.Equal(JsonValueKind.Null, dashboard.GetProperty("period").GetProperty("customerCount").ValueKind);
+    }
+
+    [Theory]
+    [InlineData("Vendedor", "dashboard")]
+    [InlineData("Vendedor", "products")]
+    [InlineData("Vendedor", "brands")]
+    [InlineData("Gestor", "dashboard")]
+    [InlineData("Gestor", "products")]
+    [InlineData("Gestor", "brands")]
+    public async Task Customer_permission_blocks_customer_filters_on_aggregates(string role, string resource)
+    {
+        await using var fixture = await PortalFixture.CreateAsync(role);
+        var route = role == "Vendedor" ? $"/api/v1/me/{resource}" : $"/api/v1/management/sellers/{fixture.OwnSeller}/{resource}";
+        var filters = new[] { "customerContains=OWN", "customerContains=UNKNOWN", "city=CIDADE", "city=UNKNOWN" };
+        foreach (var filter in filters)
+            Assert.Equal(HttpStatusCode.OK, (await fixture.Client.GetAsync($"{route}?month=2026-08&{filter}")).StatusCode);
+        using (var scope = fixture.Factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<OroBiDbContext>();
+            var access = await db.UserSellerAccesses.SingleAsync(item => item.SellerId == fixture.OwnSeller);
+            access.Permissions = access.Permissions with { CanViewCustomers = false };
+            await db.SaveChangesAsync();
+        }
+        Assert.Equal(HttpStatusCode.OK, (await fixture.Client.GetAsync($"{route}?month=2026-08")).StatusCode);
+        foreach (var filter in filters)
+            Assert.Equal(HttpStatusCode.Forbidden, (await fixture.Client.GetAsync($"{route}?month=2026-08&{filter}")).StatusCode);
+    }
+
+    [Theory]
+    [InlineData("Vendedor", false, "ppp")]
+    [InlineData("Vendedor", true, "ppp")]
+    [InlineData("Gestor", false, "ppp")]
+    [InlineData("Gestor", true, "ppp")]
+    [InlineData("Vendedor", false, "goals")]
+    [InlineData("Vendedor", true, "goals")]
+    [InlineData("Gestor", false, "goals")]
+    [InlineData("Gestor", true, "goals")]
+    public async Task Customer_permission_hides_counts_in_goals_and_ppp_without_hiding_allowed_results(string role, bool approved, string resource)
+    {
+        await using var fixture = await PortalFixture.CreateAsync(role);
+        using (var scope = fixture.Factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<OroBiDbContext>();
+            var valuesId = await db.ImportedClosingDefaults.Select(item => item.ImportBatchId).SingleAsync();
+            db.AddRange(GoalValueRecord.Create(valuesId, "OROLEITE", 100m, 200m, 50m, 1m),
+                GoalRecord.Create(Guid.NewGuid(), "ANA", 8, 2026, "FATURAMENTO", "Marca OROLEITE / faturamento", 2000m, 1000m),
+                GoalRecord.Create(Guid.NewGuid(), "ANA", 8, 2026, "POSITIVACAO", "Marca OROLEITE / positivacao", 20m, 10m),
+                PppRecord.Create(Guid.NewGuid(), 2026, 8, "ANA", "SEGMENTO", 10, 4, 30));
+            await db.SaveChangesAsync();
+        }
+        if (approved)
+        {
+            var token = fixture.Client.DefaultRequestHeaders.Authorization;
+            await fixture.LoginAsAdminAsync();
+            var closingRoute = $"/api/v1/management/sellers/{fixture.OwnSeller}/closings";
+            Assert.Equal(HttpStatusCode.OK, (await fixture.Client.PostAsync(closingRoute + "/review?month=2026-08", null)).StatusCode);
+            Assert.Equal(HttpStatusCode.OK, (await fixture.Client.PostAsync(closingRoute + "/approve?month=2026-08", null)).StatusCode);
+            fixture.Client.DefaultRequestHeaders.Authorization = token;
+        }
+        var route = role == "Vendedor" ? $"/api/v1/me/{resource}?month=2026-08" : $"/api/v1/management/sellers/{fixture.OwnSeller}/{resource}?month=2026-08";
+        var allowed = JsonDocument.Parse(await fixture.Client.GetStringAsync(route)).RootElement;
+        if (resource == "ppp")
+        {
+            Assert.Equal(10, allowed.GetProperty("segments")[0].GetProperty("customerCount").GetInt32());
+            Assert.Equal(30, allowed.GetProperty("segments")[0].GetProperty("groupsPlaced").GetInt32());
+        }
+        else
+            Assert.Contains(allowed.GetProperty("items").EnumerateArray(), item => item.GetProperty("type").GetString() == "POSITIVACAO" && item.GetProperty("actual").GetDecimal() == 10m);
+        using (var scope = fixture.Factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<OroBiDbContext>();
+            var access = await db.UserSellerAccesses.SingleAsync(item => item.SellerId == fixture.OwnSeller);
+            access.Permissions = access.Permissions with { CanViewCustomers = false };
+            await db.SaveChangesAsync();
+        }
+        var hidden = JsonDocument.Parse(await fixture.Client.GetStringAsync(route)).RootElement;
+        Assert.Equal(approved, hidden.GetProperty("isApproved").GetBoolean());
+        if (resource == "ppp")
+        {
+            var segment = hidden.GetProperty("segments")[0];
+            Assert.Equal(JsonValueKind.Null, segment.GetProperty("customerCount").ValueKind);
+            Assert.Equal(JsonValueKind.Null, segment.GetProperty("groupsPlaced").ValueKind);
+            Assert.Equal(4, segment.GetProperty("itemsPerSegment").GetInt32());
+            Assert.Equal(75m, segment.GetProperty("achievementPercent").GetDecimal());
+            Assert.Equal(allowed.GetProperty("award").GetDecimal(), hidden.GetProperty("award").GetDecimal());
+        }
+        else
+        {
+            var goal = Assert.Single(hidden.GetProperty("items").EnumerateArray());
+            Assert.Equal("FATURAMENTO", goal.GetProperty("type").GetString());
+            Assert.Equal(1000m, goal.GetProperty("actual").GetDecimal());
+            Assert.Equal(100m, goal.GetProperty("maximumPrize").GetDecimal());
+        }
     }
 
     [Fact]

@@ -48,6 +48,7 @@ public sealed partial class OroBiDbContext(DbContextOptions<OroBiDbContext> opti
         modelBuilder.Entity<CommercialMovement>(entity =>
         {
             entity.HasKey(movement => movement.Id);
+            entity.Property(movement => movement.ProductCode).HasDefaultValue(string.Empty);
             entity.Property(movement => movement.TotalValue).HasPrecision(18, 2);
             entity.Property(movement => movement.Quantity).HasPrecision(18, 4);
             entity.Property(movement => movement.UnitCost).HasPrecision(18, 4);

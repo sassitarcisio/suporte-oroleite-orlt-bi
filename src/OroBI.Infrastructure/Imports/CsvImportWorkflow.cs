@@ -45,6 +45,12 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
         // must restore it as current. Its records are never summed across batches.
         if (existing is not null && submission.FileType != ImportFileType.GoalValues)
         {
+            if (submission.FileType == ImportFileType.Power)
+            {
+                await FillMissingProductCodesAsync(existing.Id, DecodeCsv(bytes), cancellationToken);
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+            if (transaction is not null) await transaction.CommitAsync(cancellationToken);
             return new ImportExecutionResult(existing.Status, existing.StoredFileUri, existing.ProcessedRows, existing.ErrorRows);
         }
 
@@ -97,6 +103,44 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
         await dbContext.SaveChangesAsync(cancellationToken);
         if (transaction is not null) await transaction.CommitAsync(cancellationToken);
         return new ImportExecutionResult(batch.Status, batch.StoredFileUri, batch.ProcessedRows, batch.ErrorRows);
+    }
+
+    private async Task FillMissingProductCodesAsync(Guid batchId, string csv, CancellationToken cancellationToken)
+    {
+        if (ImportCsvService.Validate(ImportFileType.Power, csv).Status == ImportValidationStatus.Rejected) return;
+
+        // A historical movement has no CSV line identity. Fill it only when every
+        // original row with the same legacy fields agrees on one nonempty code.
+        var codes = ParsePowerMovements(batchId, csv).Movements
+            .GroupBy(LegacyMovementKey.From)
+            .Select(group => new { group.Key, Codes = group.Select(movement => movement.ProductCode).Distinct(StringComparer.Ordinal).ToArray() })
+            .Where(group => group.Codes.Length == 1 && !string.IsNullOrWhiteSpace(group.Codes[0]))
+            .ToDictionary(group => group.Key, group => group.Codes[0]);
+        if (codes.Count == 0) return;
+
+        var movements = await dbContext.CommercialMovements
+            .Where(movement => movement.ImportBatchId == batchId && movement.ProductCode == string.Empty)
+            .ToListAsync(cancellationToken);
+        foreach (var movement in movements)
+        {
+            if (codes.TryGetValue(LegacyMovementKey.From(movement), out var code)) movement.FillMissingProductCode(code);
+        }
+    }
+
+    private sealed record LegacyMovementKey(
+        DateOnly MovementDate, string Seller, string Brand, string Group, string MovementType,
+        string City, string CustomerName, string ProductName, decimal TotalValue, decimal Quantity,
+        decimal UnitCost, string CustomerCode, string DocumentNumber)
+    {
+        public static LegacyMovementKey From(CommercialMovement movement) => new(
+            movement.MovementDate, movement.Seller, movement.Brand, movement.Group, movement.MovementType,
+            movement.City, movement.CustomerName, movement.ProductName,
+            // PostgreSQL numeric columns round before storage. Group the source
+            // rows at that same precision so rounding collisions stay ambiguous.
+            decimal.Round(movement.TotalValue, 2, MidpointRounding.AwayFromZero),
+            decimal.Round(movement.Quantity, 4, MidpointRounding.AwayFromZero),
+            decimal.Round(movement.UnitCost, 4, MidpointRounding.AwayFromZero),
+            movement.CustomerCode, movement.DocumentNumber);
     }
 
     private static string DecodeCsv(byte[] bytes)
@@ -154,7 +198,10 @@ public sealed class CsvImportWorkflow(OroBiDbContext dbContext, IImportFileStore
                     ParseDecimal("QTDE", Value("QTDE"), NumberStyles.Number, isDiscount),
                     ParseDecimal("PRECOCUSTO", Value("PRECOCUSTO"), NumberStyles.Number | NumberStyles.AllowCurrencySymbol, isDiscount),
                     Value("CODCLIENTE").Trim(),
-                    Value("NRODOCUMENTO").Trim()));
+                    Value("NRODOCUMENTO").Trim(),
+                    headers.TryGetValue("CODPRODUTO", out var productCodeIndex) && productCodeIndex < values.Length
+                        ? values[productCodeIndex].Trim()
+                        : string.Empty));
 
                 string Value(string header) => ReadColumn(values, headers[header], header);
             }

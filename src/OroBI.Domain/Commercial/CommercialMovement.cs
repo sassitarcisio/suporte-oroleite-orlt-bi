@@ -24,6 +24,7 @@ public sealed class CommercialMovement
     public string City { get; private set; } = string.Empty;
     public string CustomerName { get; private set; } = string.Empty;
     public string ProductName { get; private set; } = string.Empty;
+    public string ProductCode { get; private set; } = string.Empty;
     public string CustomerCode { get; private set; } = string.Empty;
     public string DocumentNumber { get; private set; } = string.Empty;
     public string? SourceSystem { get; private set; }
@@ -49,7 +50,8 @@ public sealed class CommercialMovement
         decimal quantity,
         decimal unitCost,
         string customerCode,
-        string documentNumber)
+        string documentNumber,
+        string productCode = "")
     {
         var movement = new CommercialMovement(importBatchId, movementDate, seller, movementType, totalValue, quantity)
         {
@@ -58,12 +60,18 @@ public sealed class CommercialMovement
             City = city,
             CustomerName = customerName,
             ProductName = productName,
+            ProductCode = productCode.Trim(),
             UnitCost = unitCost,
             CustomerCode = customerCode,
             DocumentNumber = documentNumber
         };
 
         return movement;
+    }
+
+    public void FillMissingProductCode(string productCode)
+    {
+        if (string.IsNullOrWhiteSpace(ProductCode)) ProductCode = productCode.Trim();
     }
 
     public void SetSourceIdentity(string sourceSystem, string sourceRecordKey)

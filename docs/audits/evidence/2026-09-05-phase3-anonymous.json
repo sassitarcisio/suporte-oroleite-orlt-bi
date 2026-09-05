@@ -1,0 +1,83 @@
+﻿{
+    "generatedAtUtc":  "2026-09-05T20:02:24.2047903Z",
+    "api":  "https://orobi-api.ashymoss-e2dce47a.eastus2.azurecontainerapps.io",
+    "checks":  [
+                   {
+                       "path":  "/api/v1/me",
+                       "status":  401,
+                       "passed":  true
+                   },
+                   {
+                       "path":  "/api/v1/me/dashboard",
+                       "status":  401,
+                       "passed":  true
+                   },
+                   {
+                       "path":  "/api/v1/me/sales",
+                       "status":  401,
+                       "passed":  true
+                   },
+                   {
+                       "path":  "/api/v1/me/customers",
+                       "status":  401,
+                       "passed":  true
+                   },
+                   {
+                       "path":  "/api/v1/me/products",
+                       "status":  401,
+                       "passed":  true
+                   },
+                   {
+                       "path":  "/api/v1/me/brands",
+                       "status":  401,
+                       "passed":  true
+                   },
+                   {
+                       "path":  "/api/v1/me/goals",
+                       "status":  401,
+                       "passed":  true
+                   },
+                   {
+                       "path":  "/api/v1/me/ppp",
+                       "status":  401,
+                       "passed":  true
+                   },
+                   {
+                       "path":  "/api/v1/me/trades",
+                       "status":  401,
+                       "passed":  true
+                   },
+                   {
+                       "path":  "/api/v1/me/commission",
+                       "status":  401,
+                       "passed":  true
+                   },
+                   {
+                       "path":  "/api/v1/me/closings",
+                       "status":  401,
+                       "passed":  true
+                   },
+                   {
+                       "path":  "/api/v1/me/closings/history",
+                       "status":  401,
+                       "passed":  true
+                   },
+                   {
+                       "path":  "/api/v1/management/sellers",
+                       "status":  401,
+                       "passed":  true
+                   },
+                   {
+                       "path":  "/api/v1/admin/users",
+                       "status":  401,
+                       "passed":  true
+                   },
+                   {
+                       "path":  "/api/v1/admin/sellers",
+                       "status":  401,
+                       "passed":  true
+                   }
+               ],
+    "passed":  true,
+    "limitations":  "Anonymous GET requests only. No real account, credential or commercial response accessed. This does not test cross-seller authorization in production."
+}

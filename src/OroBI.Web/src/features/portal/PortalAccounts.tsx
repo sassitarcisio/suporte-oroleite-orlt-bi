@@ -50,9 +50,9 @@ function PendingRegistrations({ token, sellers, users, onChanged }: { token: str
   </section>
 }
 
-export default function PortalAccounts({ token }: { token: string }) {
+export default function PortalAccounts({ token, onChanged }: { token: string; onChanged?: () => void }) {
   const [revision, setRevision] = useState(0)
-  return <Resource<Seller[]> key={revision} token={token} path="/api/v1/admin/sellers">{sellers => <Resource<User[]> token={token} path="/api/v1/admin/users">{users => <AccountForms token={token} sellers={sellers} users={users} onChanged={() => setRevision(value => value + 1)} />}</Resource>}</Resource>
+  return <Resource<Seller[]> key={revision} token={token} path="/api/v1/admin/sellers">{sellers => <Resource<User[]> token={token} path="/api/v1/admin/users">{users => <AccountForms token={token} sellers={sellers} users={users} onChanged={() => { setRevision(value => value + 1); onChanged?.() }} />}</Resource>}</Resource>
 }
 function AccountForms({ token, sellers, users, onChanged }: { token: string; sellers: Seller[]; users: User[]; onChanged: () => void }) {
   const [sellerName, setSellerName] = useState('')

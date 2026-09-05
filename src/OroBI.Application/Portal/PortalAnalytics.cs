@@ -22,7 +22,10 @@ public sealed record PortalCustomer(string CustomerCode, string CustomerName, st
 public sealed record PortalCustomers(bool ObservedBuyersOnly, IReadOnlyList<PortalCustomer> Items, int TotalCount, bool HasMore);
 public sealed record PortalCustomerDetail(PortalCustomer Customer, IReadOnlyList<PortalSale> Sales, int TotalCount, bool HasMore);
 public sealed record PortalRankingItem(string Label, decimal GrossSales, decimal NetRevenue, decimal Quantity,
-    int MovementCount, int? CustomerCount, decimal? RevenueSharePercent);
+    int MovementCount, int? CustomerCount, decimal? RevenueSharePercent)
+{
+    public string? ProductCode { get; init; }
+}
 public sealed record PortalRanking(IReadOnlyList<PortalRankingItem> Items, int TotalCount, bool HasMore);
 public sealed record PortalGoal(string Brand, string Type, decimal Target, decimal Actual, decimal? AchievedPercent,
     decimal? MaximumPrize, decimal? CurrentPrize, decimal? NextTierPercent, decimal? AmountToNextTier, decimal? NextTierPrize);
@@ -30,7 +33,7 @@ public sealed record PortalGoals(int Year, int Month, bool Available, string? Un
 {
     public bool IsApproved { get; init; }
 }
-public sealed record PortalPppSegment(string Segment, int? CustomerCount, int ItemsPerSegment, int GroupsPlaced, decimal? AchievementPercent);
+public sealed record PortalPppSegment(string Segment, int? CustomerCount, int ItemsPerSegment, int? GroupsPlaced, decimal? AchievementPercent);
 public sealed record PortalPpp(int Year, int Month, bool Available, string? UnavailableReason, decimal? AchievementPercent,
     decimal? Award, IReadOnlyList<PortalPppSegment> Segments)
 {

@@ -153,6 +153,34 @@ describe('Seller portal', () => {
     expect(screen.getByText('73')).toBeVisible()
   })
 
+  it('clears customer filters when changing seller scope and hides them without permission', async () => {
+    const scopedPermissions = { ...permissions, canViewCommission: false, canViewPrize: false, canViewPPP: false, canViewGoals: false, canViewTrades: false }
+    vi.mocked(fetch).mockImplementation(async input => {
+      const url = new URL(String(input), 'http://localhost')
+      if (url.pathname === '/api/v1/me') return reply({ ...identity, roles: ['Gestor'], sellerId: null, permissions: null })
+      if (url.pathname === '/api/v1/management/sellers') return reply([
+        { sellerId: 'seller-a', name: 'ANA', permissions: scopedPermissions },
+        { sellerId: 'seller-b', name: 'BRUNO', permissions: { ...scopedPermissions, canViewCustomers: false } },
+      ])
+      if (url.pathname.endsWith('/dashboard')) return reply({ ...dashboard, period: { ...revenue, netRevenue: url.searchParams.has('customerContains') ? 9 : 1234 } })
+      return reply({})
+    })
+    render(<App />)
+    await screen.findByRole('option', { name: 'ANA' })
+    fireEvent.change(screen.getByLabelText('Vendedor vinculado'), { target: { value: 'seller-a' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Personalizado' }))
+    fireEvent.change(screen.getByLabelText('Cliente'), { target: { value: 'Padaria' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Aplicar filtros' }))
+    expect(await screen.findByText(/R\$\s*9,00/)).toBeVisible()
+    fireEvent.change(screen.getByLabelText('Vendedor vinculado'), { target: { value: 'seller-b' } })
+    await waitFor(() => expect(screen.queryByText(/R\$\s*9,00/)).not.toBeInTheDocument())
+    expect(screen.queryByLabelText('Cliente')).not.toBeInTheDocument()
+    expect((await screen.findAllByText(/1.234,00/)).length).toBeGreaterThan(0)
+    expect(vi.mocked(fetch).mock.calls.filter(([input]) => String(input).includes('/seller-b/')).every(([input]) => !new URL(String(input), 'http://localhost').searchParams.has('customerContains'))).toBe(true)
+    await act(async () => { fireEvent.change(screen.getByLabelText('Vendedor vinculado'), { target: { value: 'seller-a' } }) })
+    expect(screen.getByLabelText('Cliente')).toHaveValue('')
+  })
+
   it('composes monthly commission, PPP and goal progress on the home dashboard', async () => {
     const original = vi.mocked(fetch).getMockImplementation()!
     vi.mocked(fetch).mockImplementation((input, init) => {
