@@ -37,6 +37,31 @@ public static class DashboardCalculator
             .Select(group => new DashboardSellerResult(group.Key, group.Sum(movement => movement.TotalValue)))
             .OrderByDescending(result => result.NetResult).ThenBy(result => result.Seller).Take(10).ToArray();
 
-        return new DashboardDetails(dailyTrend, sellerResults);
+        DashboardGroupRow[] Aggregate(Func<CommercialMovement, string> key) => rows
+            .GroupBy(row => string.IsNullOrWhiteSpace(key(row)) ? "SEM INFORMAÇÃO" : key(row).Trim())
+            .Select(group => new DashboardGroupRow(group.Key,
+                group.Sum(row => row.TotalValue),
+                group.Where(row => row.MovementType == "VENDA").Sum(row => row.TotalValue),
+                group.Where(row => row.TotalValue < 0m).Sum(row => decimal.Abs(row.TotalValue)),
+                group.Sum(row => row.Quantity), group.Count(),
+                group.Select(row => row.DocumentNumber).Where(value => !string.IsNullOrWhiteSpace(value))
+                    .Distinct(StringComparer.OrdinalIgnoreCase).Count()))
+            .OrderByDescending(row => row.NetResult).ThenBy(row => row.Label, StringComparer.Ordinal).ToArray();
+
+        return new DashboardDetails(dailyTrend, sellerResults)
+        {
+            Groups = new()
+            {
+                ["seller"] = Aggregate(row => row.Seller),
+                ["brand"] = Aggregate(row => row.Brand),
+                ["customer"] = Aggregate(row => row.CustomerName),
+                ["group"] = Aggregate(row => row.Group),
+                ["product"] = Aggregate(row => row.ProductName),
+                ["city"] = Aggregate(row => row.City),
+                ["movementType"] = Aggregate(row => row.MovementType),
+                ["family"] = Aggregate(row => row.Family),
+                ["date"] = Aggregate(row => row.MovementDate.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture))
+            }
+        };
     }
 }

@@ -37,6 +37,13 @@ public sealed class DashboardQueryServiceTests
 
         var gross = await service.GetMarginsAsync(filter, CancellationToken.None);
         var net = await service.GetNetMarginAsync(filter, CancellationToken.None);
+        var dashboard = await service.GetDetailsAsync(filter, CancellationToken.None);
+        var dashboardRow = Assert.Single(dashboard.Groups["brand"]);
+        Assert.Equal(280m, dashboardRow.NetResult);
+        Assert.Equal(200m, dashboardRow.GrossSales);
+        Assert.Equal(4, dashboardRow.MovementCount);
+        var salesOnly = await service.GetDetailsAsync(filter with { MovementTypes = ["VENDA"] }, CancellationToken.None);
+        Assert.Equal(200m, Assert.Single(salesOnly.Groups["customer"]).NetResult);
 
         Assert.Equal(200m, gross.Revenue);
         Assert.Equal(80m, gross.Cost);

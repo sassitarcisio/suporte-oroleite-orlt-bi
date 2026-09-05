@@ -7,6 +7,34 @@ namespace OroBI.Application.Tests.Analytics;
 public sealed class DashboardCalculatorTests
 {
     [Fact]
+    public void Groups_signed_values_all_metrics_and_distinct_documents_without_truncating_dynamic_data()
+    {
+        var id = Guid.NewGuid();
+        CommercialMovement Row(string type, decimal value, decimal quantity, string document, string brand = "MARCA") =>
+            CommercialMovement.CreateFromImport(id, new DateOnly(2026, 8, 1), "ANA", brand, "REDE", type,
+                "CIDADE", "Cliente A", "Produto A", value, quantity, 1m, "C1", document);
+        var rows = new[] { Row("VENDA", 100m, 10m, "D1"), Row("VENDA", 50m, 5m, "D1"),
+            Row("DEVOLUCAO", -20m, -2m, "D2"), Row("TROCA", 3m, 1m, ""), Row("DESC BOLETO", -7m, 0m, "", "") };
+        var result = DashboardCalculator.BuildDetails(rows);
+        foreach (var key in new[] { "seller", "customer", "group", "product", "city", "family", "date" })
+        {
+            var aggregate = Assert.Single(result.Groups[key]);
+            Assert.Equal(126m, aggregate.NetResult);
+            Assert.Equal(150m, aggregate.GrossSales);
+            Assert.Equal(27m, aggregate.NegativeMovements);
+            Assert.Equal(14m, aggregate.Quantity);
+            Assert.Equal(5, aggregate.MovementCount);
+            Assert.Equal(2, aggregate.DocumentCount);
+        }
+        Assert.Equal(-7m, result.Groups["brand"].Single(row => row.Label == "SEM INFORMAÇÃO").NetResult);
+        Assert.Equal(3m, result.Groups["movementType"].Single(row => row.Label == "TROCA").NetResult);
+        Assert.Equal(-20m, result.Groups["movementType"].Single(row => row.Label == "DEVOLUCAO").NetResult);
+        var many = Enumerable.Range(0, 15).Select(index => Row("VENDA", index, 1m, "D1", $"Marca {index}"));
+        Assert.Equal(15, DashboardCalculator.BuildDetails(many).Groups["brand"].Length);
+        Assert.All(DashboardCalculator.BuildDetails([]).Groups.Values, values => Assert.Empty(values));
+    }
+
+    [Fact]
     public void Preserves_legacy_sales_and_negative_logic()
     {
         var batchId = ImportBatch.Start(ImportFileType.Power, "power.csv", "abc").Id;
