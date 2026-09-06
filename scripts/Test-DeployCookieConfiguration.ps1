@@ -36,6 +36,8 @@ try {
     if ($global:cookieTestParameters.apiCustomDomains.value.Count -ne 1) { throw 'Disabling cookies must preserve existing TLS bindings' }
     $global:cookieTestLookupFails = $true
     ExpectFailure { & $script:deployScript -WebOrigin 'https://legacy.example.invalid' } 'Failed to read current API custom domains'
+    # The final expected failure must not fail the GitHub Actions PowerShell wrapper.
+    $global:LASTEXITCODE = 0
     Write-Output 'PASS: 7 deployment cookie configuration checks; no Azure calls.'
 }
 finally {

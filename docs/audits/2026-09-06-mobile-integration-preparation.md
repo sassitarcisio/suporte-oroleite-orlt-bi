@@ -19,7 +19,7 @@ Escopo autorizado: preparar a branch `feature/seller-mobile-access` para integra
 | Lint | Exit code 0; um aviso preexistente de `set-state-in-effect` em `App.tsx`. |
 | TypeScript e Vite | Build de produção aprovado. |
 | Bicep | `infra/main.bicep` compilado sem erros. |
-| Pester 3.4.0 | 21 testes aprovados, zero falhas. |
+| Pester 3.4.0 | 22 testes aprovados, zero falhas, incluindo a regressão do código de saída. |
 | Configuração de cookies | Sete verificações aprovadas, Azure simulado. |
 | Revisão independente | Sem bloqueios após corrigir a propagação da falha de `operations`; isolamento de Data Protection também revisado. |
 
@@ -39,6 +39,12 @@ if ($result.TotalCount -eq 0 -or $result.FailedCount -gt 0) { exit 1 }
 ```
 
 No ambiente Windows local, os scripts operacionais foram executados em processo `powershell.exe -NoProfile -ExecutionPolicy Bypass`, sem mudar a política persistente do sistema. Bicep foi compilado com o executável local `bicep.exe build infra/main.bicep --outfile .worktrees/mobile-evidence/ci-main.json`; o CI mantém `az bicep build --file infra/main.bicep`.
+
+## Preparação no GitHub
+
+O envio ao repositório público foi autorizado explicitamente em 06/09/2026, após o bloqueio inicial da revisão automática. O [PR #5](https://github.com/sassitarcisio/suporte-oroleite-orlt-bi/pull/5) foi aberto em rascunho.
+
+A [primeira execução do PR](https://github.com/sassitarcisio/suporte-oroleite-orlt-bi/actions/runs/34047918038) aprovou os testes operacionais, mas detectou que a última falha simulada do script de cookies deixava `LASTEXITCODE=1`, apesar das sete verificações aprovadas. O wrapper PowerShell do GitHub propaga esse valor ao processo. O script agora define zero somente depois que todas as verificações terminam; exceções inesperadas continuam a falhar. A regressão executa o script real e verifica o código observado pelo chamador: falhou antes da correção e passou depois. O wrapper equivalente ao Actions também terminou com exit code 0 localmente. O resultado remoto atualizado fica nos checks do PR.
 
 ## Limites da entrega
 
