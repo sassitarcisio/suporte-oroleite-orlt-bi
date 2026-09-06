@@ -6,8 +6,42 @@ import { Empty, Resource } from './PortalShared'
 import { currentMonth, filterQuery, monthFilters, presetFilters } from './portalFormatting'
 import { Closing, ClosingHistory, CustomerDetail, Customers, Goals, HomeMonthly, PersonalDashboard, Ppp, Ranking, Sales, Trades } from './PortalResults'
 import PortalAccounts from './PortalAccounts'
+import ChangePasswordForm from '../../auth/ChangePasswordForm'
+import PWAInstallHelp from './PWAInstallHelp'
 import { permissionLabels } from './portalTypes'
 import './portal.css'
+
+type InstallEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }> }
+
+function usePWAInstall() {
+  const [installed, setInstalled] = useState(() => window.matchMedia?.('(display-mode: standalone)').matches || !!(navigator as Navigator & { standalone?: boolean }).standalone)
+  const [promptEvent, setPromptEvent] = useState<InstallEvent | null>(null)
+  const [message, setMessage] = useState('')
+  const [busy, setBusy] = useState(false)
+  useEffect(() => {
+    const offer = (event: Event) => { event.preventDefault(); setPromptEvent(event as InstallEvent); setMessage('') }
+    const complete = () => { setInstalled(true); setPromptEvent(null); setMessage('') }
+    const media = window.matchMedia?.('(display-mode: standalone)')
+    const mode = () => { if (media?.matches) complete() }
+    window.addEventListener('beforeinstallprompt', offer)
+    window.addEventListener('appinstalled', complete)
+    media?.addEventListener('change', mode)
+    return () => { window.removeEventListener('beforeinstallprompt', offer); window.removeEventListener('appinstalled', complete); media?.removeEventListener('change', mode) }
+  }, [])
+  async function install() {
+    if (!promptEvent || busy) return
+    setBusy(true)
+    setPromptEvent(null)
+    try {
+      await promptEvent.prompt()
+      const choice = await promptEvent.userChoice
+      setMessage(choice.outcome === 'accepted' ? 'Confirme a instalação no navegador. O aplicativo poderá aparecer na sua tela inicial.' : 'Instalação cancelada. Você pode continuar usando o portal no navegador.')
+    } catch { setMessage('A instalação não foi concluída. Use as instruções abaixo no menu do navegador.') }
+    finally { setBusy(false) }
+  }
+  return { installed, canPrompt: !!promptEvent, busy, message, install }
+}
+
 
 type View = 'dashboard' | 'sales' | 'customers' | 'products' | 'brands' | 'goals' | 'ppp' | 'trades' | 'commission' | 'closings' | 'profile' | 'accounts'
 type ScopedSeller = { sellerId: string; name: string; permissions: PortalPermissions }
@@ -27,9 +61,28 @@ const modules: Array<{ id: View; label: string; title: string; icon: string; per
 ]
 type Props = { token: string; onLogout: () => void; onSessionEnd: (message?: string) => void; onAdmin: () => void }
 export default function SellerPortal(props: Props) { return <main className="seller-portal"><header className="portal-header"><img src="/logoOroleite.png" alt="Oroleite Distribuidora" /><div><small>PORTAL DO VENDEDOR</small><strong>Seu espaço comercial</strong></div><button onClick={props.onLogout} aria-label="Sair"><i className="fa-solid fa-right-from-bracket" aria-hidden="true" /></button></header><Resource<PortalIdentity> token={props.token} path="/api/v1/me">{identity => <PortalWorkspace {...props} identity={identity} />}</Resource></main> }
-function PortalWorkspace({ token, onSessionEnd, onAdmin, identity }: Props & { identity: PortalIdentity }) {
+function PortalWorkspace({ token, onLogout, onSessionEnd, onAdmin, identity }: Props & { identity: PortalIdentity }) {
   const [view, setView] = useState<View>('dashboard')
   const [more, setMore] = useState(false)
+  const moreButton = useRef<HTMLButtonElement>(null)
+  const morePanel = useRef<HTMLElement>(null)
+  const installation = usePWAInstall()
+  useEffect(() => {
+    if (!more) return
+    morePanel.current?.querySelector<HTMLButtonElement>('button')?.focus()
+    const keyboard = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); setMore(false); moreButton.current?.focus() }
+      if (event.key === 'Tab') {
+        const buttons = morePanel.current?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')
+        if (!buttons?.length) return
+        const first = buttons[0], last = buttons[buttons.length - 1]
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus() }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus() }
+      }
+    }
+    document.addEventListener('keydown', keyboard)
+    return () => document.removeEventListener('keydown', keyboard)
+  }, [more])
   const [offline, setOffline] = useState(!navigator.onLine)
   const [sellers, setSellers] = useState<ScopedSeller[]>([])
   const [sellerId, setSellerId] = useState('')
@@ -73,7 +126,7 @@ function PortalWorkspace({ token, onSessionEnd, onAdmin, identity }: Props & { i
     void apiRequest<ScopedSeller[]>('/api/v1/management/sellers', token, { signal: abort.signal }).then(value => { if (!abort.signal.aborted) { setScopeError(''); setSellers(value) } }).catch(error => { if (!abort.signal.aborted) setScopeError(error instanceof Error ? error.message : 'Não foi possível consultar seus vínculos.') })
     return () => abort.abort()
   }, [token, isSeller, scopeRetry])
-  function navigate(next: View) { setView(next); setMore(false); setCustomer(''); setPage(1) }
+  function navigate(next: View) { if (more) moreButton.current?.focus(); setView(next); setMore(false); setCustomer(''); setPage(1) }
   function selectSeller(nextSellerId: string) {
     setSellerId(nextSellerId)
     setCustomer('')
@@ -87,7 +140,7 @@ function PortalWorkspace({ token, onSessionEnd, onAdmin, identity }: Props & { i
   const showFilters = !monthly && !['profile', 'accounts'].includes(view)
   const navButton = (item: typeof modules[number]) => <button key={item.id} className={view === item.id ? 'active' : ''} aria-current={view === item.id ? 'page' : undefined} onClick={() => navigate(item.id)}><i className={`fa-solid ${item.icon}`} aria-hidden="true" /><span>{item.label}</span></button>
   return <>{offline && <p role="status" className="portal-offline">Você está offline. Os resultados precisam de conexão para serem atualizados.</p>}<div className="portal-layout"><aside className="portal-desktop-nav"><p>SEUS RESULTADOS</p><nav aria-label="Navegação do portal">{allowed.map(navButton)}</nav>{canOpenAdmin && <button onClick={onAdmin}>Painel administrativo <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" /></button>}</aside><div ref={contentPanel} className="portal-content"><div className="portal-heading"><div><p>{isSeller ? identity.seller ?? identity.userName ?? 'OROLEITE · RESULTADOS PESSOAIS' : selected?.name ?? 'OROLEITE · VISÃO GERENCIAL'}</p><h1>{selectedModule.title}</h1></div>{monthly && <label>Mês de referência<input type="month" value={month} onChange={event => { if (event.target.value) setMonth(event.target.value) }} /></label>}</div>{!isSeller && <div className="portal-scope"><label>Vendedor vinculado<select value={sellerId} onChange={event => selectSeller(event.target.value)}><option value="">Selecione um vendedor</option>{sellers.map(seller => <option key={seller.sellerId} value={seller.sellerId}>{seller.name}</option>)}</select></label>{scopeError && <div role="alert"><p>{scopeError}</p><button onClick={() => setScopeRetry(value => value + 1)}>Atualizar vínculos</button></div>}{sellers.length === 0 && !scopeError && <p>Nenhum vendedor disponível no seu escopo.</p>}</div>}{showFilters && base && canRead && <><div className="portal-shortcuts" aria-label="Atalhos de período">{['Hoje', 'Ontem', 'Semana', 'Mês', 'Últimos 30 dias'].map(label => <button key={label} onClick={() => { const range = { ...presetFilters(label), customerContains: filters.customerContains, productContains: filters.productContains, brand: filters.brand }; setFilters(range); setDraft(range); setPage(1); setCustomer(''); setFilterError('') }}>{label}</button>)}<button onClick={() => { if (filterPanel.current) filterPanel.current.open = true }}>Personalizado</button></div><details ref={filterPanel} className="portal-filters" open={view === 'sales'}><summary><i className="fa-solid fa-sliders" aria-hidden="true" /> Período e filtros</summary><form onSubmit={apply}><label>Data inicial<input type="date" required value={draft.startDate} onChange={event => setDraft({ ...draft, startDate: event.target.value })} /></label><label>Data final<input type="date" required value={draft.endDate} onChange={event => setDraft({ ...draft, endDate: event.target.value })} /></label>{permissions?.canViewCustomers && <label>Cliente<input value={draft.customerContains} onChange={event => setDraft({ ...draft, customerContains: event.target.value })} /></label>}<label>Produto<input value={draft.productContains} onChange={event => setDraft({ ...draft, productContains: event.target.value })} /></label><label>Marca<input value={draft.brand} onChange={event => setDraft({ ...draft, brand: event.target.value })} /></label><button>Aplicar filtros</button><button type="button" className="portal-secondary" onClick={() => { const reset = monthFilters(); setFilters(reset); setDraft(reset); setPage(1); setCustomer(''); setFilterError('') }}>Limpar filtros</button></form>{filterError && <p role="alert">{filterError}</p>}</details></>}
-    {view === 'profile' ? <Profile identity={identity} token={token} onSessionEnd={onSessionEnd} /> : view === 'accounts' && isAdmin ? <PortalAccounts token={token} onChanged={() => setScopeRetry(value => value + 1)} /> : !base ? <Empty>Selecione um vendedor vinculado para consultar seus resultados.</Empty> : !canRead ? <Empty>Você não tem permissão para consultar este indicador.</Empty> : <div key={`${base}-${view}-${revision}`}>
+    {view === 'profile' ? <Profile identity={identity} token={token} onSessionEnd={onSessionEnd} installation={installation} /> : view === 'accounts' && isAdmin ? <PortalAccounts token={token} onChanged={() => setScopeRetry(value => value + 1)} /> : !base ? <Empty>Selecione um vendedor vinculado para consultar seus resultados.</Empty> : !canRead ? <Empty>Você não tem permissão para consultar este indicador.</Empty> : <div key={`${base}-${view}-${revision}`}>
       {view === 'dashboard' && <div className="portal-home-order">{permissions?.canViewRevenue && <Resource<PortalDashboard> token={token} path={`${base}/dashboard?${query}`}>{data => <PersonalDashboard data={data} />}</Resource>}<HomeMonthly token={token} base={base} permissions={permissions} /></div>}
       {view === 'sales' && <Resource<PortalPage<PortalSale>> token={token} path={`${base}/sales?${query}&page=${page}&pageSize=20`}>{data => <Sales data={data} onPage={setPage} />}</Resource>}
       {view === 'customers' && (customer ? <><button className="portal-back" onClick={() => setCustomer('')}><i className="fa-solid fa-arrow-left" aria-hidden="true" /> Voltar aos clientes</button><Resource<PortalCustomerDetail> token={token} path={`${base}/customers/${encodeURIComponent(customer)}?${query}`}>{data => <CustomerDetail data={data} />}</Resource></> : <Resource<PortalCustomers> token={token} path={`${base}/customers?${query}`}>{data => <Customers data={data} onSelect={setCustomer} />}</Resource>)}
@@ -96,15 +149,8 @@ function PortalWorkspace({ token, onSessionEnd, onAdmin, identity }: Props & { i
       {view === 'ppp' && <Resource<PortalPpp> token={token} path={`${base}/ppp?month=${month}`}>{data => <Ppp data={data} />}</Resource>}
       {view === 'trades' && <Resource<PortalTrades> token={token} path={`${base}/trades?${query}`}>{data => <Trades data={data} />}</Resource>}
       {(view === 'commission' || view === 'closings') && <><Resource<PortalClosing> token={token} path={`${base}/${view}?month=${month}`}>{data => <Closing data={data} commissionOnly={view === 'commission'} token={token} base={base} month={month} canApprove={isAdmin && !isSeller} onChanged={() => setRevision(value => value + 1)} />}</Resource>{view === 'closings' && <ClosingHistory token={token} base={base} onSelect={setMonth} />}</>}
-    </div>}</div></div>{more && <section className="portal-more" aria-label="Mais módulos"><div className="portal-record-top"><h2>Explorar resultados</h2><button onClick={() => setMore(false)} aria-label="Fechar menu"><i className="fa-solid fa-xmark" aria-hidden="true" /></button></div><nav>{allowed.filter(item => !['dashboard', 'sales', 'profile'].includes(item.id)).map(navButton)}</nav>{canOpenAdmin && <button onClick={onAdmin}>Painel administrativo</button>}</section>}<nav className="portal-bottom-nav" aria-label="Navegação rápida">{allowed.filter(item => ['dashboard', 'sales'].includes(item.id)).map(navButton)}<button className={more ? 'active' : ''} onClick={() => setMore(value => !value)} aria-expanded={more}><i className="fa-solid fa-grid-2 fa-bars" aria-hidden="true" /><span>Mais</span></button>{navButton(modules.find(item => item.id === 'profile')!)}</nav></>
+    </div>}</div></div>{more && <section ref={morePanel} className="portal-more" role="dialog" aria-modal="true" aria-label="Mais módulos"><div className="portal-record-top"><h2>Explorar resultados</h2><button onClick={() => { setMore(false); moreButton.current?.focus() }} aria-label="Fechar menu"><i className="fa-solid fa-xmark" aria-hidden="true" /></button></div><nav>{allowed.filter(item => !['dashboard', 'sales', 'goals', 'customers'].includes(item.id)).map(navButton)}</nav><div className="portal-actions"><button onClick={() => navigate('profile')}>Instalar aplicativo</button><button onClick={onLogout}>Sair</button></div>{canOpenAdmin && <button onClick={onAdmin}>Painel administrativo</button>}</section>}<nav className="portal-bottom-nav" aria-label="Navegação rápida">{(['dashboard', 'sales', 'goals', 'customers'] as View[]).flatMap(id => allowed.filter(item => item.id === id)).map(item => navButton(item.id === 'goals' ? { ...item, label: 'Metas' } : item))}<button ref={moreButton} className={more ? 'active' : ''} onClick={() => setMore(value => !value)} aria-expanded={more}><i className="fa-solid fa-grid-2 fa-bars" aria-hidden="true" /><span>Mais</span></button></nav></>
 }
-function Profile({ identity, token, onSessionEnd }: { identity: PortalIdentity; token: string; onSessionEnd: (message?: string) => void }) {
-  const active = useRef(true)
-  useEffect(() => { active.current = true; return () => { active.current = false } }, [])
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [error, setError] = useState('')
-  const [busy, setBusy] = useState(false)
-  async function changePassword(event: FormEvent) { event.preventDefault(); setBusy(true); setError(''); try { await apiRequest('/api/v1/me/change-password', token, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ currentPassword, newPassword }) }); if (!active.current) return; setCurrentPassword(''); setNewPassword(''); onSessionEnd('Senha alterada. Entre novamente com a nova senha.') } catch (reason) { setError(reason instanceof Error ? reason.message : 'Não foi possível alterar a senha.'); setCurrentPassword(''); setNewPassword('') } finally { setBusy(false) } }
-  return <div className="portal-profile"><section className="portal-panel"><h2>Sua conta</h2><dl className="portal-values"><div><dt>E-mail</dt><dd>{identity.email}</dd></div><div><dt>Perfil</dt><dd>{identity.roles.join(', ')}</dd></div>{identity.seller && <div><dt>Vendedor</dt><dd>{identity.seller}</dd></div>}</dl>{identity.permissions && <><h3>Indicadores autorizados</h3><div className="portal-permission-tags">{Object.entries(permissionLabels).filter(([key]) => identity.permissions?.[key as keyof PortalPermissions]).map(([key, label]) => <span key={key}>{label}</span>)}</div></>}</section><section className="portal-panel"><h2>Alterar senha</h2><p className="portal-help">Após salvar, entre novamente. Suas outras sessões também serão encerradas.</p><form className="portal-form" onSubmit={changePassword}><label>Senha atual<input required type="password" autoComplete="current-password" value={currentPassword} onChange={event => setCurrentPassword(event.target.value)} /></label><label>Nova senha<input required minLength={8} type="password" autoComplete="new-password" value={newPassword} onChange={event => setNewPassword(event.target.value)} /></label><button disabled={busy}>Alterar senha</button></form>{error && <p className="portal-message" role="alert">{error}</p>}</section></div>
+function Profile({ identity, token, onSessionEnd, installation }: { identity: PortalIdentity; token: string; onSessionEnd: (message?: string) => void; installation: ReturnType<typeof usePWAInstall> }) {
+  return <div className="portal-profile"><section className="portal-panel"><h2>Sua conta</h2><dl className="portal-values"><div><dt>E-mail</dt><dd>{identity.email}</dd></div><div><dt>Perfil</dt><dd>{identity.roles.join(', ')}</dd></div>{identity.seller && <div><dt>Vendedor</dt><dd>{identity.seller}</dd></div>}</dl>{identity.permissions && <><h3>Indicadores autorizados</h3><div className="portal-permission-tags">{Object.entries(permissionLabels).filter(([key]) => identity.permissions?.[key as keyof PortalPermissions]).map(([key, label]) => <span key={key}>{label}</span>)}</div></>}</section><section className="portal-panel"><h2>Alterar senha</h2><p className="portal-help">Após salvar, entre novamente. Suas outras sessões também serão encerradas.</p><ChangePasswordForm token={token} onChanged={() => onSessionEnd('Senha alterada. Entre novamente com a nova senha.')} /></section><PWAInstallHelp installation={installation} /></div>
 }

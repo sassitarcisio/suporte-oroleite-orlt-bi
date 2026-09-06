@@ -5,6 +5,8 @@ namespace OroBI.Infrastructure.Identity;
 public sealed class ApplicationUser : IdentityUser
 {
     public bool IsActive { get; set; } = true;
+    public bool MustChangePassword { get; set; }
+    public DateTimeOffset? LastLoginAtUtc { get; set; }
     public string? RegistrationName { get; set; }
     public bool IsRegistrationPending { get; set; }
     public string? Seller { get; set; }

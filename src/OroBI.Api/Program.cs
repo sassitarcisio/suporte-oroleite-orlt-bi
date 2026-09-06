@@ -106,6 +106,7 @@ app.Use(async (context, next) =>
 });
 app.UseCors("Web");
 app.UseAuthentication();
+app.UseMiddleware<RequiredPasswordChangeMiddleware>();
 app.UseAuthorization();
 app.MapHealthEndpoints();
 app.MapAuthEndpoints();

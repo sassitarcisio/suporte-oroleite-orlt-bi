@@ -1,4 +1,4 @@
-import { expireAccessToken } from '../auth/session'
+import { expireAccessToken, requirePasswordChange } from '../auth/session'
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') ?? ''
 
@@ -9,6 +9,10 @@ export async function authenticatedFetch(path: string, token: string, init: Requ
   if (response.status === 401) {
     expireAccessToken(token)
     throw new Error('Sua sessão expirou. Entre novamente para continuar.')
+  }
+  if (response.status === 403) {
+    const problem = await response.clone().json().catch(() => null) as { code?: string } | null
+    if (problem?.code === 'password_change_required') requirePasswordChange(token)
   }
   return response
 }

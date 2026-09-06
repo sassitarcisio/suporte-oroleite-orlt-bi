@@ -24,7 +24,7 @@ describe('Portal access administration', () => {
     }))
     render(<App />)
     fireEvent.click(await screen.findByRole('button', { name: 'Mais' }, { timeout: 5000 }))
-    fireEvent.click(within(screen.getByRole('region', { name: 'Mais módulos' })).getByRole('button', { name: 'Acessos' }))
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Mais módulos' })).getByRole('button', { name: 'Acessos' }))
     await screen.findByRole('option', { name: 'Bruno' })
     fireEvent.change(screen.getByLabelText('Vendedor vinculado'), { target: { value: 'existing-seller' } })
     fireEvent.change(await screen.findByLabelText('Nome do vendedor'), { target: { value: 'Ana Silva' } })

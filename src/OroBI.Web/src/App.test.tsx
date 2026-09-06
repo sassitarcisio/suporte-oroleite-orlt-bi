@@ -71,7 +71,7 @@ describe('App dashboard', () => {
   it('opens the responsive navigation menu', async () => {
     render(<App />)
 
-    expect(document.querySelector('.executive-layout')).toBeInTheDocument()
+    await waitFor(() => expect(document.querySelector('.executive-layout')).toBeInTheDocument())
 
     const toggle = await screen.findByRole('button', { name: 'Alternar navegacao' })
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
@@ -92,14 +92,14 @@ describe('App dashboard', () => {
     expect(document.querySelector('.dashboard-layout')).toBeInTheDocument()
   })
 
-  it('defaults dashboard dates to the previous calendar month', () => {
+  it('defaults dashboard dates to the previous calendar month', async () => {
     const now = new Date()
     const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
     const firstDay = previousMonth.toISOString().slice(0, 10)
     const lastDay = new Date(previousMonth.getFullYear(), previousMonth.getMonth() + 1, 0).toISOString().slice(0, 10)
 
     render(<App />)
-    fireEvent.click(screen.getByRole('button', { name: 'Filtros' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Filtros' }))
 
     expect(screen.getByLabelText('DATA INICIAL')).toHaveValue(firstDay)
     expect(screen.getByLabelText('DATA FINAL')).toHaveValue(lastDay)

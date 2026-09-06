@@ -16,7 +16,7 @@ using OroBI.Infrastructure.Persistence;
 
 namespace OroBI.Api.IntegrationTests.Auth;
 
-public sealed class PortalSessionTests
+public sealed partial class PortalSessionTests
 {
     [Fact]
     public async Task Removing_access_retains_inactive_link_history_and_denies_scope()
