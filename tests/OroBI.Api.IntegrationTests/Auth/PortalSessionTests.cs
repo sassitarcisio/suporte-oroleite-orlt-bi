@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -188,6 +189,8 @@ public sealed partial class PortalSessionTests
             builder.ConfigureLogging(logging => logging.ClearProviders());
             builder.ConfigureServices(services =>
             {
+                // Keep reset-token encryption real without writing keys to the developer's profile.
+                services.AddDataProtection().UseEphemeralDataProtectionProvider();
                 services.RemoveAll<OroBiDbContext>();
                 services.RemoveAll<DbContextOptions<OroBiDbContext>>();
                 services.RemoveAll<IDbContextOptionsConfiguration<OroBiDbContext>>();

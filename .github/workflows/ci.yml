@@ -4,10 +4,30 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
+  operations:
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test operational scripts
+        shell: powershell
+        run: |
+          # Existing tests use the Pester 3 syntax included in the Windows image.
+          Import-Module Pester -RequiredVersion 3.4.0
+          $result = Invoke-Pester -Script tests/Operations -PassThru
+          if ($result.TotalCount -eq 0 -or $result.FailedCount -gt 0) { exit 1 }
+
   verify:
+    needs: operations
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
+      - name: Require operational tests to pass
+        if: ${{ needs.operations.result != 'success' }}
+        run: exit 1
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
@@ -17,8 +37,17 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: src/OroBI.Web/package-lock.json
+      - name: Test deployment cookie configuration
+        shell: pwsh
+        run: ./scripts/Test-DeployCookieConfiguration.ps1
       - run: dotnet test OroBI.slnx --configuration Release --disable-build-servers -m:1 /p:UseSharedCompilation=false
       - run: npm ci
+        working-directory: src/OroBI.Web
+      - name: Test Web
+        run: npm test -- --run --maxWorkers=4
+        working-directory: src/OroBI.Web
+      - name: Lint Web
+        run: npm run lint
         working-directory: src/OroBI.Web
       - run: npm run build
         working-directory: src/OroBI.Web
