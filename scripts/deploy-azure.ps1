@@ -6,7 +6,10 @@ param(
     [switch]$Apply,
     [switch]$ConfigureRuntimeSecrets,
     [switch]$ConfigureInitialAdministrators,
-    [string]$WebOrigin = ''
+    [string]$WebOrigin = '',
+    [switch]$EnableBrowserSession,
+    [string]$BrowserSessionOrigin = 'https://portal-bi.oroleite.com.br',
+    [string]$BrowserSessionApiHost = 'api-bi.oroleite.com.br'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -38,6 +41,33 @@ if (-not [string]::IsNullOrWhiteSpace($WebOrigin)) {
 }
 
 $azureCli = Get-Command az -ErrorAction Stop
+$corporateOriginUri = $null
+if (-not [Uri]::TryCreate($BrowserSessionOrigin, [UriKind]::Absolute, [ref]$corporateOriginUri) -or
+    $corporateOriginUri.Scheme -ne 'https' -or $corporateOriginUri.AbsolutePath -ne '/' -or
+    $corporateOriginUri.Query -ne '' -or $corporateOriginUri.Fragment -ne '' -or
+    $corporateOriginUri.UserInfo -ne '' -or $corporateOriginUri.Host.Contains('*')) {
+    throw 'BrowserSessionOrigin must be an HTTPS origin without wildcard, path, credentials, query, or fragment.'
+}
+$BrowserSessionOrigin = $corporateOriginUri.GetLeftPart([UriPartial]::Authority)
+if ([Uri]::CheckHostName($BrowserSessionApiHost) -ne [UriHostNameType]::Dns -or
+    $BrowserSessionApiHost.Contains('*') -or $BrowserSessionApiHost.EndsWith('.')) {
+    throw 'BrowserSessionApiHost must be a DNS hostname without port or wildcard.'
+}
+$apiName = "${Prefix}-api"
+# A full ARM deployment must carry forward existing domain/certificate bindings.
+# Read failure is fatal: never replace unknown bindings with an empty list.
+$domainsJson = & $azureCli containerapp list --resource-group $ResourceGroup --query "[?name=='$apiName'].properties.configuration.ingress.customDomains | [0]" --output json
+if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($domainsJson)) {
+    throw 'Failed to read current API custom domains; deployment was not started.'
+}
+$parsedDomains = $domainsJson | ConvertFrom-Json
+$apiCustomDomains = if ($null -eq $parsedDomains) { @() } else { @($parsedDomains) }
+if ($EnableBrowserSession -and -not @($apiCustomDomains | Where-Object {
+    $_.name -eq $BrowserSessionApiHost -and $_.bindingType -eq 'SniEnabled' -and
+    -not [string]::IsNullOrWhiteSpace($_.certificateId)
+}).Count) {
+    throw 'Corporate cookie activation requires an existing HTTPS certificate binding for BrowserSessionApiHost.'
+}
 $vaultName = "${Prefix}kv"
 $vaultId = & $azureCli keyvault show --name $vaultName --resource-group $ResourceGroup --query id --output tsv
 if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($vaultId)) {
@@ -54,6 +84,10 @@ $parameters = @{
         configureRuntimeSecrets = @{ value = $ConfigureRuntimeSecrets.IsPresent }
         configureInitialAdministrators = @{ value = $ConfigureInitialAdministrators.IsPresent }
         webOrigin = @{ value = $WebOrigin }
+        enableBrowserSession = @{ value = $EnableBrowserSession.IsPresent }
+        browserSessionOrigin = @{ value = $BrowserSessionOrigin }
+        browserSessionApiHost = @{ value = $BrowserSessionApiHost }
+        apiCustomDomains = @{ value = @($apiCustomDomains) }
         postgresAdministratorPassword = @{ reference = @{ keyVault = @{ id = $vaultId }; secretName = 'orobi-postgres-administrator-password' } }
     }
 }

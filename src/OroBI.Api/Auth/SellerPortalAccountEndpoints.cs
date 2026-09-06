@@ -19,16 +19,17 @@ public static partial class SellerPortalAccountEndpoints
         MapSelfRegistrationEndpoints(endpoints);
         foreach (var prefix in new[] { "/api", "/api/v1" })
         {
-            endpoints.MapPost($"{prefix}/auth/logout", async (ClaimsPrincipal principal, UserManager<ApplicationUser> users, OroBiDbContext db, CancellationToken ct) =>
+            endpoints.MapPost($"{prefix}/auth/logout", async (ClaimsPrincipal principal, HttpContext context, UserManager<ApplicationUser> users, OroBiDbContext db, CancellationToken ct) =>
             {
                 var user = await users.GetUserAsync(principal);
                 if (user is null) return Results.Unauthorized();
                 var result = await users.UpdateSecurityStampAsync(user);
                 if (!result.Succeeded) return Errors(result);
                 await AuditAsync(db, principal, "Logout", user.Id, ct);
+                BrowserSession.Clear(context);
                 return Results.NoContent();
             }).RequireAuthorization();
-            endpoints.MapPost($"{prefix}/me/change-password", async (ChangePasswordRequest request, ClaimsPrincipal principal, UserManager<ApplicationUser> users, OroBiDbContext db, CancellationToken ct) =>
+            endpoints.MapPost($"{prefix}/me/change-password", async (ChangePasswordRequest request, ClaimsPrincipal principal, HttpContext context, UserManager<ApplicationUser> users, OroBiDbContext db, CancellationToken ct) =>
             {
                 if (string.IsNullOrEmpty(request.CurrentPassword) || string.IsNullOrEmpty(request.NewPassword)) return Results.BadRequest(new { error = "Informe a senha atual e a nova senha." });
                 var user = await users.GetUserAsync(principal);
@@ -42,6 +43,7 @@ public static partial class SellerPortalAccountEndpoints
                 if (!result.Succeeded) return Errors(result);
                 await AuditAsync(db, principal, "PasswordChanged", user.Id, ct);
                 if (transaction is not null) await transaction.CommitAsync(ct);
+                BrowserSession.Clear(context);
                 return Results.NoContent();
             }).RequireAuthorization();
         }

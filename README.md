@@ -7,7 +7,7 @@ BI administrativo e Portal do Vendedor na mesma aplicação: ASP.NET Core, Ident
 - [Auditoria do acesso mobile](docs/SELLER_PORTAL_AUDIT.md): diagnóstico inicial, alterações e evidências.
 - [Operação da fase 3](docs/operations/seller-portal.md): importações, fechamento oficial, histórico e migrações anteriores.
 
-O endereço Azure atual foi mantido. As melhorias de acesso mobile estão nesta branch e exigem a migração `20260906002605_AddSellerMobileAccess` antes de publicar a nova API e SPA. Nenhuma conta ou código ERP real é criado automaticamente.
+O endereço Azure atual foi mantido. O projeto também prepara sessão corporativa por cookie HttpOnly em `portal-bi.oroleite.com.br`, preservando o BI antigo em `bi.oroleite.com.br`; veja [DNS, HTTPS e ativação](docs/operations/corporate-session-activation.md). As melhorias de acesso mobile estão nesta branch e exigem a migração `20260906002605_AddSellerMobileAccess` antes de publicar a nova API e SPA. Nenhuma conta ou código ERP real é criado automaticamente.
 
 ## Verificação local
 

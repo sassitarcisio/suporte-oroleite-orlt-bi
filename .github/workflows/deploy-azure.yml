@@ -19,6 +19,11 @@ on:
         description: HTTPS origin of the published web application
         required: true
         type: string
+      enable_browser_session:
+        description: Enable corporate HttpOnly cookies after DNS and HTTPS certificate binding are ready
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   id-token: write
@@ -43,10 +48,12 @@ jobs:
           DEPLOY_PREFIX: ${{ inputs.prefix }}
           DEPLOY_API_IMAGE: ${{ inputs.api_image }}
           DEPLOY_WEB_ORIGIN: ${{ inputs.web_origin }}
+          DEPLOY_BROWSER_SESSION: ${{ inputs.enable_browser_session }}
         run: >-
           ./scripts/deploy-azure.ps1 -Apply -Confirm:$false
           -ResourceGroup $env:DEPLOY_RESOURCE_GROUP
           -Prefix $env:DEPLOY_PREFIX
           -ApiImage $env:DEPLOY_API_IMAGE
           -WebOrigin $env:DEPLOY_WEB_ORIGIN
+          -EnableBrowserSession:($env:DEPLOY_BROWSER_SESSION -eq 'true')
           -ConfigureRuntimeSecrets

@@ -4,7 +4,7 @@ Guia das melhorias de acesso mobile de setembro de 2026. Esta entrega foi implem
 
 ## Endereço e identidade
 
-O responsável optou por manter o [endereço Azure do portal](https://lively-sea-0776c9a0f.6.azurestaticapps.net/portal), sem configurar um domínio corporativo. O login existente usa **e-mail e senha**. O mesmo acesso atende vendedores e administração.
+O [endereço Azure do portal](https://lively-sea-0776c9a0f.6.azurestaticapps.net/portal) continua disponível. A arquitetura corporativa está preparada para `https://portal-bi.oroleite.com.br`, com API em `https://api-bi.oroleite.com.br`, após ativação de DNS e HTTPS. O BI antigo em `bi.oroleite.com.br` será mantido separado, conforme decisão do responsável. O login existente usa **e-mail e senha**. O mesmo acesso atende vendedores e administração.
 
 Um vendedor tem UUID interno, nome de apresentação, nome correspondente ao arquivo comercial e, opcionalmente, **Código do vendedor no ERP** (`ExternalId`). Esse código é único quando preenchido, permite até 64 caracteres e é normalizado sem espaços nas pontas e em maiúsculas. Ele não substitui o UUID ou o nome importado. Não adivinhe o código pelo nome: confirme a correspondência com o cadastro de origem.
 
@@ -34,11 +34,13 @@ Para alterar a senha voluntariamente, abra **Mais → Perfil**. O mesmo formulá
 
 ## Sessão e bloqueio
 
-O login oferece **Manter acesso neste dispositivo por até 8 horas**, desmarcado por padrão. Marque somente em dispositivo pessoal. A opção permite reabrir o portal no mesmo armazenamento do navegador/PWA enquanto o token estiver válido. Não salva a senha e não renova automaticamente o prazo. Uma instalação pode ter armazenamento separado do navegador; nesse caso, faça o primeiro login dentro da PWA.
+No endereço corporativo configurado, o login usa cookie **HttpOnly, Secure e SameSite=Strict**, com validade absoluta máxima de oito horas e sem renovação automática. Fechar e reabrir a PWA no mesmo armazenamento preserva a sessão dentro desse prazo; o servidor valida a conta antes de mostrar dados. Nenhum token ou senha fica no armazenamento JavaScript nesse modo. Em dispositivo compartilhado, use **Sair**. Uma instalação pode ter armazenamento separado do navegador e exigir o primeiro login dentro da PWA.
+
+No endereço Azure, o login oferece **Manter acesso neste dispositivo por até 8 horas**, desmarcado por padrão. Marque somente em dispositivo pessoal. A opção permite reabrir o portal no mesmo armazenamento do navegador/PWA enquanto o token estiver válido. Não salva a senha e não renova automaticamente o prazo. Uma instalação pode ter armazenamento separado do navegador; nesse caso, faça o primeiro login dentro da PWA.
 
 Sem essa opção, o token fica em `sessionStorage`. Com ela, token e validade ficam também em `localStorage`; consulte as implicações em [Autorização](AUTHORIZATION.md). O servidor sempre confirma a identidade antes de mostrar resultados. Ao vencer o prazo, a tela limpa os resultados e pede novo login, inclusive ao voltar de uma aba suspensa.
 
-**Sair** limpa o estado local e solicita revogação ao servidor. A revogação existente usa o SecurityStamp e encerra também outras sessões da mesma conta. Sem conexão, o acesso local é removido, mas o aplicativo avisa que não conseguiu confirmar a revogação remota.
+**Sair** limpa os dados da tela e solicita revogação ao servidor. No modo corporativo, somente o servidor pode apagar o cookie HttpOnly; se a rede falhar, a tela informa que a sessão pode continuar no dispositivo e permite tentar novamente. A revogação existente usa o SecurityStamp e encerra também outras sessões da mesma conta. Sem conexão, o acesso local é removido, mas o aplicativo avisa que não conseguiu confirmar a revogação remota.
 
 Em **Acessos**, use **Desativar conta** para impedir login e uso de sessões. **Desativar vendedor** impede o acesso individual vinculado e revoga sessões afetadas. Nenhuma dessas ações exclui movimentos, vendedores ou fechamentos históricos. Remover/alterar vínculos e permissões também revoga o acesso anterior.
 
@@ -64,7 +66,7 @@ Em **Mais → Perfil → Instalar aplicativo**, consulte a orientação para seu
 
 1. Revisar e aplicar `src/OroBI.Infrastructure/Persistence/Migrations/20260906002605_AddSellerMobileAccess.sql` pelo processo de migração do BI. O SQL é idempotente e contém somente esta migração, posterior a `AddCommercialProductCode`.
 2. Publicar a API e a SPA compatíveis. A migração acrescenta `ExternalId`, `MustChangePassword`, `LastLoginAtUtc` e um índice único; preserva contas, vínculos, movimentos e snapshots existentes. Não preenche códigos ERP reais nem obriga contas antigas a trocar senha sem reset administrativo.
-3. Manter `VITE_API_BASE_URL` da API Azure atual. Se o destino da API mudar, atualizar também `connect-src` em `public/staticwebapp.config.json`.
+3. Manter `VITE_API_BASE_URL` para o endereço Azure e seguir [Ativação do domínio corporativo](operations/corporate-session-activation.md) para DNS, certificados e habilitação dos cookies. A migração de domínio não transfere sessões antigas; será necessário entrar novamente no novo endereço.
 4. Homologar com duas contas de vendedores distintos, bloqueio/reset e instalação em Android/iPhone físicos no endereço HTTPS. A validação em Chrome local não certifica instalação física ou comportamento de armazenamento de todas as versões do Safari.
 
 Resultados e limitações da entrega estão em [Auditoria](SELLER_PORTAL_AUDIT.md).

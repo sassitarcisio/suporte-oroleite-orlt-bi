@@ -8,7 +8,7 @@ const revenue = { grossSales: 100, netRevenue: 100, negativeMovements: 0, custom
 const dashboard = { startDate: '2026-09-01', endDate: '2026-09-05', referenceDate: '2026-09-05', period: revenue, month: revenue, today: revenue, dailyTrend: [], freshness: { updatedAtUtc: null, timestampKind: 'unavailable' } }
 async function portal() {
   vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => new Response(JSON.stringify(String(input).endsWith('/me') ? identity : String(input).includes('/dashboard?') ? dashboard : { items: [] }), { status: 200 })))
-  render(<SellerPortal token="seller" onLogout={vi.fn()} onSessionEnd={vi.fn()} onAdmin={vi.fn()} />)
+  await act(async () => { render(<SellerPortal token="seller" onLogout={vi.fn()} onSessionEnd={vi.fn()} onAdmin={vi.fn()} />) })
   await screen.findByRole('heading', { name: 'Meu desempenho' })
 }
 afterEach(() => vi.unstubAllGlobals())

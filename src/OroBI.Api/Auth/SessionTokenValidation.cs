@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Globalization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using OroBI.Infrastructure.Identity;
@@ -33,6 +34,7 @@ public static class SessionTokenValidation
         identity.AddClaim(new(ClaimTypes.Name, user.UserName ?? string.Empty));
         identity.AddClaim(new(ClaimTypes.Email, user.Email ?? string.Empty));
         identity.AddClaim(new("session_version", version));
+        identity.AddClaim(new("exp", new DateTimeOffset(DateTime.SpecifyKind(context.SecurityToken.ValidTo, DateTimeKind.Utc)).ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture)));
         identity.AddClaim(new("must_change_password", user.MustChangePassword ? "true" : "false"));
         identity.AddClaims(roles.Select(role => new Claim(ClaimTypes.Role, role)));
         context.Principal = new ClaimsPrincipal(identity);

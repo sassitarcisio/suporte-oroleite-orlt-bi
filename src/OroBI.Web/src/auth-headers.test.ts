@@ -8,6 +8,7 @@ describe('Published authentication page content restrictions', () => {
     const directive = (name: string) => csp.split(';').map((part: string) => part.trim()).find((part: string) => part.startsWith(`${name} `)) ?? ''
     expect(directive('script-src')).toBe("script-src 'self'")
     expect(directive('connect-src')).toContain('https://orobi-api.ashymoss-e2dce47a.eastus2.azurecontainerapps.io')
+    expect(directive('connect-src')).toContain('https://api-bi.oroleite.com.br')
     expect(directive('connect-src')).not.toContain('*')
     expect(directive('frame-ancestors')).toBe("frame-ancestors 'none'")
     expect(directive('object-src')).toBe("object-src 'none'")

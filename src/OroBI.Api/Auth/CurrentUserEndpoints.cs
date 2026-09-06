@@ -27,7 +27,7 @@ public static class CurrentUserEndpoints
             user.Identity?.Name,
             user.FindAll(ClaimTypes.Role).Select(claim => claim.Value).ToArray(),
             access?.Name,
-            HasEntraConfiguration(configuration), access?.SellerId, access?.Permissions, access?.Name, accesses, user.HasClaim("must_change_password", "true")));
+            HasEntraConfiguration(configuration), access?.SellerId, access?.Permissions, access?.Name, accesses, user.HasClaim("must_change_password", "true"), BrowserSession.ExpiresAtUtc(user)));
         })
             .RequireAuthorization();
 
@@ -50,7 +50,8 @@ public static class CurrentUserEndpoints
         SellerPortalPermissions? Permissions = null,
         string? SellerName = null,
         IReadOnlyCollection<CurrentSellerAccess>? SellerAccesses = null,
-        bool MustChangePassword = false);
+        bool MustChangePassword = false,
+        DateTimeOffset? ExpiresAtUtc = null);
 
     public sealed record CurrentSellerAccess(Guid SellerId, string Name, SellerPortalPermissions Permissions);
 }

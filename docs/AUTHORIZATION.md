@@ -18,8 +18,8 @@ Os nomes/aliases usados na base CSV são obtidos do cadastro autorizado. Parâme
 
 | Método e rota | Finalidade |
 | --- | --- |
-| `POST /api/v1/auth/login` | Autentica e retorna Bearer, validade, perfis e `mustChangePassword`. |
-| `GET /api/v1/me` | Identidade, vínculos/permissões e exigência persistida de troca. |
+| `POST /api/v1/auth/login` | Autentica por Bearer ou cookie corporativo; retorna validade, perfis e `mustChangePassword`. O modo cookie não retorna token. |
+| `GET /api/v1/me` | Identidade, vínculos/permissões, validade `expiresAtUtc` e exigência persistida de troca. |
 | `POST /api/v1/me/change-password` | Troca própria validada pelo Identity; revoga token anterior e limpa exigência. |
 | `POST /api/v1/auth/logout` | Revoga sessões da conta por SecurityStamp. |
 | `GET /api/v1/me/dashboard` | Resumo individual. |
@@ -43,9 +43,21 @@ A UI valida `/me` antes de montar telas privadas, apresenta a troca obrigatória
 
 Operações administrativas existentes foram estendidas: criar usuário aceita `name` e `password` ou `generateTemporaryPassword`; reset aceita `newPassword` ou geração. A criação gerada retorna 201 com `temporaryPassword`; reset gerado retorna 200 com esse campo; reset manual retorna 204. A listagem mostra nome, estado de troca e `LastLoginAtUtc`, nunca senha. `PUT /api/v1/admin/sellers/{id}/external-id` edita o código ERP sem alterar UUID, alias ou histórico.
 
+## Sessão no endereço corporativo
+
+A SPA configurada em https://portal-bi.oroleite.com.br usa a API https://api-bi.oroleite.com.br. São origens distintas no mesmo site HTTPS. bi.oroleite.com.br pertence ao BI anterior e continua separado. A mudança de domínio exige novo login; sessões Azure não são transferidas.
+
+BrowserSession:Enabled inicia false. Ao habilitar, o login com X-OroBI-Session:cookie emite __Host-OroBI.Session: HttpOnly, Secure, SameSite=Strict, Path=/, sem Domain e com prazo absoluto máximo de oito horas. O conteúdo é o JWT assinado existente; não há banco de sessão paralelo, refresh token ou renovação deslizante. O JSON fornece somente modo, validade, perfis e exigência de troca. O frontend usa credentials:include, sem Authorization e sem credencial em localStorage/sessionStorage.
+
+A API exige HTTPS, Host configurado, Origin exata permitida e cabeçalho customizado em todas as chamadas cookie sob /api, inclusive login e GET. CORS permite credenciais somente para a origem corporativa configurada; origens ausentes, null ou de outros subdomínios são recusadas. Essa proteção de API por cabeçalho/preflight e allowlist é descrita pela [OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html). SameSite complementa o controle. Authorization explícito seleciona Bearer; Bearer inválido não usa o cookie como alternativa.
+
+A abertura e o retorno ao aplicativo consultam /me antes dos dados privados. A geração local em memória distingue respostas antigas, sem valor de autenticação. Eventos entre abas armazenam somente identificador aleatório de mudança, nunca credencial. Expiração ou bloqueio encerram os dados locais. Logout e troca própria de senha apagam o cookie após sucesso; respostas 401 comuns não emitem exclusão para evitar apagar sessão posterior. Se a saída falhar por falta de rede, o cookie HttpOnly pode permanecer e a UI oferece nova tentativa. Logout em outra aba é global; se coincidir com novo login, pode ser necessário entrar novamente.
+
+Identity/SecurityStamp, vínculos e permissões são os mesmos nos dois transportes. O service worker continua sem cache privado. A configuração HTTPS no proxy gerenciado e a ativação estão no [guia operacional](operations/corporate-session-activation.md).
+
 ## Sessão no endereço Azure
 
-SPA e API permanecem em domínios Azure distintos por decisão do responsável. A implementação conserva o Bearer existente, sem depender de cookies de terceiros. **Não há cookie HttpOnly nesta solução.** A opção explícita de manter acesso usa `localStorage` para token e expiração; sem ela, apenas `sessionStorage`. O limite é a validade emitida pela API e no máximo oito horas desde o login. Não há refresh token ou renovação deslizante.
+Os endereços Azure mantêm o Bearer existente, sem depender de cookies de terceiros. O modo corporativo descrito acima utiliza cookie HttpOnly. A opção explícita de manter acesso usa `localStorage` para token e expiração; sem ela, apenas `sessionStorage`. O limite é a validade emitida pela API e no máximo oito horas desde o login. Não há refresh token ou renovação deslizante.
 
 O armazenamento é acessível ao JavaScript da origem: uma falha XSS pode expor o Bearer. A preferência por manter o endereço atual não elimina esse risco. `staticwebapp.config.json` restringe scripts à própria origem, proíbe scripts inline/eval, objetos e enquadramento e limita conexões à origem e à API oficial. Estilos inline continuam permitidos para os componentes existentes; Google Fonts permanece permitido apenas para CSS/fontes. Isso reduz a superfície de conteúdo, mas não torna `localStorage` equivalente a HttpOnly.
 

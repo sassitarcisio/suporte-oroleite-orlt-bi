@@ -1,11 +1,19 @@
-import { expireAccessToken, requirePasswordChange } from '../auth/session'
+import { cookieSessionMode, expireAccessToken, requirePasswordChange } from '../auth/session'
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') ?? ''
+const apiBaseUrl = (cookieSessionMode ? import.meta.env.VITE_COOKIE_API_BASE_URL ?? 'https://api-bi.oroleite.com.br' : import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
+
+export function sessionRequestInit(init: RequestInit = {}): RequestInit {
+  if (!cookieSessionMode) return init
+  const headers = new Headers(init.headers)
+  headers.delete('Authorization')
+  headers.set('X-OroBI-Session', 'cookie')
+  return { ...init, headers, credentials: 'include' }
+}
 
 export async function authenticatedFetch(path: string, token: string, init: RequestInit = {}): Promise<Response> {
   const headers = new Headers(init.headers)
-  headers.set('Authorization', `Bearer ${token}`)
-  const response = await fetch(`${apiBaseUrl}${path}`, { ...init, headers })
+  if (!cookieSessionMode) headers.set('Authorization', `Bearer ${token}`)
+  const response = await fetch(`${apiBaseUrl}${path}`, sessionRequestInit({ ...init, headers }))
   if (response.status === 401) {
     expireAccessToken(token)
     throw new Error('Sua sessão expirou. Entre novamente para continuar.')

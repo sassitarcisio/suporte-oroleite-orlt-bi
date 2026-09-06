@@ -2,7 +2,7 @@
 
 **Estado da entrega:** implementação local concluída nas áreas abaixo; o inventário preserva o diagnóstico anterior ao código. Publicação, aplicação da migração em PostgreSQL real e homologação em aparelhos físicos não foram realizadas nesta etapa.
 
-Diagnóstico anterior à implementação, em 05/09/2026, sobre `7b9443f`. Referência: pedido do responsável “AUDITAR E COMPLETAR O ACESSO MOBILE DOS VENDEDORES” (68 seções). Reaproveitar a aplicação publicada, inclusive o autocadastro sujeito à aprovação já solicitado. O responsável confirmou que deve ser mantido o endereço Azure atual, sem configuração de DNS corporativo.
+Diagnóstico anterior à implementação, em 05/09/2026, sobre `7b9443f`. Referência: pedido do responsável “AUDITAR E COMPLETAR O ACESSO MOBILE DOS VENDEDORES” (68 seções). Reaproveitar a aplicação publicada, inclusive o autocadastro sujeito à aprovação já solicitado. Na decisão inicial, o responsável manteve o endereço Azure. Posteriormente confirmou acesso ao DNS corporativo; a evolução para cookies está documentada ao final. O inventário abaixo conserva o diagnóstico original.
 
 ## Inventário e ações
 
@@ -50,11 +50,11 @@ Diagnóstico anterior à implementação, em 05/09/2026, sobre `7b9443f`. Refer�
 
 Completar regressões de senha temporária/primeiro acesso, vendedor inativo no login, ExternalId, último login, persistência entre reaberturas, recuperação administrativa, instalação e tamanhos 360×800, 390×844, 430×932, 768×1024 e desktop. Executar a baseline antes de alterações e as suítes pertinentes em cada etapa.
 
-## Limites e decisões
+## Limites e decisões da primeira entrega
 
 O código ERP não será adivinhado, nem mudará o filtro comercial dos fatos CSV existentes. Nenhuma regra de venda, margem, trocas, PPP, metas, comissão ou fechamento será alterada. A arquitetura atual de HTTPS Azure será mantida por decisão do responsável. Sessão persistente é opcional, tem validade máxima de oito horas e não armazena senha; tokens seguem revogáveis no backend. Cookies HttpOnly de primeira parte exigiriam mudança de origem/proxy/DNS; cookies de terceiros não são alternativa confiável no iPhone. A implementação não implica publicação, alteração de contas reais ou configuração de infraestrutura ainda não revisada.
 
-## Resultado da implementação
+## Resultado da primeira implementação
 
 | Funcionalidade auditada | Situação final local | Evidência principal |
 | --- | --- | --- |
@@ -91,3 +91,20 @@ Após inspeção, foram corrigidos o alvo do botão mostrar senha, os campos/toq
 O manifesto foi interpretado sem erros. Service worker ativado e controlando a página; cache limitado aos sete arquivos públicos esperados. Ao interromper o servidor local, a navegação entregou o documento offline sem resultados comerciais. Nenhuma violação CSP foi registrada; o único erro de rede no relatório decorre da desconexão simulada. O estado de aplicativo instalado foi emulado; os contextos isolados do Chrome reportaram a restrição de instalação em modo anônimo. Isso não certifica instalação real Android/iPhone ou funcionamento físico standalone.
 
 A validação usou somente fixtures sintéticas no servidor/interceptação de teste. Elas não foram adicionadas à aplicação, à API oficial ou ao banco real. Relatório detalhado: `.worktrees/mobile-evidence/report.json`; capturas: arquivos PNG no mesmo diretório ignorado. A homologação HTTPS e a migração PostgreSQL permanecem etapas de ativação.
+## Evolução: domínio corporativo e cookie HttpOnly
+
+A confirmação posterior de acesso ao DNS substituiu a restrição inicial. O responsável determinou que o BI antigo em bi.oroleite.com.br continue separado por enquanto. Consultas de leitura identificaram esse domínio no aplicativo orlt-bi; o portal atual é orobi-web. A implementação usa portal-bi.oroleite.com.br e api-bi.oroleite.com.br, configuráveis. Os dois novos nomes retornaram inexistentes no DNS consultado. Nenhum vínculo antigo foi alterado.
+
+A API agora suporta __Host-OroBI.Session com HttpOnly, Secure, SameSite=Strict, Path=/, sem Domain, prazo absoluto máximo de oito horas e validação Identity/SecurityStamp existente. O modo é desabilitado por padrão. Login cookie retorna somente metadados; a UI não armazena JWT/senha e valida /me antes de resultados, inclusive ao retomar. Primeira senha, revogação, escopo individual e Azure Bearer foram preservados. Cookie não exige nova migração.
+
+O controle CSRF exige HTTPS, Host, Origin exata e cabeçalho customizado. As regressões negam origem antiga bi, sibling hostil, Origin ausente/null, cabeçalho ausente/incorreto, HTTP, Host indevido e configurações wildcard/IP/ponto final. Authorization explícito seleciona Bearer e não usa cookie como alternativa. Logout/troca própria apagam cookie após sucesso; 401 genérico não emite exclusão. No-store também cobre caixa alternativa de /api.
+
+Verificação final nesta evolução: **425 testes .NET** (196 API, 78 Application, 151 Infrastructure), **150 Web em 28 arquivos**, build produção aprovado, lint sem erros e com o aviso preexistente do efeito de análise de trocas. Compilação Bicep aprovada; **sete testes do script de implantação**, com Azure simulado, verificam opt-in, configuração insegura, exigência de certificado, preservação de vínculos habilitando/desabilitando e interrupção quando a leitura falha.
+
+A revisão corrigiu a captura antecipada de configuração JWT/CORS para que emissão e validação usem a configuração final, reproduzida por WebApplicationFactory. A regressão de instalação PWA existente foi sincronizada com os efeitos React antes de emitir beforeinstallprompt; nenhuma lógica de instalação foi alterada. Regressões corporativas cobrem bootstrap, storage bloqueado/legado, reabertura, primeiro acesso, expiração, foco/bloqueio, saída pendente/falha, cadastro e 401 atrasado durante reautenticação.
+
+**Chrome HTTPS local: 26/26 verificações**, com cinco capturas em 360×800. Cookie real do navegador apresentou os atributos esperados, login JSON sem JWT, storage sem credencial, fechamento/reabertura de aba conservando cookie e /me antes de dados. Troca obrigatória e novo login, logout/exclusão e reabertura sem sessão foram percorridos. Nenhuma violação CSP, exceção de runtime ou rolagem horizontal. Relatório ignorado em .worktrees/cookie-evidence/report.json; build testado index-BU1STKhj.js.
+
+O servidor Node do smoke usa identidades sintéticas e emula o contrato HTTP; a aplicação ASP.NET real foi verificada independentemente pelos testes de integração. O certificado temporário só foi aceito pelo SPKI específico no perfil isolado, sem alterar confiança do sistema ou DNS real. Essa prova de reabertura de aba não certifica instalação e encerramento de processo de PWA em iPhone/Android físicos.
+
+Limites operacionais: logout é global para a conta; logout/login simultâneos em abas distintas podem exigir repetir o login, pois o navegador compartilha o cookie. Falha de rede no logout informa que o cookie pode permanecer e oferece nova tentativa. Ativação de DNS/certificados, publicação, migração PostgreSQL e aparelhos físicos permanecem pendentes. Consulte [Ativação corporativa](operations/corporate-session-activation.md); o guia preserva o BI antigo e os certificados da API durante implantação.

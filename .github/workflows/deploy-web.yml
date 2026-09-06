@@ -17,6 +17,8 @@ jobs:
     environment: production
     env:
       VITE_API_BASE_URL: https://orobi-api.ashymoss-e2dce47a.eastus2.azurecontainerapps.io
+      VITE_COOKIE_PORTAL_ORIGIN: https://portal-bi.oroleite.com.br
+      VITE_COOKIE_API_BASE_URL: https://api-bi.oroleite.com.br
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
