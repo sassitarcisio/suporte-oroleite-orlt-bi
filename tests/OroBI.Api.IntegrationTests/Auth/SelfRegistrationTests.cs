@@ -65,6 +65,7 @@ public sealed class SelfRegistrationTests
         var db = scope.ServiceProvider.GetRequiredService<OroBiDbContext>();
         var user = await db.Users.SingleAsync();
         Assert.False(user.IsActive);
+        Assert.False(user.MustChangePassword);
         Assert.Empty(await db.UserRoles.ToArrayAsync());
         Assert.Empty(await db.UserSellerAccesses.ToArrayAsync());
         var audit = Assert.Single(await db.AccountAuditEvents.ToArrayAsync());
@@ -133,6 +134,7 @@ public sealed class SelfRegistrationTests
         using var approvedClient = factory.CreateClient();
         await LoginAsync(approvedClient, "pending@example.invalid");
         var profile = await (await approvedClient.GetAsync("/api/v1/me")).Content.ReadFromJsonAsync<JsonElement>();
+        Assert.False(profile.GetProperty("mustChangePassword").GetBoolean());
         Assert.Equal(sellerId, profile.GetProperty("sellerId").GetGuid());
         Assert.False(profile.GetProperty("permissions").GetProperty("canViewRevenue").GetBoolean());
     }
@@ -222,6 +224,14 @@ public sealed class SelfRegistrationTests
         if (!await roles.RoleExistsAsync(role)) Assert.True((await roles.CreateAsync(new IdentityRole(role))).Succeeded);
         var user = new ApplicationUser { UserName = email, Email = email };
         Assert.True((await manager.CreateAsync(user, Password)).Succeeded); Assert.True((await manager.AddToRoleAsync(user, role)).Succeeded);
+        if (role == "Vendedor")
+        {
+            var db = scope.ServiceProvider.GetRequiredService<OroBiDbContext>();
+            var seller = new Seller { Name = "Restricted seller", ImportedName = "RESTRICTED" };
+            db.Sellers.Add(seller);
+            db.UserSellerAccesses.Add(new UserSellerAccess { UserId = user.Id, SellerId = seller.Id });
+            await db.SaveChangesAsync();
+        }
         return user.Id;
     }
     private static async Task LoginAsync(HttpClient client, string email)

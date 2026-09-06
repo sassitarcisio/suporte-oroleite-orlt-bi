@@ -25,6 +25,16 @@
 .seller-portal .portal-metric>small{margin-top:0}
 .seller-portal .portal-metric-icon{display:grid;place-items:center;flex-shrink:0;width:36px;height:36px;border-radius:50%;background:#f2c94c12;color:var(--portal-gold);font-size:17px}
 .seller-portal .portal-customer-title{overflow-wrap:anywhere}
+.seller-portal .portal-temporary{border-color:var(--portal-gold)}
+.seller-portal .portal-temporary h2,.seller-portal .portal-install p{overflow-wrap:anywhere}
+.seller-portal .portal-temporary input{font-family:monospace}
+.seller-portal .portal-actions+button{margin-top:16px}
+.seller-portal .portal-check{min-height:44px}
+.seller-portal .portal-shortcuts button,.seller-portal .portal-daily-table summary{min-height:44px}
+@media(max-width:1099px){
+  .seller-portal input,.seller-portal select,.seller-portal textarea{font-size:16px}
+  .seller-portal .portal-bottom-nav button{min-width:44px;min-height:48px}
+}
 .seller-portal .portal-customer-days{display:grid;gap:22px}
 .seller-portal .portal-customer-day{min-width:0;border:1px solid var(--portal-line);border-radius:16px;overflow:hidden;background:var(--portal-panel)}
 .seller-portal .portal-customer-day-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px 20px;background:#352614;border-bottom:1px solid var(--portal-line)}

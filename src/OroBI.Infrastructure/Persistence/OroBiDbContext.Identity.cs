@@ -12,12 +12,15 @@ public sealed partial class OroBiDbContext
 
     partial void ConfigureIdentityModel(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<ApplicationUser>().Property(user => user.MustChangePassword).HasDefaultValue(false);
         modelBuilder.Entity<ApplicationUser>().Property(user => user.IsActive).HasDefaultValue(true);
         modelBuilder.Entity<ApplicationUser>().Property(user => user.RegistrationName).HasMaxLength(120);
         modelBuilder.Entity<ApplicationUser>().Property(user => user.IsRegistrationPending).HasDefaultValue(false);
         modelBuilder.Entity<Seller>(entity =>
         {
             entity.HasKey(seller => seller.Id);
+            entity.Property(seller => seller.ExternalId).HasMaxLength(64);
+            entity.HasIndex(seller => seller.ExternalId).IsUnique();
             entity.Property(seller => seller.Name).HasMaxLength(120);
             entity.Property(seller => seller.ImportedName).HasMaxLength(120);
             entity.HasIndex(seller => seller.ImportedName).IsUnique();

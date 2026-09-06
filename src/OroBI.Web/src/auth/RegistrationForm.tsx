@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { apiBaseUrl } from '../api/client'
+import { apiBaseUrl, sessionRequestInit } from '../api/client'
 import './registration.css'
 
 type Props = { onBack: () => void; onAccepted: (message: string, email: string) => void }
@@ -25,10 +25,10 @@ export default function RegistrationForm({ onBack, onAccepted }: Props) {
     request.current = controller
     setBusy(true)
     try {
-      const response = await fetch(`${apiBaseUrl}/api/v1/auth/register`, {
+      const response = await fetch(`${apiBaseUrl}/api/v1/auth/register`, sessionRequestInit({
         method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store',
         body: JSON.stringify({ name: name.trim(), email: email.trim(), password }), signal: controller.signal,
-      })
+      }))
       const body = await response.json().catch(() => null) as { message?: unknown; error?: unknown; errors?: unknown } | null
       if (controller.signal.aborted) return
       if (response.status !== 202) {

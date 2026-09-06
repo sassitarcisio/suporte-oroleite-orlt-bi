@@ -27,7 +27,7 @@ public static class AuthEndpoints
             {
                 return Results.Unauthorized();
             }
-            return Results.Ok(result);
+            return BrowserSession.UsesCookieTransport(context.Request) ? BrowserSession.SignIn(context, result) : Results.Ok(result);
         }).AllowAnonymous();
 
         return endpoints;

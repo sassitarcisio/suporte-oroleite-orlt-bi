@@ -1,7 +1,9 @@
 using System.Security.Claims;
+using System.Globalization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using OroBI.Infrastructure.Identity;
+using OroBI.Infrastructure.Persistence;
 
 namespace OroBI.Api.Auth;
 
@@ -19,13 +21,22 @@ public static class SessionTokenValidation
             context.Fail("Session is no longer valid.");
             return;
         }
+        var roles = await manager.GetRolesAsync(user);
+        var db = context.HttpContext.RequestServices.GetRequiredService<OroBiDbContext>();
+        if (!await SellerLoginEligibility.IsEligibleAsync(user, roles, db, context.HttpContext.RequestAborted))
+        {
+            context.Fail("Session is no longer valid.");
+            return;
+        }
         // Every request observes persisted roles; a signed but stale role never retains authority.
         var identity = new ClaimsIdentity(context.Scheme.Name, ClaimTypes.Name, ClaimTypes.Role);
         identity.AddClaim(new(ClaimTypes.NameIdentifier, user.Id));
         identity.AddClaim(new(ClaimTypes.Name, user.UserName ?? string.Empty));
         identity.AddClaim(new(ClaimTypes.Email, user.Email ?? string.Empty));
         identity.AddClaim(new("session_version", version));
-        identity.AddClaims((await manager.GetRolesAsync(user)).Select(role => new Claim(ClaimTypes.Role, role)));
+        identity.AddClaim(new("exp", new DateTimeOffset(DateTime.SpecifyKind(context.SecurityToken.ValidTo, DateTimeKind.Utc)).ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture)));
+        identity.AddClaim(new("must_change_password", user.MustChangePassword ? "true" : "false"));
+        identity.AddClaims(roles.Select(role => new Claim(ClaimTypes.Role, role)));
         context.Principal = new ClaimsPrincipal(identity);
     }
 }

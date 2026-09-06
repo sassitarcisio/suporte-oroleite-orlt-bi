@@ -42,6 +42,11 @@ public sealed class LocalAuthenticationService(
         if (!resetResult.Succeeded) return null;
 
         var roles = await userManager.GetRolesAsync(user);
+        if (!await SellerLoginEligibility.IsEligibleAsync(user, roles, db, cancellationToken))
+        {
+            await AuditAsync("LoginFailed", user.Id, email, cancellationToken);
+            return null;
+        }
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, user.Id),
@@ -68,8 +73,9 @@ public sealed class LocalAuthenticationService(
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),
                 SecurityAlgorithms.HmacSha256));
 
+        user.LastLoginAtUtc = DateTimeOffset.UtcNow;
         await AuditAsync("LoginSucceeded", user.Id, email, cancellationToken);
-        return new LocalLoginResult(new JwtSecurityTokenHandler().WriteToken(token), expiresAt, roles.ToArray());
+        return new LocalLoginResult(new JwtSecurityTokenHandler().WriteToken(token), expiresAt, roles.ToArray(), user.MustChangePassword);
     }
 
     private async Task AuditAsync(string action, string? userId, string email, CancellationToken cancellationToken)

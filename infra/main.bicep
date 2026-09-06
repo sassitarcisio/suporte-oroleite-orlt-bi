@@ -24,6 +24,14 @@ param configureInitialAdministrators bool = false
 @description('Allowed browser origin for the published web application.')
 param webOrigin string = ''
 
+@description('Enable corporate cookie transport only after HTTPS custom domains are bound.')
+param enableBrowserSession bool = false
+param browserSessionOrigin string = 'https://portal-bi.oroleite.com.br'
+param browserSessionApiHost string = 'api-bi.oroleite.com.br'
+
+@description('Preserve all current ingress domain/certificate bindings, supplied by deploy-azure.ps1.')
+param apiCustomDomains array = []
+
 var storageName = '${prefix}store'
 var postgresName = '${prefix}-postgres'
 var environmentName = '${prefix}-cae'
@@ -142,7 +150,7 @@ resource api 'Microsoft.App/containerApps@2024-03-01' = {
   properties: {
     managedEnvironmentId: environment.id
     configuration: {
-      ingress: { external: true, targetPort: 8080, transport: 'auto' }
+      ingress: { external: true, targetPort: 8080, transport: 'auto', allowInsecure: false, customDomains: apiCustomDomains }
       registries: [
         {
           server: registry.properties.loginServer
@@ -178,7 +186,13 @@ resource api 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'Jwt__Issuer', value: 'OroBI' }
             { name: 'Jwt__Audience', value: 'OroBI' }
             { name: 'Jwt__SigningKey', secretRef: 'jwt-signing-key' }
-          ], empty(webOrigin) ? [] : [
+            { name: 'BrowserSession__Enabled', value: string(enableBrowserSession) }
+            { name: 'BrowserSession__ApiHost', value: browserSessionApiHost }
+            { name: 'BrowserSession__AllowedOrigins__0', value: browserSessionOrigin }
+          ], enableBrowserSession ? [
+            // Port 8080 is reached through managed ACA HTTP ingress, which supplies X-Forwarded-Proto.
+            { name: 'ASPNETCORE_FORWARDEDHEADERS_ENABLED', value: 'true' }
+          ] : [], empty(webOrigin) ? [] : [
             { name: 'Cors__Origins__0', value: webOrigin }
           ])
           resources: { cpu: json('0.25'), memory: '0.5Gi' }

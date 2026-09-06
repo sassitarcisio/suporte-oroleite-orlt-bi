@@ -1,12 +1,14 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using OroBI.Application.Identity;
@@ -16,7 +18,7 @@ using OroBI.Infrastructure.Persistence;
 
 namespace OroBI.Api.IntegrationTests.Auth;
 
-public sealed class PortalSessionTests
+public sealed partial class PortalSessionTests
 {
     [Fact]
     public async Task Removing_access_retains_inactive_link_history_and_denies_scope()
@@ -178,14 +180,17 @@ public sealed class PortalSessionTests
         Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/v1/auth/login", new { email = "seller@example.invalid", password = "Synthetic-456!" })).StatusCode);
     }
 
-    private static WebApplicationFactory<Program> CreateFactory()
+    private static WebApplicationFactory<Program> CreateFactory(Dictionary<string, string?>? settings = null)
     {
         var database = Guid.NewGuid().ToString();
         return new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
+            if (settings is not null) builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(settings));
             builder.ConfigureLogging(logging => logging.ClearProviders());
             builder.ConfigureServices(services =>
             {
+                // Keep reset-token encryption real without writing keys to the developer's profile.
+                services.AddDataProtection().UseEphemeralDataProtectionProvider();
                 services.RemoveAll<OroBiDbContext>();
                 services.RemoveAll<DbContextOptions<OroBiDbContext>>();
                 services.RemoveAll<IDbContextOptionsConfiguration<OroBiDbContext>>();

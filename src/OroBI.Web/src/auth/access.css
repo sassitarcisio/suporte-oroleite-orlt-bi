@@ -1,0 +1,35 @@
+.login-form-panel .remember-session { display: flex; align-items: center; gap: .75rem; min-height: 44px; text-transform: none; letter-spacing: normal; font-size: 13px; line-height: 1.5; }
+.login-form-panel .remember-session input { flex: 0 0 20px; width: 20px; height: 20px; margin: 0; accent-color: #f2c438; }
+.remember-help, .password-policy { font-size: .875rem; line-height: 1.5; color: var(--muted, #cbbcaa); }
+.login-form-panel .registration-link { min-height: 44px; }
+.login-form-panel input { font-size: 16px; }
+.login-form-panel button { min-height: 44px; }
+.login-form-panel .password-toggle { width: 44px; height: 44px; right: 4px; }
+.login-form-panel .password-field input { padding-right: 52px; }
+.first-access-panel { width: min(100%, 520px); border: 1px solid #554025; border-radius: 20px; }
+.first-access-logo { display: block; width: 130px; margin-bottom: 1.5rem; }
+.first-access-panel h1 { font-size: clamp(1.6rem, 5vw, 2.2rem); }
+.password-change-form { display: grid; gap: 1rem; }
+.password-change-form label { display: grid; gap: .5rem; }
+.password-change-form input, .password-change-form button { min-height: 44px; }
+.password-change-form input { width: 100%; min-width: 0; font-size: 16px; }
+.first-access-panel .password-change-form button { padding: 12px 18px; border: 1px solid #d9ad32; border-radius: 8px; background: #d9ad32; color: #1a120a; font-weight: 600; }
+.first-access-panel .password-change-form button:disabled { opacity: .65; }
+.login-form-panel button:focus-visible, .login-form-panel input:focus-visible { outline: 2px solid #ffd568; outline-offset: 3px; }
+@media (max-width: 600px) {
+  .login-shell { padding: 16px; min-height: 100dvh; }
+  .login-layout { width: 100%; min-height: 0; grid-template-columns: minmax(0, 1fr); }
+  .login-brand-panel { padding: 16px 20px; min-height: auto; gap: 16px; flex-direction: row; align-items: center; justify-content: flex-start; }
+  .login-brand-panel h1 { font-size: 1.35rem; margin: 0; }
+  .login-brand-panel .eyebrow { margin: 0 0 6px; }
+  .login-brand-panel > div > p:last-child, .login-brand-footer { display: none; }
+  .login-brand-panel .login-brand-logo { width: 72px; height: 72px; flex-shrink: 0; }
+  .login-form-panel { padding: 24px 20px; min-width: 0; min-height: 0; }
+  .login-form-panel form { margin-top: 20px; gap: 12px; }
+  .login-form-panel .btn { width: 100%; }
+  .login-form-panel .remember-help { margin: 0; font-size: 12px; }
+  .first-access-logo { width: 80px; margin-bottom: 16px; }
+  .first-access-panel .password-policy { margin-bottom: 0; }
+  .login-form-panel input { font-size: 16px; }
+  .login-form-panel button { min-height: 44px; }
+}

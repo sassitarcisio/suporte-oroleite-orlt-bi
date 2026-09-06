@@ -1,7 +1,8 @@
 import { lazy, Suspense, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { apiRequest, apiBaseUrl, authenticatedFetch } from './api/client'
-import { clearAccessToken, readAccessToken, saveAccessToken, sessionExpiredEvent } from './auth/session'
+import { apiRequest, apiBaseUrl, authenticatedFetch, sessionRequestInit } from './api/client'
+import { bootstrapCookieSession, confirmCookieSession, cookieSessionChangedKey, cookieSessionMode, notifyCookieSessionChanged, startCookieSession, accessTokenExpiresAt, clearAccessToken, consumeSessionExpired, expireAccessToken, isRememberedSession, passwordChangeRequiredEvent, readAccessToken, rememberedSessionKey, saveAccessToken, sessionExpiredEvent } from './auth/session'
+import ChangePasswordForm from './auth/ChangePasswordForm'
 import { MarginAnalysisPage } from './features/analytics/MarginAnalysisPage'
 import type { MarginReport, NetMarginReport } from './features/analytics/marginTypes'
 import { TradeAnalysisPage } from './features/analytics/TradeAnalysisPage'
@@ -17,10 +18,11 @@ import RegistrationForm from './auth/RegistrationForm'
 import './App.css'
 import './ExecutiveGold.css'
 import './CardPresentation.css'
+import './auth/access.css'
 
 const SellerPortal = lazy(() => import('./features/portal/SellerPortal'))
-type LoginResponse = { accessToken: string; roles?: string[] }
-type CurrentUser = { roles: string[] }
+type LoginResponse = { accessToken?: string; sessionMode?: 'cookie'; roles?: string[]; expiresAtUtc?: string; mustChangePassword?: boolean }
+type CurrentUser = { expiresAtUtc?: string; roles: string[]; email?: string; mustChangePassword?: boolean }
 type PageState = 'idle' | 'loading' | 'ready' | 'error'
 type View = 'dashboard' | 'import' | 'trades' | 'sales-trades' | 'margins' | 'net-margin' | 'closings' | 'closing-rh' | 'closing-supervisor' | 'closing-valdir'
 
@@ -85,11 +87,20 @@ function filterQuery(filters: DashboardFilters): string {
 }
 
 export default function App() {
-  const [token, setToken] = useState(readAccessToken)
+  const [token, setToken] = useState(cookieSessionMode ? bootstrapCookieSession : readAccessToken)
   const [portalRoute, setPortalRoute] = useState(() => window.location.pathname.startsWith('/portal'))
-  const [email, setEmail] = useState(() => window.localStorage.getItem('orobi:last-email') ?? '')
+  const [email, setEmail] = useState(() => { try { return window.localStorage.getItem('orobi:last-email') ?? '' } catch { return '' } })
   const [password, setPassword] = useState('')
   const [passwordVisible, setPasswordVisible] = useState(false)
+  const [rememberSession, setRememberSession] = useState(false)
+  const [mustChangePassword, setMustChangePassword] = useState(false)
+  const [identityToken, setIdentityToken] = useState('')
+  const [identityEmail, setIdentityEmail] = useState('')
+  const [identityError, setIdentityError] = useState('')
+  const [identityRevision, setIdentityRevision] = useState(0)
+  const [loginError, setLoginError] = useState('')
+  const [logoutPending, setLogoutPending] = useState(false)
+  const [logoutFailed, setLogoutFailed] = useState(false)
   const [registrationOpen, setRegistrationOpen] = useState(false)
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [dashboardDetails, setDashboardDetails] = useState<DashboardDetails | null>(null)
@@ -122,7 +133,8 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const dashboardRequestId = useRef(0)
   const sessionVersion = useRef(0)
-  const [sessionMessage, setSessionMessage] = useState('')
+  const cookieAuthenticationPending = useRef(false)
+  const [sessionMessage, setSessionMessage] = useState(() => consumeSessionExpired() ? 'Sua sessão expirou. Entre novamente para continuar.' : '')
 
   const loadDashboard = useCallback(async (filters: DashboardFilters) => {
     if (!token) return
@@ -197,8 +209,14 @@ export default function App() {
     sessionVersion.current += 1
     dashboardRequestId.current += 1
     clearClosingRequests()
-    clearAccessToken()
+    clearAccessToken(cookieSessionMode ? undefined : token)
     setToken('')
+    setIdentityToken('')
+    setIdentityEmail('')
+    setIdentityError('')
+    setMustChangePassword(false)
+    setRememberSession(false)
+    setLoginError('')
     setView('dashboard')
     setState('idle')
     setSummary(null)
@@ -223,11 +241,18 @@ export default function App() {
   }
 
   function logout() {
+    if (logoutPending) return
     const previousToken = token
+    if (cookieSessionMode) { setLogoutPending(true); setLogoutFailed(false) }
     endSession()
-    void apiRequest('/api/v1/auth/logout', previousToken, { method: 'POST' }).catch(() => {
-      if (!readAccessToken()) setSessionMessage('Sessão encerrada neste dispositivo. Não foi possível confirmar a revogação no servidor.')
-    })
+    void apiRequest('/api/v1/auth/logout', previousToken, { method: 'POST' }).then(() => {
+      if (cookieSessionMode) notifyCookieSessionChanged()
+    }).catch(() => {
+      if (!readAccessToken()) {
+        if (cookieSessionMode) { setLogoutFailed(true); setSessionMessage('Não foi possível encerrar a sessão no servidor. A sessão pode continuar ativa neste navegador. Conecte-se e tente sair novamente.') }
+        else setSessionMessage('Sessão encerrada neste dispositivo. Não foi possível confirmar a revogação no servidor.')
+      }
+    }).finally(() => { if (cookieSessionMode) setLogoutPending(false) })
   }
 
   const openPortal = useCallback(() => {
@@ -241,12 +266,67 @@ export default function App() {
     window.history.replaceState({}, '', '/portal')
   }, [clearClosingRequests])
 
-  const expireSession = useEffectEvent(() => endSession('Sua sessão expirou. Entre novamente para continuar.'))
+  const expireSession = useEffectEvent((silent = false) => endSession(silent ? '' : 'Sua sessão expirou. Entre novamente para continuar.'))
+  const enforcePasswordChange = useEffectEvent(() => {
+    sessionVersion.current += 1
+    dashboardRequestId.current += 1
+    clearClosingRequests()
+    setSummary(null)
+    setDashboardDetails(null)
+    setTradeAnalysis(null)
+    setMustChangePassword(true)
+  })
+  const revalidateCookie = useEffectEvent((allowAnonymous = false) => {
+    if (!cookieSessionMode || logoutPending || cookieAuthenticationPending.current || (!token && !allowAnonymous)) return
+    if (token && identityToken !== token) return
+    sessionVersion.current += 1
+    dashboardRequestId.current += 1
+    clearClosingRequests()
+    setSummary(null)
+    setDashboardDetails(null)
+    setTradeAnalysis(null)
+    setIdentityToken('')
+    setIdentityError('')
+    setMustChangePassword(false)
+    setToken(startCookieSession(!!token))
+  })
+  const checkOtherTab = useEffectEvent((event: StorageEvent) => {
+    if (cookieSessionMode) { if (event.key === cookieSessionChangedKey) revalidateCookie(true); return }
+    if (!token || event.key !== rememberedSessionKey) return
+    if (!isRememberedSession(token)) endSession('Sessão encerrada ou alterada em outra aba. Entre novamente.')
+  })
   useEffect(() => {
-    const expired = () => expireSession()
+    const expired = (event: Event) => expireSession((event as CustomEvent<{ silent?: boolean }>).detail?.silent === true)
+    const required = () => enforcePasswordChange()
+    const storage = (event: StorageEvent) => checkOtherTab(event)
+    const foreground = () => { if (document.visibilityState !== 'hidden') revalidateCookie() }
     window.addEventListener(sessionExpiredEvent, expired)
-    return () => window.removeEventListener(sessionExpiredEvent, expired)
+    window.addEventListener(passwordChangeRequiredEvent, required)
+    window.addEventListener('storage', storage)
+    window.addEventListener('focus', foreground)
+    document.addEventListener('visibilitychange', foreground)
+    return () => {
+      window.removeEventListener(sessionExpiredEvent, expired)
+      window.removeEventListener(passwordChangeRequiredEvent, required)
+      window.removeEventListener('storage', storage)
+      window.removeEventListener('focus', foreground)
+      document.removeEventListener('visibilitychange', foreground)
+    }
   }, [])
+
+  useEffect(() => {
+    const expiresAt = accessTokenExpiresAt(token)
+    if (!expiresAt) return
+    const expireWhenDue = () => { if (Date.now() >= expiresAt) expireAccessToken(token) }
+    const timeout = window.setTimeout(expireWhenDue, Math.max(0, expiresAt - Date.now()))
+    window.addEventListener('focus', expireWhenDue)
+    document.addEventListener('visibilitychange', expireWhenDue)
+    return () => {
+      window.clearTimeout(timeout)
+      window.removeEventListener('focus', expireWhenDue)
+      document.removeEventListener('visibilitychange', expireWhenDue)
+    }
+  }, [token, identityToken])
 
   async function loadMargins(page: 'margins' | 'net-margin', filters: DashboardFilters) {
     if (!token) return
@@ -339,15 +419,21 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (!token || portalRoute) return
+    if (!token) return
     let active = true
     const version = sessionVersion.current
     const current = () => active && version === sessionVersion.current
 
-    void apiRequest<CurrentUser>('/api/me', token).then(user => {
+    void apiRequest<CurrentUser>(portalRoute ? '/api/v1/me' : '/api/me', token).then(user => {
       if (!current()) return
+      if (cookieSessionMode) confirmCookieSession(token, user.expiresAtUtc)
       const userRoles = Array.isArray(user.roles) ? user.roles : []
       setRoles(userRoles)
+      setIdentityEmail(user.email ?? '')
+      setIdentityToken(token)
+      setIdentityError('')
+      setMustChangePassword(user.mustChangePassword === true)
+      if (user.mustChangePassword || portalRoute) return
       if (userRoles.some(role => ['Vendedor', 'Gestor', 'Gerente'].includes(role)) && !userRoles.some(role => ['Administrador', 'Diretoria'].includes(role))) { openPortal(); return }
       void loadDashboard(appliedFiltersRef.current)
       void apiRequest<string[]>('/api/sellers', token).then(result => { if (current()) setSellers(Array.isArray(result) ? result : []) }).catch(() => { if (current()) setSellers([]) })
@@ -357,12 +443,12 @@ export default function App() {
       cities: Array.isArray(result.cities) ? result.cities : [],
       movementTypes: Array.isArray(result.movementTypes) ? result.movementTypes : [],
       }) }).catch(() => { if (current()) setDashboardFilterOptions(emptyDashboardFilterOptions) })
-    }).catch(() => { if (current()) { setRoles([]); setState('error') } })
+    }).catch(() => { if (current()) { setRoles([]); setIdentityError('Não foi possível validar seu acesso. Verifique sua conexão e tente novamente.'); setState('error') } })
     return () => { active = false }
-  }, [token, portalRoute, loadDashboard, openPortal])
+  }, [token, portalRoute, loadDashboard, openPortal, identityRevision])
 
   useEffect(() => {
-    if (!token || portalRoute || (view !== 'trades' && view !== 'sales-trades')) return
+    if (!token || identityToken !== token || mustChangePassword || portalRoute || (view !== 'trades' && view !== 'sales-trades')) return
 
     let active = true
     const version = sessionVersion.current
@@ -373,29 +459,76 @@ export default function App() {
       .then(result => { if (active && version === sessionVersion.current) { setTradeAnalysis(result); setAnalysisState('ready') } })
       .catch(() => { if (active && version === sessionVersion.current) setAnalysisState('error') })
     return () => { active = false }
-  }, [token, portalRoute, view, dashboardFilters])
+  }, [token, identityToken, mustChangePassword, portalRoute, view, dashboardFilters])
 
   async function login(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const version = ++sessionVersion.current
     setSessionMessage('')
+    setLoginError('')
     setState('loading')
     try {
-      const response = await fetch(`${apiBaseUrl}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      })
-      if (!response.ok) throw new Error('Login failed')
-      const result = await response.json() as LoginResponse
+      const result = await requestLogin(email, password)
       if (version !== sessionVersion.current) return
-      saveAccessToken(result.accessToken)
-      window.localStorage.setItem('orobi:last-email', email.trim())
-      setToken(result.accessToken)
-      if (result.roles?.some(role => ['Vendedor', 'Gestor', 'Gerente'].includes(role)) && !result.roles.some(role => ['Administrador', 'Diretoria'].includes(role))) openPortal()
-      setPassword('')
+      acceptLogin(result, rememberSession)
+      try { window.localStorage.setItem('orobi:last-email', email.trim()) } catch { /* Login also works with local storage disabled. */ }
+    } catch (error) {
+      if (version === sessionVersion.current) {
+        setLoginError(error instanceof Error ? error.message : 'Não foi possível entrar. Tente novamente.')
+        setState('error')
+      }
+    }
+  }
+
+  async function requestLogin(loginEmail: string, loginPassword: string): Promise<LoginResponse> {
+    const generation = cookieSessionMode ? startCookieSession(!!token) : ''
+    cookieAuthenticationPending.current = cookieSessionMode
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/auth/login`, sessionRequestInit({
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: loginEmail.trim(), password: loginPassword }),
+      })).catch(() => { throw new Error('Não foi possível entrar. Verifique sua conexão e tente novamente.') })
+      if (!response.ok) throw new Error(response.status === 401 || response.status === 403
+        ? 'Usuário ou senha incorretos.'
+        : response.status === 429 ? 'Muitas tentativas. Aguarde alguns minutos e tente novamente.'
+          : 'Não foi possível entrar. Verifique sua conexão e tente novamente.')
+      return await response.json() as LoginResponse
+    } catch (error) {
+      if (cookieSessionMode) clearAccessToken(generation)
+      throw error
+    } finally { cookieAuthenticationPending.current = false }
+  }
+
+  function acceptLogin(result: LoginResponse, remember: boolean) {
+    let nextToken: string
+    if (cookieSessionMode) {
+      if (result.sessionMode !== 'cookie') throw new Error('Não foi possível estabelecer a sessão corporativa.')
+      nextToken = startCookieSession(true)
+      confirmCookieSession(nextToken, result.expiresAtUtc)
+      notifyCookieSessionChanged()
+    } else {
+      if (!result.accessToken) throw new Error('Não foi possível estabelecer sua sessão.')
+      nextToken = result.accessToken
+      saveAccessToken(nextToken, { remember, expiresAtUtc: result.expiresAtUtc })
+    }
+    setLogoutFailed(false)
+    setIdentityToken('')
+    setIdentityError('')
+    setMustChangePassword(result.mustChangePassword === true)
+    setToken(nextToken)
+    setPassword('')
+    setState('idle')
+    if (result.roles?.some(role => ['Vendedor', 'Gestor', 'Gerente'].includes(role)) && !result.roles.some(role => ['Administrador', 'Diretoria'].includes(role))) openPortal()
+  }
+
+  async function completePasswordChange(newPassword: string) {
+    const version = ++sessionVersion.current
+    const remember = isRememberedSession(token)
+    try {
+      const result = await requestLogin(identityEmail || email, newPassword)
+      if (version === sessionVersion.current) acceptLogin(result, remember)
     } catch {
-      if (version === sessionVersion.current) setState('error')
+      if (version === sessionVersion.current) endSession('Senha alterada. Entre novamente com a nova senha.')
     }
   }
 
@@ -423,9 +556,23 @@ export default function App() {
     if (nextFile && /^VALOR[_ -]?METAS\.csv$/i.test(nextFile.name)) setFileType('GoalValues')
   }
 
-  if (!token && registrationOpen) return <main className="shell login-shell"><section className="login-layout registration-layout shadow-lg"><aside className="login-brand-panel"><img className="login-brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /><div><p className="eyebrow">PORTAL DO VENDEDOR</p><h1>Seus resultados.<br /><span>Seu espaço.</span></h1><p>Acompanhe suas vendas, metas e fechamento em um só lugar.</p></div><p className="login-brand-footer">Acesso liberado após aprovação do administrador.</p></aside><section className="login-form-panel"><RegistrationForm onBack={() => setRegistrationOpen(false)} onAccepted={(message, registeredEmail) => { setRegistrationOpen(false); setEmail(registeredEmail); setSessionMessage(message); setState('idle') }} /></section></section></main>
-  if (!token) return <main className="shell login-shell"><section className="login-layout shadow-lg"><aside className="login-brand-panel"><img className="login-brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /><div><p className="eyebrow">OROLEITE BI</p><h1 aria-label="Central de resultados">Central de<br /><span>resultados.</span></h1><p>Inteligencia comercial para decisoes mais seguras, todos os dias.</p></div><p className="login-brand-footer"><i className="fa-solid fa-shield-halved" aria-hidden="true" /> Ambiente corporativo protegido</p></aside><section className="login-form-panel"><div className="login-form-heading"><p className="eyebrow">ACESSO RESTRITO</p><h2>Bem-vindo de volta.</h2><p>Informe suas credenciais para acessar os indicadores da operacao.</p></div>{sessionMessage && <p className="notice" role="status">{sessionMessage}</p>}<form onSubmit={login}><label>E-MAIL<input type="email" autoComplete="username" required value={email} onChange={event => setEmail(event.target.value)} /></label><label>SENHA<span className="password-field"><input type={passwordVisible ? 'text' : 'password'} autoComplete="current-password" required value={password} onChange={event => setPassword(event.target.value)} /><button type="button" className="password-toggle" onClick={() => setPasswordVisible(visible => !visible)} aria-label={passwordVisible ? 'Ocultar senha' : 'Mostrar senha'}><i className={`fa-solid ${passwordVisible ? 'fa-eye-slash' : 'fa-eye'}`} aria-hidden="true" /></button></span></label><button className="btn btn-dark" type="submit" disabled={state === 'loading'}>{state === 'loading' ? 'Entrando...' : 'Entrar'} <i className="fa-solid fa-arrow-right" aria-hidden="true" /></button></form>{state === 'error' && <p className="notice error">Credenciais invalidas ou API indisponivel.</p>}<button type="button" className="registration-link" disabled={state === 'loading'} onClick={() => { setPassword(''); setPasswordVisible(false); setSessionMessage(''); setState('idle'); setRegistrationOpen(true) }}>Criar minha conta</button></section></section></main>
+  if (logoutPending) return <main className="shell login-shell"><section className="first-access-panel login-form-panel"><p role="status">Encerrando sua sessão no servidor...</p></section></main>
 
+  if (!token && registrationOpen) return <main className="shell login-shell"><section className="login-layout registration-layout shadow-lg"><aside className="login-brand-panel"><img className="login-brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /><div><p className="eyebrow">PORTAL DO VENDEDOR</p><h1>Seus resultados.<br /><span>Seu espaço.</span></h1><p>Acompanhe suas vendas, metas e fechamento em um só lugar.</p></div><p className="login-brand-footer">Acesso liberado após aprovação do administrador.</p></aside><section className="login-form-panel"><RegistrationForm onBack={() => setRegistrationOpen(false)} onAccepted={(message, registeredEmail) => { setRegistrationOpen(false); setEmail(registeredEmail); setSessionMessage(message); setState('idle') }} /></section></section></main>
+  if (!token) return <main className="shell login-shell"><section className="login-layout shadow-lg"><aside className="login-brand-panel"><img className="login-brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /><div><p className="eyebrow">OROLEITE BI</p><h1 aria-label="Central de resultados">Central de<br /><span>resultados.</span></h1><p>Inteligencia comercial para decisoes mais seguras, todos os dias.</p></div><p className="login-brand-footer"><i className="fa-solid fa-shield-halved" aria-hidden="true" /> Ambiente corporativo protegido</p></aside><section className="login-form-panel"><div className="login-form-heading"><p className="eyebrow">ACESSO RESTRITO</p><h2>Bem-vindo de volta.</h2><p>Informe suas credenciais para acessar os indicadores da operacao.</p></div>{sessionMessage && <p className="notice" role="status">{sessionMessage}</p>}{logoutFailed && <button type="button" className="registration-link" onClick={logout}>Tentar sair novamente</button>}<form onSubmit={login}><label>E-MAIL<input type="email" autoComplete="username" required value={email} onChange={event => setEmail(event.target.value)} /></label><label>SENHA<span className="password-field"><input type={passwordVisible ? 'text' : 'password'} autoComplete="current-password" required value={password} onChange={event => setPassword(event.target.value)} /><button type="button" className="password-toggle" onClick={() => setPasswordVisible(visible => !visible)} aria-label={passwordVisible ? 'Ocultar senha' : 'Mostrar senha'}><i className={`fa-solid ${passwordVisible ? 'fa-eye-slash' : 'fa-eye'}`} aria-hidden="true" /></button></span></label>{cookieSessionMode ? <p className="remember-help">Seu acesso permanece neste dispositivo por até 8 horas. Use Sair ao terminar em um dispositivo compartilhado.</p> : <><label className="remember-session"><input type="checkbox" checked={rememberSession} onChange={event => setRememberSession(event.target.checked)} /><span>Manter acesso neste dispositivo por até 8 horas</span></label><p className="remember-help">Use esta opção somente no seu dispositivo pessoal.</p></>}<button className="btn btn-dark" type="submit" disabled={state === 'loading'}>{state === 'loading' ? 'Entrando...' : 'Entrar'} <i className="fa-solid fa-arrow-right" aria-hidden="true" /></button></form>{state === 'error' && <p className="notice error" role="alert">{loginError || 'Não foi possível entrar. Verifique sua conexão e tente novamente.'}</p>}<button type="button" className="registration-link" onClick={() => setSessionMessage('Solicite ao administrador uma nova senha temporária. No próximo acesso, você deverá criar sua própria senha.')}>Esqueci minha senha</button><button type="button" className="registration-link" disabled={state === 'loading'} onClick={() => { setPassword(''); setPasswordVisible(false); setSessionMessage(''); setState('idle'); setRegistrationOpen(true) }}>Criar minha conta</button></section></section></main>
+
+  if (mustChangePassword) return <main className="shell login-shell"><section className="first-access-panel login-form-panel">
+    <img className="first-access-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" />
+    <p className="eyebrow">PRIMEIRO ACESSO</p><h1>Crie sua nova senha</h1>
+    <p>Antes de acessar seus resultados, substitua a senha temporária por uma senha que só você conhece.</p>
+    <ChangePasswordForm key={token} token={token} requiredChange onChanged={completePasswordChange} />
+    <button type="button" className="registration-link" onClick={logout}>Sair</button>
+  </section></main>
+
+  if (identityToken !== token) return <main className="shell login-shell"><section className="first-access-panel login-form-panel">
+    {identityError ? <><p className="notice error" role="alert">{identityError}</p><button type="button" onClick={() => { setIdentityError(''); setIdentityRevision(value => value + 1) }}>Tentar novamente</button></> : <p role="status">Validando seu acesso...</p>}
+    <button type="button" className="registration-link" onClick={logout}>Sair</button>
+  </section></main>
   if (portalRoute) return <Suspense fallback={<main className="shell" role="status">Abrindo portal...</main>}><SellerPortal token={token} onLogout={logout} onSessionEnd={endSession} onAdmin={() => { setPortalRoute(false); window.history.replaceState({}, '', '/') }} /></Suspense>
 
   if (view === 'import') return <main className="shell import-workspace"><ImportPage file={file} fileType={fileType} state={state} onBack={() => setView('dashboard')} onFileChange={selectImportFile} onFileTypeChange={setFileType} onSubmit={() => void upload()} /></main>

@@ -25,6 +25,9 @@ builder.Services.Configure<IdentityOptions>(options =>
 });
 builder.Services.AddSingleton<LoginRateLimiter>();
 builder.Services.AddSingleton<RegistrationRateLimiter>();
+builder.Services.AddOptions<BrowserSessionOptions>().Bind(builder.Configuration.GetSection(BrowserSessionOptions.SectionName))
+    .Validate(options => options.IsValid(), "BrowserSession requires a DNS API host and an exact HTTPS origin allowlist without paths or wildcards.")
+    .ValidateOnStart();
 
 if (args.Contains("--migrate", StringComparer.OrdinalIgnoreCase) ||
     args.Contains("--provision-admin", StringComparer.OrdinalIgnoreCase))
@@ -64,11 +67,12 @@ if (args.Contains("--migrate", StringComparer.OrdinalIgnoreCase) ||
 
 var jwtSection = builder.Configuration.GetRequiredSection(JwtOptions.SectionName);
 builder.Services.AddOptions<JwtOptions>().Bind(jwtSection).ValidateDataAnnotations().ValidateOnStart();
-var jwtOptions = jwtSection.Get<JwtOptions>() ?? throw new InvalidOperationException("JWT configuration is required.");
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Events = new JwtBearerEvents { OnTokenValidated = SessionTokenValidation.ValidateAsync };
+        var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? throw new InvalidOperationException("JWT configuration is required.");
+        options.Events = new JwtBearerEvents { OnMessageReceived = BrowserSession.ReceiveTokenAsync, OnTokenValidated = SessionTokenValidation.ValidateAsync };
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -76,6 +80,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidAudience = jwtOptions.Audience,
             ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey))
         };
@@ -87,25 +92,37 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(AuthorizationPolicies.SellerScope, policy =>
         policy.RequireAuthenticatedUser().RequireRole("Administrador", "Diretoria", "Gestor", "Gerente", "Vendedor"));
 });
-var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
+
 builder.Services.AddCors(options => options.AddPolicy("Web", policy =>
 {
+    var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
     if (corsOrigins.Length > 0)
     {
         policy.WithOrigins(corsOrigins).AllowAnyHeader().AllowAnyMethod();
     }
 }));
-var app = builder.Build();
 
-app.UseHttpsRedirection();
+builder.Services.AddCors(options => options.AddPolicy("BrowserSession", policy =>
+{
+    var browserSessionOptions = builder.Configuration.GetSection(BrowserSessionOptions.SectionName).Get<BrowserSessionOptions>() ?? new();
+    if (browserSessionOptions.Enabled && browserSessionOptions.IsValid())
+        policy.WithOrigins(browserSessionOptions.AllowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+}));
+var app = builder.Build();
+var browserSessionOptions = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<BrowserSessionOptions>>().Value;
+
 app.Use(async (context, next) =>
 {
-    if (context.Request.Path.StartsWithSegments("/api"))
+    if (context.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
         context.Response.Headers.CacheControl = "no-store";
     await next(context);
 });
-app.UseCors("Web");
+app.UseWhen(context => BrowserSession.IsAllowedOrigin(context.Request, browserSessionOptions), branch => branch.UseCors("BrowserSession"));
+app.UseWhen(context => !BrowserSession.IsAllowedOrigin(context.Request, browserSessionOptions), branch => branch.UseCors("Web"));
+app.UseMiddleware<BrowserSessionGuardMiddleware>();
+app.UseHttpsRedirection();
 app.UseAuthentication();
+app.UseMiddleware<RequiredPasswordChangeMiddleware>();
 app.UseAuthorization();
 app.MapHealthEndpoints();
 app.MapAuthEndpoints();

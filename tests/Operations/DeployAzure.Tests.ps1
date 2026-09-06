@@ -21,6 +21,7 @@ Describe 'deploy-azure.ps1' {
         function az {
             $global:LASTEXITCODE = 0
             if ($args[0] -eq 'keyvault') { return '/subscriptions/synthetic/resourceGroups/test/providers/Microsoft.KeyVault/vaults/testkv' }
+            if ($args[0] -eq 'containerapp') { return '[]' }
             if ($args[0] -ne 'deployment') { throw 'Unexpected Azure command in test.' }
             $deploymentObservation.ParameterFile = $args[-1].Substring(1)
             $deploymentObservation.Parameters = Get-Content -LiteralPath $deploymentObservation.ParameterFile -Raw | ConvertFrom-Json

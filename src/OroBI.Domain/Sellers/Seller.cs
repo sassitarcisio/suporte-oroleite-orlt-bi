@@ -3,6 +3,7 @@ namespace OroBI.Domain.Sellers;
 public sealed class Seller
 {
     public Guid Id { get; set; } = Guid.NewGuid();
+    public string? ExternalId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string ImportedName { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;

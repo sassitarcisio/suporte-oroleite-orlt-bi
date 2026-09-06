@@ -1,5 +1,7 @@
 # Portal do Vendedor — operação da fase 3
 
+> Atualização mobile de setembro/2026: consulte o [guia de acesso](../SELLER_PORTAL.md), as [regras de sessão atuais](../AUTHORIZATION.md) e a [auditoria](../SELLER_PORTAL_AUDIT.md). A nova branch acrescenta senha temporária, troca obrigatória, código ERP e sessão lembrada opcional; requer a migração `AddSellerMobileAccess` antes da publicação. Os números de testes ao final deste documento registram a entrega anterior.
+
 Implementação local do MVP do adendo (itens 107–183). A SPA oferece `/portal` na mesma aplicação e usa `/api/v1/me/*`; gestores usam `/api/v1/management/sellers/{sellerId}/*` após selecionar um vendedor autorizado.
 
 ## Ativação
@@ -29,7 +31,7 @@ O autocadastro usa `POST /api/v1/auth/register`. A resposta aceita não autentic
 
 O cadastro limita três tentativas por e-mail em 15 minutos e 60 tentativas totais por minuto, por instância da API, com resposta 429 e Retry-After. O limite não é distribuído entre réplicas. A senha segue a política Identity: de 8 a 128 caracteres no cadastro, com maiúscula, minúscula, número e símbolo.
 
-JWT expira em 8 horas e o servidor confere usuário ativo, SecurityStamp e papéis persistidos em cada requisição. Logout, troca/reset de senha e alterações de acesso revogam sessões. Tokens são mantidos apenas em sessionStorage; senhas não são persistidas no navegador. Login bem-sucedido/falho e operações de conta registram eventos sem senha nem token.
+JWT expira em 8 horas e o servidor confere usuário ativo, elegibilidade do vendedor, SecurityStamp e papéis persistidos em cada requisição. Logout, troca/reset de senha e alterações de acesso revogam sessões. Tokens ficam em sessionStorage; na atualização mobile, a opção explícita de manter acesso acrescenta token e validade ao localStorage, conforme [política e limites de sessão](../AUTHORIZATION.md). Senhas não são persistidas no navegador. Login bem-sucedido/falho e operações de conta registram eventos sem senha nem token.
 
 Permissões são aplicadas nos endpoints e em respostas compostas. Vendas/clientes exigem visualização de receita e clientes; detalhes de trocas também exigem ambas, além de trocas. Comissão, prêmios, PPP e metas têm controles próprios. Valores suprimidos não são substituídos por zero. Custo, margem, salário e ranking financeiro de colegas não integram o portal.
 

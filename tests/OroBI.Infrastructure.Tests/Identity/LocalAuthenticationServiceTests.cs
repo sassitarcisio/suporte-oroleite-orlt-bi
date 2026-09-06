@@ -108,6 +108,21 @@ public sealed class LocalAuthenticationServiceTests : IDisposable
         Assert.Null(await _service.LoginAsync(email, password, default));
     }
 
+    [Fact]
+    public async Task Last_login_timestamp_is_written_only_on_success_and_preserved_on_failure()
+    {
+        var user = await CreateUserAsync();
+        var before = System.Text.Json.JsonSerializer.SerializeToElement(user);
+        Assert.Equal(System.Text.Json.JsonValueKind.Null, before.GetProperty("LastLoginAtUtc").ValueKind);
+        Assert.Null(await _service.LoginAsync(Email, "Incorrect-123!", default));
+        Assert.Equal(System.Text.Json.JsonValueKind.Null, System.Text.Json.JsonSerializer.SerializeToElement(user).GetProperty("LastLoginAtUtc").ValueKind);
+        var started = DateTimeOffset.UtcNow;
+        Assert.NotNull(await _service.LoginAsync(Email, Password, default));
+        var lastLogin = System.Text.Json.JsonSerializer.SerializeToElement(user).GetProperty("LastLoginAtUtc").GetDateTimeOffset();
+        Assert.InRange(lastLogin, started, DateTimeOffset.UtcNow);
+        Assert.Null(await _service.LoginAsync(Email, "Incorrect-123!", default));
+        Assert.Equal(lastLogin, System.Text.Json.JsonSerializer.SerializeToElement(user).GetProperty("LastLoginAtUtc").GetDateTimeOffset());
+    }
     private async Task<ApplicationUser> CreateUserAsync()
     {
         var user = new ApplicationUser { UserName = Email, Email = Email, LockoutEnabled = true };
