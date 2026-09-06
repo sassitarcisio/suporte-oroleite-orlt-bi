@@ -84,18 +84,20 @@ describe('Audit regressions: applied filters and session lifecycle', () => {
   })
 
   it.each([200, 401])('ignores a late %s dashboard response after a new login', async status => {
-    let finishOld: (value: Response) => void = () => {}
+    let finishOld: ((value: Response) => void) | undefined
     vi.mocked(fetch).mockImplementation((input, init) => {
       if (String(input).includes('/api/dashboard?') && new Headers(init?.headers).get('Authorization') === 'Bearer old-token') return new Promise(resolve => { finishOld = resolve })
       return Promise.resolve(response(input))
     })
     render(<App />)
-    fireEvent.click(await screen.findByRole('button', { name: 'Sair' }))
+    // Identity loads before the dashboard; wait until the old request actually exists.
+    await waitFor(() => expect(finishOld).toBeTypeOf('function'))
+    fireEvent.click(screen.getByRole('button', { name: 'Sair' }))
     fireEvent.change(screen.getByLabelText('E-MAIL'), { target: { value: 'novo@example.test' } })
     fireEvent.change(screen.getByLabelText('SENHA'), { target: { value: 'not-a-real-password' } })
     fireEvent.click(screen.getByRole('button', { name: /Entrar/ }))
     await screen.findByTestId('dashboard-metrics')
-    await act(async () => { finishOld(json({ ...summary, grossSales: 99999 }, status)) })
+    await act(async () => { finishOld!(json({ ...summary, grossSales: 99999 }, status)) })
     expect(sessionStorage.getItem('orobi.access-token')).toBe('new-token')
     expect(screen.getByTestId('dashboard-metrics')).toBeVisible()
     expect(screen.getByTestId('dashboard-metrics')).not.toHaveTextContent('99.999,00')
