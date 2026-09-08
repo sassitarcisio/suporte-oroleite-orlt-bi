@@ -35,6 +35,7 @@ export function Customers({ data, onSelect }: { data: PortalCustomers; onSelect:
   return <><p className="portal-help">Clientes observados nas suas compras do período. Esta lista não representa a carteira completa do ERP.</p>{data.items.length ? <div className="portal-list">{data.items.map(customer => <button className="portal-record portal-customer" key={customer.customerCode} onClick={() => onSelect(customer.customerCode)}><div className="portal-record-top"><strong>{customer.customerCode && `${customer.customerCode} · `}{customer.customerName}</strong><span>{money(customer.netRevenue)}</span></div><div className="portal-record-meta"><span>{customer.city}</span><span>Última compra: {date(customer.lastPurchaseDate)}</span></div></button>)}</div> : <Empty>Nenhum cliente com compra no período selecionado.</Empty>}{data.hasMore && <p className="portal-help">Exibindo os primeiros {data.items.length} de {number(data.totalCount)} clientes. Refine os filtros.</p>}</>
 }
 export function CustomerDetail({ data }: { data: PortalCustomerDetail }) {
+  const showTrades = data.sales.some(sale => sale.physicalTrades != null)
   const days = new Map<string, PortalSale[]>()
   for (const sale of data.sales) {
     const day = sale.date.slice(0, 10)
@@ -48,13 +49,16 @@ export function CustomerDetail({ data }: { data: PortalCustomerDetail }) {
     <p className="portal-help">{data.customer.city}</p>
     <div className="portal-kpis"><Metric primary icon="fa-sack-dollar" label="Receita líquida" value={money(data.customer.netRevenue)} /><Metric icon="fa-file-invoice" label="Documentos" value={number(data.customer.documentCount)} /><Metric icon="fa-receipt" label="Ticket líquido por documento" value={money(data.customer.averageTicket)} /><Metric icon="fa-boxes-stacked" label="Quantidade comprada" value={number(data.customer.purchasedQuantity)} /></div>
     <h2>Produtos por dia</h2>
+    {showTrades && <p className="portal-help">Troca e % de troca consideram o total de cada produto para este cliente no período selecionado. Percentual = trocas ÷ vendas do produto × 100; sem vendas, 0%.</p>}
     {orderedDays.length ? <div className="portal-customer-days">{orderedDays.map(([day, products]) => <section className="portal-customer-day" key={day} aria-label={`Produtos de ${date(day)}`}>
       <header className="portal-customer-day-heading"><h3><time dateTime={day}>{date(day)}</time></h3><span>{number(products.length)} {products.length === 1 ? 'movimento exibido' : 'movimentos exibidos'}</span></header>
-      <ul className="portal-customer-products">{products.map(sale => <li className="portal-customer-product" key={sale.id}>
+      <ul className="portal-customer-products">{products.map(sale => <li className={`portal-customer-product${showTrades ? ' portal-customer-product-with-trades' : ''}`} key={sale.id}>
         <div className="portal-customer-product-name"><strong>{sale.productName}</strong><span>{sale.brand} · Doc. {sale.documentNumber}</span></div>
         <div className="portal-customer-product-quantity"><span>Quantidade</span><strong>{number(sale.quantity)} un.</strong></div>
         <div className="portal-customer-product-type"><span>Tipo</span><strong>{sale.movementType}</strong></div>
         <div className="portal-customer-product-value"><span>Valor</span><strong>{money(sale.totalValue)}</strong></div>
+        {showTrades && <><div className="portal-customer-product-trade"><span>Troca</span><strong>{money(sale.physicalTrades)}</strong></div>
+        <div className="portal-customer-product-trade-percent"><span>% de troca</span><strong>{percent(sale.tradeToSalesPercent)}</strong></div></>}
       </li>)}</ul>
     </section>)}</div> : <Empty>Nenhum produto no período selecionado.</Empty>}
     {data.hasMore && <p className="portal-help">Lista limitada. Refine o período para ver outros movimentos.</p>}

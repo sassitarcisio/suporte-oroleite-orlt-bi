@@ -67,7 +67,16 @@ public sealed class PortalQueryService(OroBiDbContext dbContext, ISellerClosingQ
             (item.CustomerCode.Trim() == "" && item.CustomerName.Trim().ToUpper() == code));
         var rows = await Ordered(query).ToListAsync(cancellationToken);
         if (!rows.Any(IsPurchase)) return null;
-        return new(Customer(rows), rows.Take(ListLimit).Select(Sale).ToArray(), rows.Count, rows.Count > ListLimit);
+        static string ProductKey(CommercialMovement item) => !string.IsNullOrWhiteSpace(item.ProductCode)
+            ? $"code:{item.ProductCode.Trim()}" : $"name:{item.ProductName.Trim()}|brand:{item.Brand.Trim()}";
+        var productTrades = rows.GroupBy(ProductKey, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => TradeCalculator.Calculate(group), StringComparer.OrdinalIgnoreCase);
+        var sales = rows.Take(ListLimit).Select(item =>
+        {
+            var trades = productTrades[ProductKey(item)];
+            return Sale(item) with { PhysicalTrades = trades.PhysicalTrades, TradeToSalesPercent = trades.TradeToSalesPercent };
+        }).ToArray();
+        return new(Customer(rows), sales, rows.Count, rows.Count > ListLimit);
     }
 
     public Task<PortalRanking> GetProductsAsync(string seller, CommercialFilter filter, CancellationToken cancellationToken) =>

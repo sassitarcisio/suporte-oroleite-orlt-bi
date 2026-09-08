@@ -19,6 +19,47 @@ public sealed class PortalQueryServiceTests
     private static readonly CommercialFilter August = new(new(2026, 8, 1), new(2026, 8, 31));
 
     [Fact]
+    public async Task Customer_product_trades_use_full_period_and_product_codes_with_seller_and_customer_scope()
+    {
+        await using var db = new OroBiDbContext(new DbContextOptionsBuilder<OroBiDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        var batch = Batch(ImportFileType.Power);
+        db.Add(batch);
+        void Add(string seller, string customer, string code, string name, string type, decimal value, int day) =>
+            db.Add(CommercialMovement.CreateFromImport(batch.Id, new(2026, 8, day), seller, "NESTLE", "REDE", type, "CIDADE", customer, name, value, 1, 0, customer, $"{seller}-{day}", code));
+        Add("ANA", "C1", "001", "Leite antigo", "VENDA", 799m, 1);
+        Add("ANA", "C1", "001", "Leite", "TROCA", -30m, 2);
+        Add("ANA", "C1", "001", "Leite", "TROCA DEV", -20m, 3);
+        Add("ANA", "C1", "001", "Leite", "DEVOLUCAO", -100m, 4);
+        Add("ANA", "C1", "002", "Leite", "VENDA", 200m, 5);
+        Add("ANA", "C1", "003", "Sem venda", "TROCA", -10m, 5);
+        Add("BOB", "C1", "001", "Leite", "TROCA", -900m, 5);
+        Add("ANA", "C2", "001", "Leite", "TROCA", -900m, 5);
+        for (var index = 0; index < 201; index++)
+            Add("ANA", "C1", "001", "Leite", "VENDA", 1m, 25);
+        await db.SaveChangesAsync();
+
+        var detail = await Service(db).GetCustomerAsync("ANA", "C1", August, default);
+        Assert.NotNull(detail);
+        Assert.True(detail.HasMore);
+        Assert.Equal(200, detail.Sales.Count);
+        var sale = JsonSerializer.SerializeToElement(detail.Sales[0]);
+        Assert.Equal(50m, sale.GetProperty("PhysicalTrades").GetDecimal());
+        Assert.Equal(5m, sale.GetProperty("TradeToSalesPercent").GetDecimal());
+
+        var firstDays = await Service(db).GetCustomerAsync("ANA", "C1", August with { EndDate = new(2026, 8, 5) }, default);
+        Assert.NotNull(firstDays);
+        var separateProduct = JsonSerializer.SerializeToElement(Assert.Single(firstDays.Sales, item => item.TotalValue == 200m));
+        Assert.Equal(0m, separateProduct.GetProperty("PhysicalTrades").GetDecimal());
+        Assert.Equal(0m, separateProduct.GetProperty("TradeToSalesPercent").GetDecimal());
+        var withoutSales = JsonSerializer.SerializeToElement(Assert.Single(firstDays.Sales, item => item.ProductName == "Sem venda"));
+        Assert.Equal(10m, withoutSales.GetProperty("PhysicalTrades").GetDecimal());
+        Assert.Equal(0m, withoutSales.GetProperty("TradeToSalesPercent").GetDecimal());
+        var laterDays = await Service(db).GetCustomerAsync("ANA", "C1", August with { StartDate = new(2026, 8, 25) }, default);
+        Assert.NotNull(laterDays);
+        Assert.Equal(0m, JsonSerializer.SerializeToElement(laterDays.Sales[0]).GetProperty("PhysicalTrades").GetDecimal());
+    }
+
+    [Fact]
     public async Task Dashboard_scopes_before_aggregation_and_ignores_a_foreign_filter_seller()
     {
         await using var db = await Fixture();

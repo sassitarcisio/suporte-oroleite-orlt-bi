@@ -1,9 +1,22 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { Goals, PersonalDashboard, Ppp, Ranking } from './PortalResults'
+import { CustomerDetail, Goals, PersonalDashboard, Ppp, Ranking } from './PortalResults'
 import type { PortalDashboard, PortalGoals, PortalPpp } from './portalTypes'
 
 describe('Approved personal indicators', () => {
+  it('shows customer product trade totals from the full period even when displayed movements are limited', () => {
+    const data = {
+      customer: { customerCode: 'C1', customerName: 'Cliente', city: 'Cidade', grossSales: 1000, netRevenue: 950, documentCount: 3, lastPurchaseDate: '2026-08-25', averageTicket: 300, purchasedQuantity: 10 },
+      sales: [{ id: 'sale', date: '2026-08-25', documentNumber: '123', movementType: 'VENDA', customerCode: 'C1', customerName: 'Cliente', productName: 'Leite', brand: 'Marca', quantity: 1, totalValue: 100, physicalTrades: 50, tradeToSalesPercent: 5 }],
+      totalCount: 201, hasMore: true,
+    }
+    render(<CustomerDetail data={data} />)
+    const product = within(screen.getByRole('listitem'))
+    expect(product.getByText('Troca')).toBeVisible()
+    expect(product.getByText(/R\$\s*50,00/)).toBeVisible()
+    expect(product.getByText('% de troca')).toBeVisible()
+    expect(product.getByText('5%')).toBeVisible()
+  })
   it('prefixes product names with their codes while keeping uncoded results readable', () => {
     const metrics = { grossSales: 100, netRevenue: 100, quantity: 2, movementCount: 1, customerCount: 1, revenueSharePercent: 25 }
     render(<Ranking data={{ items: [

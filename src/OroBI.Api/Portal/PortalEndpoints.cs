@@ -82,6 +82,8 @@ public static class PortalEndpoints
             case "customers": return Results.Ok(await queries.GetCustomersAsync(name, request.Filter, ct));
             case "customer":
                 var customer = await queries.GetCustomerAsync(name, customerCode!, request.Filter, ct);
+                if (customer is not null && !p.CanViewTrades)
+                    customer = customer with { Sales = customer.Sales.Select(sale => sale with { PhysicalTrades = null, TradeToSalesPercent = null }).ToArray() };
                 return customer is null ? Results.NotFound(new { error = "Cliente não encontrado neste período." }) : Results.Ok(customer);
             case "products":
             case "brands":
