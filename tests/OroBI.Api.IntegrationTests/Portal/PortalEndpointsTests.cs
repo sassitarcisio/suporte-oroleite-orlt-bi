@@ -24,6 +24,25 @@ namespace OroBI.Api.IntegrationTests.Portal;
 
 public sealed class PortalEndpointsTests
 {
+    [Fact]
+    public async Task Customer_product_trade_metrics_require_trade_permission()
+    {
+        await using var fixture = await PortalFixture.CreateAsync();
+        const string path = "/api/v1/me/customers/OWN?startDate=2026-08-01&endDate=2026-08-31";
+        var allowed = JsonDocument.Parse(await fixture.Client.GetStringAsync(path)).RootElement;
+        Assert.Equal(0m, allowed.GetProperty("sales")[0].GetProperty("physicalTrades").GetDecimal());
+        using (var scope = fixture.Factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<OroBiDbContext>();
+            var access = await db.UserSellerAccesses.SingleAsync(item => item.SellerId == fixture.OwnSeller);
+            access.Permissions = access.Permissions with { CanViewTrades = false };
+            await db.SaveChangesAsync();
+        }
+        var restricted = JsonDocument.Parse(await fixture.Client.GetStringAsync(path)).RootElement;
+        Assert.Equal(JsonValueKind.Null, restricted.GetProperty("sales")[0].GetProperty("physicalTrades").ValueKind);
+        Assert.Equal(JsonValueKind.Null, restricted.GetProperty("sales")[0].GetProperty("tradeToSalesPercent").ValueKind);
+    }
+
     [Theory]
     [InlineData("dashboard")]
     [InlineData("sales")]

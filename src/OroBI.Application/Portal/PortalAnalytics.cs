@@ -12,7 +12,11 @@ public sealed record PortalDashboard(DateOnly StartDate, DateOnly EndDate, DateO
     IReadOnlyList<PortalDailyRevenue> DailyTrend, PortalDataFreshness Freshness);
 public sealed record PortalPage<T>(IReadOnlyList<T> Items, int Page, int PageSize, int TotalCount);
 public sealed record PortalSale(Guid Id, DateOnly Date, string DocumentNumber, string MovementType,
-    string CustomerCode, string CustomerName, string ProductName, string Brand, decimal Quantity, decimal TotalValue);
+    string CustomerCode, string CustomerName, string ProductName, string Brand, decimal Quantity, decimal TotalValue)
+{
+    public decimal? PhysicalTrades { get; init; }
+    public decimal? TradeToSalesPercent { get; init; }
+}
 public sealed record PortalCustomer(string CustomerCode, string CustomerName, string City, decimal GrossSales,
     decimal NetRevenue, int DocumentCount, DateOnly LastPurchaseDate)
 {
