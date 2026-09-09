@@ -1,5 +1,7 @@
 # Ativação da sessão corporativa
 
+**Atualização de 09/09/2026:** a implantação atual usa [gateway gerenciado no Free](free-gateway.md), com os hosts Azure existentes. O roteiro de domínios próprios abaixo permanece como alternativa histórica; não é requisito para essa publicação.
+
 Implementação preparada localmente. O responsável confirmou acesso ao DNS e decidiu manter o BI antigo separado por enquanto. DNS, certificados, banco e produção não foram modificados nesta etapa.
 
 ## Endereços e registros

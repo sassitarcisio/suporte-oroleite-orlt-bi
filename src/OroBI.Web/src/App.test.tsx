@@ -340,7 +340,7 @@ describe('App dashboard', () => {
 
     fireEvent.change(screen.getByLabelText('E-MAIL'), { target: { value: 'admin@oroleite.com' } })
     fireEvent.change(screen.getByLabelText('SENHA'), { target: { value: 'senha-segura' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Entrar' }))
+    fireEvent.click(screen.getByRole('button', { name: /ENTRAR/i }))
 
     expect(await screen.findByRole('button', { name: 'Filtros' })).toBeVisible()
     expect(sessionStorage.getItem('orobi.access-token')).toBe('new-access-token')
@@ -351,7 +351,7 @@ describe('App dashboard', () => {
     render(<App />)
 
     expect(document.querySelector('.login-layout')).toBeInTheDocument()
-    expect(screen.getByAltText('Oroleite Distribuidora')).toHaveAttribute('src', '/logoOroleite.png')
+    expect(screen.getAllByAltText('Oroleite Distribuidora').every(image => image.getAttribute('src') === '/logoOroleite.png')).toBe(true)
     expect(screen.getByRole('heading', { name: /Central de resultados/ })).toBeVisible()
   })
 })
