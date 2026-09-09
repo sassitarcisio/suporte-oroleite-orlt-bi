@@ -57,7 +57,7 @@ describe('App payroll integration', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Fechamento RH' }))
     await screen.findByRole('table', { name: 'Fechamento para folha de pagamento' })
     fireEvent.click(screen.getByRole('button', { name: 'Exportar Excel' }))
-    expect(await screen.findByRole('heading', { name: 'Bem-vindo de volta.' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Acesse o BI Oroleite' })).toBeVisible()
     expect(screen.getByText(/sessão expirou/i)).toBeVisible()
     expect(sessionStorage.getItem('orobi.access-token')).toBeNull()
     expect(screen.queryByRole('table')).not.toBeInTheDocument()

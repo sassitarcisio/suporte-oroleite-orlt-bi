@@ -1,6 +1,13 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import App from './App'
+import { useState } from 'react'
+import RegistrationForm from './auth/RegistrationForm'
+
+function RegistrationHarness() {
+  const [closed, setClosed] = useState(false)
+  const [message, setMessage] = useState('')
+  return closed ? <><p role="status">{message}</p><button>ENTRAR</button></> : <RegistrationForm onBack={() => setClosed(true)} onAccepted={message => { setMessage(message); setClosed(true) }} />
+}
 
 function fillRegistration(confirmation = 'ExamplePassword123!') {
   fireEvent.change(screen.getByLabelText('Nome completo'), { target: { value: 'Ana Silva' } })
@@ -23,12 +30,11 @@ describe('Seller self registration', () => {
       }
       return new Response('{}', { status: 404 })
     })
-    render(<App />)
-    fireEvent.click(screen.getByRole('button', { name: 'Criar minha conta' }))
+    render(<RegistrationHarness />)
     fillRegistration()
     fireEvent.click(screen.getByRole('button', { name: 'Solicitar cadastro' }))
     expect(await screen.findByRole('status')).toHaveTextContent('Aguarde a aprovação do administrador.')
-    expect(screen.getByRole('button', { name: /Entrar/ })).toBeVisible()
+    expect(screen.getByRole('button', { name: /ENTRAR/i })).toBeVisible()
     expect(payload).toEqual({ name: 'Ana Silva', email: 'ana@example.test', password: 'ExamplePassword123!' })
     expect(authorization).toBeNull()
     expect(sessionStorage.getItem('orobi.access-token')).toBeNull()
@@ -37,8 +43,7 @@ describe('Seller self registration', () => {
   })
 
   it('rejects mismatched password confirmation before contacting the API', () => {
-    render(<App />)
-    fireEvent.click(screen.getByRole('button', { name: 'Criar minha conta' }))
+    render(<RegistrationHarness />)
     fillRegistration('DifferentPassword123!')
     fireEvent.click(screen.getByRole('button', { name: 'Solicitar cadastro' }))
     expect(screen.getByRole('alert')).toHaveTextContent('As senhas não coincidem.')
@@ -47,8 +52,7 @@ describe('Seller self registration', () => {
 
   it('shows server validation inline and keeps the registration form available', async () => {
     vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({ errors: ['A senha deve ter pelo menos 12 caracteres.'] }), { status: 400 }))
-    render(<App />)
-    fireEvent.click(screen.getByRole('button', { name: 'Criar minha conta' }))
+    render(<RegistrationHarness />)
     fillRegistration()
     fireEvent.click(screen.getByRole('button', { name: 'Solicitar cadastro' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('A senha deve ter pelo menos 12 caracteres.')
@@ -59,13 +63,12 @@ describe('Seller self registration', () => {
   it('ignores a registration response after returning to login', async () => {
     let finish: (response: Response) => void = () => {}
     vi.mocked(fetch).mockImplementation(() => new Promise(resolve => { finish = resolve }))
-    render(<App />)
-    fireEvent.click(screen.getByRole('button', { name: 'Criar minha conta' }))
+    render(<RegistrationHarness />)
     fillRegistration()
     fireEvent.click(screen.getByRole('button', { name: 'Solicitar cadastro' }))
     fireEvent.click(screen.getByRole('button', { name: 'Voltar ao login' }))
     await act(async () => { finish(new Response(JSON.stringify({ message: 'Solicitação antiga recebida.' }), { status: 202 })) })
-    expect(screen.getByRole('button', { name: /Entrar/ })).toBeVisible()
+    expect(screen.getByRole('button', { name: /ENTRAR/i })).toBeVisible()
     expect(screen.queryByText('Solicitação antiga recebida.')).not.toBeInTheDocument()
   })
 })

@@ -46,6 +46,9 @@ jobs:
       - name: Test Web
         run: npm test -- --run --maxWorkers=4
         working-directory: src/OroBI.Web
+      - name: Test managed Free gateway
+        working-directory: src/OroBI.Gateway
+        run: npm test
       - name: Lint Web
         run: npm run lint
         working-directory: src/OroBI.Web

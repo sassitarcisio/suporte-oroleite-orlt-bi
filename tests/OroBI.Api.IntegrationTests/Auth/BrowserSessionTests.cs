@@ -21,6 +21,41 @@ public sealed partial class PortalSessionTests
     private const string CookieSigningKey = "synthetic-cookie-test-signing-key-at-least-thirty-two-characters";
 
     [Theory]
+    [InlineData("/api", false)]
+    [InlineData("/api/v1", false)]
+    [InlineData("/api", true)]
+    [InlineData("/api/v1", true)]
+    public async Task Cookie_login_honors_remember_device_without_changing_signed_deadline_or_identity(string prefix, bool rememberDevice)
+    {
+        await using var factory = CreateCookieFactory();
+        var id = await SeedAsync(factory);
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<OroBiDbContext>();
+            (await db.Users.SingleAsync(user => user.Id == id)).MustChangePassword = true;
+            await db.SaveChangesAsync();
+        }
+        using var client = CreateCookieClient(factory);
+        var response = await client.PostAsJsonAsync(prefix + "/auth/login", new { email = "seller@example.invalid", password = "Synthetic-123!", rememberDevice });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var cookie = Assert.Single(response.Headers.GetValues("Set-Cookie"));
+        Assert.Equal(rememberDevice, cookie.Contains("expires=", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain("max-age=", cookie, StringComparison.OrdinalIgnoreCase);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.False(body.TryGetProperty("accessToken", out _));
+        Assert.Equal("cookie", body.GetProperty("sessionMode").GetString());
+        Assert.Equal("Vendedor", body.GetProperty("roles")[0].GetString());
+        Assert.True(body.GetProperty("mustChangePassword").GetBoolean());
+        var expires = body.GetProperty("expiresAtUtc").GetDateTimeOffset();
+        var token = new JwtSecurityTokenHandler().ReadJwtToken(cookie.Split(';')[0][(CookieName.Length + 1)..]);
+        Assert.Equal(token.ValidTo, expires.UtcDateTime);
+        SetCookie(client, response);
+        var me = await client.GetFromJsonAsync<JsonElement>(prefix + "/me");
+        Assert.Equal(expires, me.GetProperty("expiresAtUtc").GetDateTimeOffset());
+        Assert.True(me.GetProperty("mustChangePassword").GetBoolean());
+    }
+
+    [Theory]
     [InlineData("/api")]
     [InlineData("/api/v1")]
     public async Task Cookie_login_sets_host_only_secure_persistent_cookie_without_disclosing_token(string prefix)

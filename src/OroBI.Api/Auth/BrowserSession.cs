@@ -46,14 +46,14 @@ public static class BrowserSession
         return Task.CompletedTask;
     }
 
-    public static IResult SignIn(HttpContext context, LocalLoginResult login)
+    public static IResult SignIn(HttpContext context, LocalLoginResult login, bool rememberDevice = true)
     {
         var expiry = new DateTimeOffset(DateTime.SpecifyKind(login.ExpiresAtUtc, DateTimeKind.Utc));
         var maximum = DateTimeOffset.UtcNow.AddHours(8);
         if (expiry > maximum) expiry = maximum;
         // JWT exp and HTTP cookie dates have whole-second precision; return that same absolute deadline.
         expiry = DateTimeOffset.FromUnixTimeSeconds(expiry.ToUnixTimeSeconds());
-        context.Response.Cookies.Append(CookieName, login.AccessToken, CookieOptions(expiry));
+        context.Response.Cookies.Append(CookieName, login.AccessToken, CookieOptions(rememberDevice ? expiry : null));
         return Results.Ok(new { sessionMode = "cookie", expiresAtUtc = expiry, login.Roles, login.MustChangePassword });
     }
 

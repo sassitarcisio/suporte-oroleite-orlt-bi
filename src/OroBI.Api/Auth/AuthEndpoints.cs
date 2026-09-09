@@ -27,12 +27,12 @@ public static class AuthEndpoints
             {
                 return Results.Unauthorized();
             }
-            return BrowserSession.UsesCookieTransport(context.Request) ? BrowserSession.SignIn(context, result) : Results.Ok(result);
+            return BrowserSession.UsesCookieTransport(context.Request) ? BrowserSession.SignIn(context, result, request.RememberDevice) : Results.Ok(result);
         }).AllowAnonymous();
 
         return endpoints;
     }
 
-    public sealed record LoginRequest(string Email, string Password);
+    public sealed record LoginRequest(string Email, string Password, bool RememberDevice = true);
 
 }

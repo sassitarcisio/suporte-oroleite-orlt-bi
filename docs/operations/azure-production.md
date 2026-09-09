@@ -60,6 +60,8 @@ az acr build --registry orobiacr --image orobi-api:20260831 --file src/OroBI.Api
 
 ## React Static Web App
 
+For the current login release on the Free plan, follow [Free gateway deployment](free-gateway.md). Managed Functions provide same-origin `/api` without the Standard linked-backend feature.
+
 The React SPA is published to the dedicated Static Web App `orobi-web` at `https://lively-sea-0776c9a0f.6.azurestaticapps.net`. The legacy `orlt-bi` Static Web App is a separate application and must not be redeployed by this repository.
 
 Store the `orobi-web` deployment token as `AZURE_STATIC_WEB_APPS_API_TOKEN` in the GitHub `production` environment. The `Deploy OroBI Web` workflow publishes `src/OroBI.Web` and is the only supported deployment path for this SPA.

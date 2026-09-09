@@ -1,5 +1,4 @@
 import { lazy, Suspense, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
-import type { FormEvent } from 'react'
 import { apiRequest, apiBaseUrl, authenticatedFetch, sessionRequestInit } from './api/client'
 import { bootstrapCookieSession, confirmCookieSession, cookieSessionChangedKey, cookieSessionMode, notifyCookieSessionChanged, startCookieSession, accessTokenExpiresAt, clearAccessToken, consumeSessionExpired, expireAccessToken, isRememberedSession, passwordChangeRequiredEvent, readAccessToken, rememberedSessionKey, saveAccessToken, sessionExpiredEvent } from './auth/session'
 import ChangePasswordForm from './auth/ChangePasswordForm'
@@ -14,11 +13,12 @@ import type { PayrollClosing } from './features/closings/closingTypes'
 import { DashboardPage } from './features/dashboard/DashboardPage'
 import type { DashboardDetails, DashboardFilterOptions, DashboardFilters, DashboardSummary } from './features/dashboard/DashboardPage'
 import { ImportPage } from './features/imports/ImportPage'
-import RegistrationForm from './auth/RegistrationForm'
+import LoginScreen from './auth/LoginScreen'
 import './App.css'
 import './ExecutiveGold.css'
 import './CardPresentation.css'
 import './auth/access.css'
+import './auth/login.css'
 
 const SellerPortal = lazy(() => import('./features/portal/SellerPortal'))
 type LoginResponse = { accessToken?: string; sessionMode?: 'cookie'; roles?: string[]; expiresAtUtc?: string; mustChangePassword?: boolean }
@@ -90,9 +90,7 @@ export default function App() {
   const [token, setToken] = useState(cookieSessionMode ? bootstrapCookieSession : readAccessToken)
   const [portalRoute, setPortalRoute] = useState(() => window.location.pathname.startsWith('/portal'))
   const [email, setEmail] = useState(() => { try { return window.localStorage.getItem('orobi:last-email') ?? '' } catch { return '' } })
-  const [password, setPassword] = useState('')
-  const [passwordVisible, setPasswordVisible] = useState(false)
-  const [rememberSession, setRememberSession] = useState(false)
+  const rememberCookieSession = useRef(false)
   const [mustChangePassword, setMustChangePassword] = useState(false)
   const [identityToken, setIdentityToken] = useState('')
   const [identityEmail, setIdentityEmail] = useState('')
@@ -101,7 +99,6 @@ export default function App() {
   const [loginError, setLoginError] = useState('')
   const [logoutPending, setLogoutPending] = useState(false)
   const [logoutFailed, setLogoutFailed] = useState(false)
-  const [registrationOpen, setRegistrationOpen] = useState(false)
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [dashboardDetails, setDashboardDetails] = useState<DashboardDetails | null>(null)
   const [dashboardFilters, setDashboardFilters] = useState<DashboardFilters>(() => createDashboardFilters(readSellerFilter()))
@@ -215,7 +212,7 @@ export default function App() {
     setIdentityEmail('')
     setIdentityError('')
     setMustChangePassword(false)
-    setRememberSession(false)
+    rememberCookieSession.current = false
     setLoginError('')
     setView('dashboard')
     setState('idle')
@@ -233,11 +230,8 @@ export default function App() {
     setMarginFilters(filters)
     writeSellerFilter('')
     setFile(null)
-    setPassword('')
-    setPasswordVisible(false)
     setMenuOpen(false)
     setSessionMessage(message)
-    setRegistrationOpen(false)
   }
 
   function logout() {
@@ -461,17 +455,18 @@ export default function App() {
     return () => { active = false }
   }, [token, identityToken, mustChangePassword, portalRoute, view, dashboardFilters])
 
-  async function login(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  async function login(loginEmail: string, password: string, rememberDevice: boolean) {
+    if (state === 'loading') return
+    setEmail(loginEmail)
     const version = ++sessionVersion.current
     setSessionMessage('')
     setLoginError('')
     setState('loading')
     try {
-      const result = await requestLogin(email, password)
+      const result = await requestLogin(loginEmail, password, rememberDevice)
       if (version !== sessionVersion.current) return
-      acceptLogin(result, rememberSession)
-      try { window.localStorage.setItem('orobi:last-email', email.trim()) } catch { /* Login also works with local storage disabled. */ }
+      acceptLogin(result, rememberDevice)
+      try { window.localStorage.setItem('orobi:last-email', loginEmail.trim()) } catch { /* Login also works with local storage disabled. */ }
     } catch (error) {
       if (version === sessionVersion.current) {
         setLoginError(error instanceof Error ? error.message : 'Não foi possível entrar. Tente novamente.')
@@ -480,13 +475,13 @@ export default function App() {
     }
   }
 
-  async function requestLogin(loginEmail: string, loginPassword: string): Promise<LoginResponse> {
+  async function requestLogin(loginEmail: string, loginPassword: string, rememberDevice = false): Promise<LoginResponse> {
     const generation = cookieSessionMode ? startCookieSession(!!token) : ''
     cookieAuthenticationPending.current = cookieSessionMode
     try {
       const response = await fetch(`${apiBaseUrl}/api/auth/login`, sessionRequestInit({
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: loginEmail.trim(), password: loginPassword }),
+        body: JSON.stringify({ email: loginEmail.trim(), password: loginPassword, rememberDevice }),
       })).catch(() => { throw new Error('Não foi possível entrar. Verifique sua conexão e tente novamente.') })
       if (!response.ok) throw new Error(response.status === 401 || response.status === 403
         ? 'Usuário ou senha incorretos.'
@@ -500,6 +495,7 @@ export default function App() {
   }
 
   function acceptLogin(result: LoginResponse, remember: boolean) {
+    rememberCookieSession.current = remember
     let nextToken: string
     if (cookieSessionMode) {
       if (result.sessionMode !== 'cookie') throw new Error('Não foi possível estabelecer a sessão corporativa.')
@@ -516,16 +512,15 @@ export default function App() {
     setIdentityError('')
     setMustChangePassword(result.mustChangePassword === true)
     setToken(nextToken)
-    setPassword('')
     setState('idle')
     if (result.roles?.some(role => ['Vendedor', 'Gestor', 'Gerente'].includes(role)) && !result.roles.some(role => ['Administrador', 'Diretoria'].includes(role))) openPortal()
   }
 
   async function completePasswordChange(newPassword: string) {
     const version = ++sessionVersion.current
-    const remember = isRememberedSession(token)
+    const remember = cookieSessionMode ? rememberCookieSession.current : isRememberedSession(token)
     try {
-      const result = await requestLogin(identityEmail || email, newPassword)
+      const result = await requestLogin(identityEmail || email, newPassword, remember)
       if (version === sessionVersion.current) acceptLogin(result, remember)
     } catch {
       if (version === sessionVersion.current) endSession('Senha alterada. Entre novamente com a nova senha.')
@@ -558,8 +553,7 @@ export default function App() {
 
   if (logoutPending) return <main className="shell login-shell"><section className="first-access-panel login-form-panel"><p role="status">Encerrando sua sessão no servidor...</p></section></main>
 
-  if (!token && registrationOpen) return <main className="shell login-shell"><section className="login-layout registration-layout shadow-lg"><aside className="login-brand-panel"><img className="login-brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /><div><p className="eyebrow">PORTAL DO VENDEDOR</p><h1>Seus resultados.<br /><span>Seu espaço.</span></h1><p>Acompanhe suas vendas, metas e fechamento em um só lugar.</p></div><p className="login-brand-footer">Acesso liberado após aprovação do administrador.</p></aside><section className="login-form-panel"><RegistrationForm onBack={() => setRegistrationOpen(false)} onAccepted={(message, registeredEmail) => { setRegistrationOpen(false); setEmail(registeredEmail); setSessionMessage(message); setState('idle') }} /></section></section></main>
-  if (!token) return <main className="shell login-shell"><section className="login-layout shadow-lg"><aside className="login-brand-panel"><img className="login-brand-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" /><div><p className="eyebrow">OROLEITE BI</p><h1 aria-label="Central de resultados">Central de<br /><span>resultados.</span></h1><p>Inteligencia comercial para decisoes mais seguras, todos os dias.</p></div><p className="login-brand-footer"><i className="fa-solid fa-shield-halved" aria-hidden="true" /> Ambiente corporativo protegido</p></aside><section className="login-form-panel"><div className="login-form-heading"><p className="eyebrow">ACESSO RESTRITO</p><h2>Bem-vindo de volta.</h2><p>Informe suas credenciais para acessar os indicadores da operacao.</p></div>{sessionMessage && <p className="notice" role="status">{sessionMessage}</p>}{logoutFailed && <button type="button" className="registration-link" onClick={logout}>Tentar sair novamente</button>}<form onSubmit={login}><label>E-MAIL<input type="email" autoComplete="username" required value={email} onChange={event => setEmail(event.target.value)} /></label><label>SENHA<span className="password-field"><input type={passwordVisible ? 'text' : 'password'} autoComplete="current-password" required value={password} onChange={event => setPassword(event.target.value)} /><button type="button" className="password-toggle" onClick={() => setPasswordVisible(visible => !visible)} aria-label={passwordVisible ? 'Ocultar senha' : 'Mostrar senha'}><i className={`fa-solid ${passwordVisible ? 'fa-eye-slash' : 'fa-eye'}`} aria-hidden="true" /></button></span></label>{cookieSessionMode ? <p className="remember-help">Seu acesso permanece neste dispositivo por até 8 horas. Use Sair ao terminar em um dispositivo compartilhado.</p> : <><label className="remember-session"><input type="checkbox" checked={rememberSession} onChange={event => setRememberSession(event.target.checked)} /><span>Manter acesso neste dispositivo por até 8 horas</span></label><p className="remember-help">Use esta opção somente no seu dispositivo pessoal.</p></>}<button className="btn btn-dark" type="submit" disabled={state === 'loading'}>{state === 'loading' ? 'Entrando...' : 'Entrar'} <i className="fa-solid fa-arrow-right" aria-hidden="true" /></button></form>{state === 'error' && <p className="notice error" role="alert">{loginError || 'Não foi possível entrar. Verifique sua conexão e tente novamente.'}</p>}<button type="button" className="registration-link" onClick={() => setSessionMessage('Solicite ao administrador uma nova senha temporária. No próximo acesso, você deverá criar sua própria senha.')}>Esqueci minha senha</button><button type="button" className="registration-link" disabled={state === 'loading'} onClick={() => { setPassword(''); setPasswordVisible(false); setSessionMessage(''); setState('idle'); setRegistrationOpen(true) }}>Criar minha conta</button></section></section></main>
+  if (!token) return <LoginScreen initialEmail={email} loading={state === 'loading'} errorMessage={state === 'error' ? loginError : ''} statusMessage={sessionMessage} onRetryLogout={logoutFailed ? logout : undefined} onSubmit={login} />
 
   if (mustChangePassword) return <main className="shell login-shell"><section className="first-access-panel login-form-panel">
     <img className="first-access-logo" src="/logoOroleite.png" alt="Oroleite Distribuidora" />

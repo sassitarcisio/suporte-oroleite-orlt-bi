@@ -1,0 +1,10 @@
+{
+  "name": "orobi-gateway",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Same-origin API gateway for the Oroleite Static Web App",
+  "engines": { "node": "22.x" },
+  "scripts": {
+    "test": "node --test --experimental-test-isolation=none test/proxy.test.js"
+  }
+}

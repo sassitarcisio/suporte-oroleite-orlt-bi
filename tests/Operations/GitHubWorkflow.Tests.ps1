@@ -34,6 +34,9 @@ Describe 'GitHub Actions workflows' {
         $workflow | Should Match 'npm ci'
         $workflow | Should Match 'npm test -- --run'
         $workflow | Should Match 'AZURE_STATIC_WEB_APPS_API_TOKEN'
-        $workflow | Should Match 'VITE_API_BASE_URL: https://orobi-api.ashymoss-e2dce47a.eastus2.azurecontainerapps.io'
+        $workflow | Should Match "VITE_API_BASE_URL: ''"
+        $workflow | Should Match "VITE_COOKIE_API_BASE_URL: ''"
+        $workflow | Should Match 'VITE_COOKIE_PORTAL_ORIGIN: https://lively-sea-0776c9a0f.6.azurestaticapps.net'
+        $workflow | Should Match 'api_location: /src/OroBI.Gateway'
     }
 }

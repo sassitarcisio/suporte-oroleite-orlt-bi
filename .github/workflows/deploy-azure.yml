@@ -24,6 +24,10 @@ on:
         required: false
         type: boolean
         default: false
+      use_free_gateway:
+        description: Activate the existing orobi-web Free gateway without re-provisioning infrastructure
+        type: boolean
+        default: true
 
 permissions:
   id-token: write
@@ -42,6 +46,7 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       - run: az bicep build --file infra/main.bicep
       - name: Deploy infrastructure with required runtime settings
+        if: ${{ !inputs.use_free_gateway }}
         shell: pwsh
         env:
           DEPLOY_RESOURCE_GROUP: ${{ inputs.resource_group }}
@@ -57,3 +62,10 @@ jobs:
           -WebOrigin $env:DEPLOY_WEB_ORIGIN
           -EnableBrowserSession:($env:DEPLOY_BROWSER_SESSION -eq 'true')
           -ConfigureRuntimeSecrets
+      - name: Activate existing Free gateway runtime
+        if: ${{ inputs.use_free_gateway }}
+        shell: pwsh
+        env:
+          DEPLOY_RESOURCE_GROUP: ${{ inputs.resource_group }}
+          DEPLOY_API_IMAGE: ${{ inputs.api_image }}
+        run: ./scripts/deploy-free-gateway.ps1 -Apply -Confirm:$false -ResourceGroup $env:DEPLOY_RESOURCE_GROUP -ApiImage $env:DEPLOY_API_IMAGE
