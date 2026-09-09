@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './TradeDetails.css'
+import { visibleGroupRows } from '../brands/brandVisibility'
 
 export type TradeDetailRow = { label: string; netRevenue: number; tradeValue: number; tradePercent: number | null; tradeQuantity: number }
 const dimensions = { customer: 'cliente', group: 'rede', product: 'produto', brand: 'marca', seller: 'vendedor', city: 'cidade' }
@@ -11,7 +12,7 @@ export function TradeDetails({ groups, ready }: { groups?: TradeGroups; ready: b
   const [draft, setDraft] = useState({ dimension: 'customer' as keyof typeof dimensions, order: 'tradeValue' as Order, limit: 20 })
   const [selection, setSelection] = useState(draft)
   if (!ready) return null
-  const rows = [...(groups?.[selection.dimension] ?? [])].filter(row => row.tradeValue > 0)
+  const rows = visibleGroupRows(groups?.[selection.dimension] ?? [], selection.dimension).filter(row => row.tradeValue > 0)
     .sort((a, b) => (b[selection.order] ?? -Infinity) - (a[selection.order] ?? -Infinity) || a.label.localeCompare(b.label, 'pt-BR'))
     .slice(0, selection.limit)
 

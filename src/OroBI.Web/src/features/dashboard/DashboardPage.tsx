@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { isVisibleBrand } from '../brands/brandVisibility'
 import { DashboardBreakdowns, type DashboardGroups } from './DashboardBreakdowns'
 
 export type DashboardSummary = {
@@ -82,7 +83,7 @@ export function DashboardPage({ summary, filters, appliedFilters = filters, opti
         <label>DATA INICIAL<input type="date" value={filters.startDate} onChange={event => onFiltersChange({ ...filters, startDate: event.target.value })} /></label>
         <label>DATA FINAL<input type="date" value={filters.endDate} onChange={event => onFiltersChange({ ...filters, endDate: event.target.value })} /></label>
         <label>VENDEDOR<select value={filters.seller} onChange={event => onFiltersChange({ ...filters, seller: event.target.value })}><option value="">Todos os vendedores</option>{sellers.map(registeredSeller => <option key={registeredSeller} value={registeredSeller}>{registeredSeller}</option>)}</select></label>
-        <label>MARCA<select value={filters.brand} onChange={event => onFiltersChange({ ...filters, brand: event.target.value })}><option value="">Todas as marcas</option>{options.brands.map(item => <option key={item} value={item}>{item}</option>)}</select></label>
+        <label>MARCA<select value={filters.brand} onChange={event => onFiltersChange({ ...filters, brand: event.target.value })}><option value="">Todas as marcas</option>{options.brands.filter(isVisibleBrand).map(item => <option key={item} value={item}>{item}</option>)}</select></label>
         <label>GRUPO<select value={filters.group} onChange={event => onFiltersChange({ ...filters, group: event.target.value })}><option value="">Todos os grupos</option>{options.groups.map(item => <option key={item} value={item}>{item}</option>)}</select></label>
         <label>TIPO MOVIMENTO<select value={filters.movementType} onChange={event => onFiltersChange({ ...filters, movementType: event.target.value })}><option value="">Todos os tipos</option>{options.movementTypes.map(item => <option key={item} value={item}>{item}</option>)}</select></label>
         <label>CIDADE<select value={filters.city} onChange={event => onFiltersChange({ ...filters, city: event.target.value })}><option value="">Todas as cidades</option>{options.cities.map(item => <option key={item} value={item}>{item}</option>)}</select></label>

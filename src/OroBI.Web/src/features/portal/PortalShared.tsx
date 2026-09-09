@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { apiRequest } from '../../api/client'
 import type { PortalSale } from './portalTypes'
+import { isVisibleBrand } from '../brands/brandVisibility'
 
 export function Empty({ children }: { children: ReactNode }) { return <div className="portal-empty"><i className="fa-regular fa-folder-open" aria-hidden="true" /><p>{children}</p></div> }
 export function Metric({ label, value, icon, hint, primary = false }: { label: string; value: string; icon: string; hint?: string; primary?: boolean }) { return <article className={`portal-metric ${primary ? 'portal-metric-primary' : ''}`}><span className="portal-metric-icon" aria-hidden="true"><i className={`fa-solid ${icon}`} /></span><p>{label}</p><strong>{value}</strong>{hint && <small>{hint}</small>}</article> }
@@ -24,5 +25,5 @@ function ResourceRequest<T>({ token, path, children }: { token: string; path: st
   return children(state.data!)
 }
 export function SalesList({ items }: { items: PortalSale[] }) {
-  return <div className="portal-list">{items.map((sale, index) => <article className="portal-record" key={`${sale.id}-${index}`}><div className="portal-record-top"><strong>{sale.customerName}</strong><span>{money(sale.totalValue)}</span></div><p>{sale.productName}</p><div className="portal-record-meta"><span>{date(sale.date)} · Doc. {sale.documentNumber}</span><span>{sale.brand} · {number(sale.quantity)} un. · {sale.movementType}</span></div></article>)}</div>
+  return <div className="portal-list">{items.map((sale, index) => <article className="portal-record" key={`${sale.id}-${index}`}><div className="portal-record-top"><strong>{sale.customerName}</strong><span>{money(sale.totalValue)}</span></div><p>{sale.productName}</p><div className="portal-record-meta"><span>{date(sale.date)} · Doc. {sale.documentNumber}</span><span>{isVisibleBrand(sale.brand) && <>{sale.brand} · </>}{number(sale.quantity)} un. · {sale.movementType}</span></div></article>)}</div>
 }

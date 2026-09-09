@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import './DashboardBreakdowns.css'
+import { visibleGroupRows } from '../brands/brandVisibility'
 
 export type DashboardGroupRow = { label: string, netResult: number, grossSales: number, negativeMovements: number, quantity: number, movementCount: number, documentCount: number }
 export type DashboardGroups = Partial<Record<Dimension, DashboardGroupRow[]>>
@@ -34,10 +35,10 @@ export function DashboardBreakdowns({ groups, ready }: { groups?: DashboardGroup
   const [selection, setSelection] = useState(draft)
   if (!ready) return null
   if (!groups) return <p className="notice">Detalhamento dos gráficos indisponível. Aplique os filtros para consultar novamente.</p>
-  const rows = order(groups[selection.dimension] ?? [], selection.metric, selection.limit)
+  const rows = order(visibleGroupRows(groups[selection.dimension] ?? [], selection.dimension), selection.metric, selection.limit)
   return <section className="dashboard-breakdowns" aria-label="Análises detalhadas do dashboard">
     <div className="dashboard-breakdown-grid">
-      <Panel title="Resultado por marca" icon="tags" note="Top 10 · valor líquido"><Bars title="Resultado por marca" rows={order(groups.brand ?? [], 'netResult', 10)} metric="netResult" /></Panel>
+      <Panel title="Resultado por marca" icon="tags" note="Top 10 · valor líquido"><Bars title="Resultado por marca" rows={order(visibleGroupRows(groups.brand ?? [], 'brand'), 'netResult', 10)} metric="netResult" /></Panel>
       <Panel title="Tipos de movimento" icon="arrow-right-arrow-left" note="Valor líquido por tipo"><Bars title="Tipos de movimento" rows={order(groups.movementType ?? [], 'netResult', Infinity)} metric="netResult" /></Panel>
       <Panel title="Top clientes" icon="users" note="Top 10 · valor líquido"><Bars title="Top clientes" rows={order(groups.customer ?? [], 'netResult', 10)} metric="netResult" /></Panel>
     </div>

@@ -1,5 +1,6 @@
 import type { ClosingSummary } from './closingTypes'
 import { money, percent } from './closingFormat'
+import { isVisibleBrand } from '../brands/brandVisibility'
 const number = (value: number) => new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(value)
 const date = (value: string) => value.split('-').reverse().join('/')
 
@@ -19,6 +20,7 @@ export function ClosingIndicators({ monthly }: Pick<ClosingSummary, 'monthly'>) 
 }
 
 export function ClosingDetails({ summary }: { summary: ClosingSummary }) {
+  const brandAwards = summary.brandAwards.filter(award => isVisibleBrand(award.brand))
   return <>
     <section className="closing-details">
       <h2><i className="card-label-icon fa-solid fa-trophy" aria-hidden="true" /> Segmentos PPP</h2>
@@ -30,10 +32,10 @@ export function ClosingDetails({ summary }: { summary: ClosingSummary }) {
     </section>
     <section className="closing-details">
       <h2><i className="card-label-icon fa-solid fa-trophy" aria-hidden="true" /> Premios por marca</h2>
-      {summary.brandAwards.length > 0 && <p>A taxa de troca por marca usa o faturamento da marca com bonificações. A taxa consolidada usa o faturamento sem bonificações.</p>}
-      {summary.brandAwards.length === 0 ? <p>Nenhuma meta por marca no período.</p> : <div className="closing-table-scroll"><table aria-label="Metas e prêmios por marca">
+      {brandAwards.length > 0 && <p>A taxa de troca por marca usa o faturamento da marca com bonificações. A taxa consolidada usa o faturamento sem bonificações.</p>}
+      {brandAwards.length === 0 ? <p>Nenhuma meta por marca no período.</p> : <div className="closing-table-scroll"><table aria-label="Metas e prêmios por marca">
         <thead><tr><th>Marca</th><th>Indicador</th><th>Meta</th><th>Realizado</th><th>Atingimento / taxa</th><th>Prêmio previsto</th><th>Prêmio apurado</th></tr></thead>
-        <tbody>{summary.brandAwards.flatMap(brand => [
+        <tbody>{brandAwards.flatMap(brand => [
           <tr key={`${brand.brand}-revenue`}><th scope="row">{brand.brand}</th><td>Faturamento</td><td>{money(brand.revenueGoal)}</td><td>{money(brand.revenueActual)}</td><td>{percent(brand.revenueAchievedPercent)}</td><td>{money(brand.revenuePrize)}</td><td>{money(brand.revenueAward)}</td></tr>,
           <tr key={`${brand.brand}-positivity`}><th scope="row">{brand.brand}</th><td>Positivação</td><td>{number(brand.positivityGoal)}</td><td>{number(brand.positivityActual)}</td><td>{percent(brand.positivityAchievedPercent)}</td><td>{money(brand.positivityPrize)}</td><td>{money(brand.positivityAward)}</td></tr>,
           <tr key={`${brand.brand}-trade`}><th scope="row">{brand.brand}</th><td>Troca</td><td>{percent(brand.tradeGoalPercent)}</td><td>{money(brand.tradeValue)}</td><td>{percent(brand.tradeActualPercent)}</td><td>{money(brand.tradePrize)}</td><td>{money(brand.tradeAward)}</td></tr>,
