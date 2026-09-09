@@ -1,0 +1,1420 @@
+{
+  "generatedAtUtc": "2026-09-09T14:22:52.541Z",
+  "environment": "Local Chrome headless, synthetic API fixtures only",
+  "limitations": [
+    "No production endpoint or account was contacted.",
+    "Viewport emulation does not certify physical Android/iOS installation, touch input or device rendering.",
+    "HTTP server emulates SPA fallback; actual Azure deployment is not exercised.",
+    "This run uses local goal fixtures from the user reference and invented edge cases and no production credentials; existing optional Google Fonts requests were blocked."
+  ],
+  "browserVersion": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/153.0.8010.36",
+    "revision": "@507c6ee3e2f3b2ca0e660547e5b9ea4820c67f4c",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "jsVersion": "15.3.76.10"
+  },
+  "viewports": [
+    {
+      "width": 360,
+      "height": 900,
+      "actual": {
+        "columns": 1,
+        "cards": [
+          {
+            "text": "AÇAÍ FUTUROPositivação26,67%Em andamento4 de 15 clientesFaixas100%Faltam11 clientespara atingir 100%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 100%R$ 100,00",
+            "margin": "0px",
+            "padding": "20px",
+            "barHeight": 10,
+            "aria": "26.666666666666668"
+          },
+          {
+            "text": "AÇAÍ FUTUROFaturamento22,05%Em andamentoR$ 330,80 de R$ 1.500,00Faixas80%90%100%FaltamR$ 869,20para atingir 80%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 80%R$ 50,00",
+            "margin": "0px",
+            "padding": "20px",
+            "barHeight": 10,
+            "aria": "22.05333333333333"
+          }
+        ],
+        "monthBelow": true,
+        "subtitle": true
+      },
+      "layout": {
+        "view": "goals",
+        "screenshot": "docs/audits/evidence/goals-ui/portal-ui-360-goals.png",
+        "viewportWidth": 360,
+        "documentWidth": 360,
+        "heading": "Metas e prêmios",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    },
+    {
+      "width": 390,
+      "height": 900,
+      "actual": {
+        "columns": 1,
+        "cards": [
+          {
+            "text": "AÇAÍ FUTUROPositivação26,67%Em andamento4 de 15 clientesFaixas100%Faltam11 clientespara atingir 100%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 100%R$ 100,00",
+            "margin": "0px",
+            "padding": "20px",
+            "barHeight": 10,
+            "aria": "26.666666666666668"
+          },
+          {
+            "text": "AÇAÍ FUTUROFaturamento22,05%Em andamentoR$ 330,80 de R$ 1.500,00Faixas80%90%100%FaltamR$ 869,20para atingir 80%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 80%R$ 50,00",
+            "margin": "0px",
+            "padding": "20px",
+            "barHeight": 10,
+            "aria": "22.05333333333333"
+          }
+        ],
+        "monthBelow": true,
+        "subtitle": true
+      },
+      "layout": {
+        "view": "goals",
+        "screenshot": "docs/audits/evidence/goals-ui/portal-ui-390-goals.png",
+        "viewportWidth": 390,
+        "documentWidth": 390,
+        "heading": "Metas e prêmios",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    },
+    {
+      "width": 430,
+      "height": 900,
+      "actual": {
+        "columns": 1,
+        "cards": [
+          {
+            "text": "AÇAÍ FUTUROPositivação26,67%Em andamento4 de 15 clientesFaixas100%Faltam11 clientespara atingir 100%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 100%R$ 100,00",
+            "margin": "0px",
+            "padding": "20px",
+            "barHeight": 10,
+            "aria": "26.666666666666668"
+          },
+          {
+            "text": "AÇAÍ FUTUROFaturamento22,05%Em andamentoR$ 330,80 de R$ 1.500,00Faixas80%90%100%FaltamR$ 869,20para atingir 80%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 80%R$ 50,00",
+            "margin": "0px",
+            "padding": "20px",
+            "barHeight": 10,
+            "aria": "22.05333333333333"
+          }
+        ],
+        "monthBelow": true,
+        "subtitle": true
+      },
+      "layout": {
+        "view": "goals",
+        "screenshot": "docs/audits/evidence/goals-ui/portal-ui-430-goals.png",
+        "viewportWidth": 430,
+        "documentWidth": 430,
+        "heading": "Metas e prêmios",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    },
+    {
+      "width": 768,
+      "height": 1000,
+      "actual": {
+        "columns": 1,
+        "cards": [
+          {
+            "text": "AÇAÍ FUTUROPositivação26,67%Em andamento4 de 15 clientesFaixas100%Faltam11 clientespara atingir 100%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 100%R$ 100,00",
+            "margin": "0px",
+            "padding": "20px",
+            "barHeight": 10,
+            "aria": "26.666666666666668"
+          },
+          {
+            "text": "AÇAÍ FUTUROFaturamento22,05%Em andamentoR$ 330,80 de R$ 1.500,00Faixas80%90%100%FaltamR$ 869,20para atingir 80%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 80%R$ 50,00",
+            "margin": "0px",
+            "padding": "20px",
+            "barHeight": 10,
+            "aria": "22.05333333333333"
+          }
+        ],
+        "monthBelow": false,
+        "subtitle": true
+      },
+      "layout": {
+        "view": "goals",
+        "screenshot": "docs/audits/evidence/goals-ui/portal-ui-768-goals.png",
+        "viewportWidth": 768,
+        "documentWidth": 753,
+        "heading": "Metas e prêmios",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    },
+    {
+      "width": 1366,
+      "height": 1000,
+      "actual": {
+        "columns": 2,
+        "cards": [
+          {
+            "text": "AÇAÍ FUTUROPositivação26,67%Em andamento4 de 15 clientesFaixas100%Faltam11 clientespara atingir 100%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 100%R$ 100,00",
+            "margin": "0px",
+            "padding": "28px",
+            "barHeight": 10,
+            "aria": "26.666666666666668"
+          },
+          {
+            "text": "AÇAÍ FUTUROFaturamento22,05%Em andamentoR$ 330,80 de R$ 1.500,00Faixas80%90%100%FaltamR$ 869,20para atingir 80%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 80%R$ 50,00",
+            "margin": "0px",
+            "padding": "28px",
+            "barHeight": 10,
+            "aria": "22.05333333333333"
+          }
+        ],
+        "monthBelow": false,
+        "subtitle": true
+      },
+      "layout": {
+        "view": "goals",
+        "screenshot": "docs/audits/evidence/goals-ui/portal-ui-1366-goals.png",
+        "viewportWidth": 1366,
+        "documentWidth": 1366,
+        "heading": "Metas e prêmios",
+        "headerVisible": true,
+        "bottomNavigationVisible": false,
+        "desktopNavigationVisible": true,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    },
+    {
+      "width": 1920,
+      "height": 1000,
+      "actual": {
+        "columns": 2,
+        "cards": [
+          {
+            "text": "AÇAÍ FUTUROPositivação26,67%Em andamento4 de 15 clientesFaixas100%Faltam11 clientespara atingir 100%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 100%R$ 100,00",
+            "margin": "0px",
+            "padding": "28px",
+            "barHeight": 10,
+            "aria": "26.666666666666668"
+          },
+          {
+            "text": "AÇAÍ FUTUROFaturamento22,05%Em andamentoR$ 330,80 de R$ 1.500,00Faixas80%90%100%FaltamR$ 869,20para atingir 80%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 80%R$ 50,00",
+            "margin": "0px",
+            "padding": "28px",
+            "barHeight": 10,
+            "aria": "22.05333333333333"
+          }
+        ],
+        "monthBelow": false,
+        "subtitle": true
+      },
+      "layout": {
+        "view": "goals",
+        "screenshot": "docs/audits/evidence/goals-ui/portal-ui-1920-goals.png",
+        "viewportWidth": 1920,
+        "documentWidth": 1920,
+        "heading": "Metas e prêmios",
+        "headerVisible": true,
+        "bottomNavigationVisible": false,
+        "desktopNavigationVisible": true,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    }
+  ],
+  "browserErrors": [],
+  "blockedExternalRequests": [
+    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+  ],
+  "assertions": [
+    {
+      "name": "360px correct columns",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "name": "360px bar thickness and card spacing",
+      "passed": true,
+      "details": [
+        {
+          "text": "AÇAÍ FUTUROPositivação26,67%Em andamento4 de 15 clientesFaixas100%Faltam11 clientespara atingir 100%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 100%R$ 100,00",
+          "margin": "0px",
+          "padding": "20px",
+          "barHeight": 10,
+          "aria": "26.666666666666668"
+        },
+        {
+          "text": "AÇAÍ FUTUROFaturamento22,05%Em andamentoR$ 330,80 de R$ 1.500,00Faixas80%90%100%FaltamR$ 869,20para atingir 80%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 80%R$ 50,00",
+          "margin": "0px",
+          "padding": "20px",
+          "barHeight": 10,
+          "aria": "22.05333333333333"
+        }
+      ]
+    },
+    {
+      "name": "360px reference values unchanged",
+      "passed": true,
+      "details": [
+        {
+          "text": "AÇAÍ FUTUROPositivação26,67%Em andamento4 de 15 clientesFaixas100%Faltam11 clientespara atingir 100%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 100%R$ 100,00",
+          "margin": "0px",
+          "padding": "20px",
+          "barHeight": 10,
+          "aria": "26.666666666666668"
+        },
+        {
+          "text": "AÇAÍ FUTUROFaturamento22,05%Em andamentoR$ 330,80 de R$ 1.500,00Faixas80%90%100%FaltamR$ 869,20para atingir 80%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 80%R$ 50,00",
+          "margin": "0px",
+          "padding": "20px",
+          "barHeight": 10,
+          "aria": "22.05333333333333"
+        }
+      ]
+    },
+    {
+      "name": "360px exact accessible percentages",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "360px subtitle and mobile month layout",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "360px month selector remains functional",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "360px goals: no document horizontal overflow",
+      "passed": true,
+      "details": {
+        "viewportWidth": 360,
+        "documentWidth": 360,
+        "heading": "Metas e prêmios",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    },
+    {
+      "name": "360px goals: header and correct navigation visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "360px goals: no error alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "360px no overflowing card content",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "360px goals-revenue: no document horizontal overflow",
+      "passed": true,
+      "details": {
+        "viewportWidth": 360,
+        "documentWidth": 360,
+        "heading": "Metas e prêmios",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    },
+    {
+      "name": "360px goals-revenue: header and correct navigation visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "360px goals-revenue: no error alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "390px correct columns",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "name": "390px bar thickness and card spacing",
+      "passed": true,
+      "details": [
+        {
+          "text": "AÇAÍ FUTUROPositivação26,67%Em andamento4 de 15 clientesFaixas100%Faltam11 clientespara atingir 100%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 100%R$ 100,00",
+          "margin": "0px",
+          "padding": "20px",
+          "barHeight": 10,
+          "aria": "26.666666666666668"
+        },
+        {
+          "text": "AÇAÍ FUTUROFaturamento22,05%Em andamentoR$ 330,80 de R$ 1.500,00Faixas80%90%100%FaltamR$ 869,20para atingir 80%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 80%R$ 50,00",
+          "margin": "0px",
+          "padding": "20px",
+          "barHeight": 10,
+          "aria": "22.05333333333333"
+        }
+      ]
+    },
+    {
+      "name": "390px reference values unchanged",
+      "passed": true,
+      "details": [
+        {
+          "text": "AÇAÍ FUTUROPositivação26,67%Em andamento4 de 15 clientesFaixas100%Faltam11 clientespara atingir 100%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 100%R$ 100,00",
+          "margin": "0px",
+          "padding": "20px",
+          "barHeight": 10,
+          "aria": "26.666666666666668"
+        },
+        {
+          "text": "AÇAÍ FUTUROFaturamento22,05%Em andamentoR$ 330,80 de R$ 1.500,00Faixas80%90%100%FaltamR$ 869,20para atingir 80%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 80%R$ 50,00",
+          "margin": "0px",
+          "padding": "20px",
+          "barHeight": 10,
+          "aria": "22.05333333333333"
+        }
+      ]
+    },
+    {
+      "name": "390px exact accessible percentages",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "390px subtitle and mobile month layout",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "390px month selector remains functional",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "390px goals: no document horizontal overflow",
+      "passed": true,
+      "details": {
+        "viewportWidth": 390,
+        "documentWidth": 390,
+        "heading": "Metas e prêmios",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    },
+    {
+      "name": "390px goals: header and correct navigation visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "390px goals: no error alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "390px no overflowing card content",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "390px goals-revenue: no document horizontal overflow",
+      "passed": true,
+      "details": {
+        "viewportWidth": 390,
+        "documentWidth": 390,
+        "heading": "Metas e prêmios",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    },
+    {
+      "name": "390px goals-revenue: header and correct navigation visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "390px goals-revenue: no error alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "430px correct columns",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "name": "430px bar thickness and card spacing",
+      "passed": true,
+      "details": [
+        {
+          "text": "AÇAÍ FUTUROPositivação26,67%Em andamento4 de 15 clientesFaixas100%Faltam11 clientespara atingir 100%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 100%R$ 100,00",
+          "margin": "0px",
+          "padding": "20px",
+          "barHeight": 10,
+          "aria": "26.666666666666668"
+        },
+        {
+          "text": "AÇAÍ FUTUROFaturamento22,05%Em andamentoR$ 330,80 de R$ 1.500,00Faixas80%90%100%FaltamR$ 869,20para atingir 80%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 80%R$ 50,00",
+          "margin": "0px",
+          "padding": "20px",
+          "barHeight": 10,
+          "aria": "22.05333333333333"
+        }
+      ]
+    },
+    {
+      "name": "430px reference values unchanged",
+      "passed": true,
+      "details": [
+        {
+          "text": "AÇAÍ FUTUROPositivação26,67%Em andamento4 de 15 clientesFaixas100%Faltam11 clientespara atingir 100%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 100%R$ 100,00",
+          "margin": "0px",
+          "padding": "20px",
+          "barHeight": 10,
+          "aria": "26.666666666666668"
+        },
+        {
+          "text": "AÇAÍ FUTUROFaturamento22,05%Em andamentoR$ 330,80 de R$ 1.500,00Faixas80%90%100%FaltamR$ 869,20para atingir 80%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 80%R$ 50,00",
+          "margin": "0px",
+          "padding": "20px",
+          "barHeight": 10,
+          "aria": "22.05333333333333"
+        }
+      ]
+    },
+    {
+      "name": "430px exact accessible percentages",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "430px subtitle and mobile month layout",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "430px month selector remains functional",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "430px goals: no document horizontal overflow",
+      "passed": true,
+      "details": {
+        "viewportWidth": 430,
+        "documentWidth": 430,
+        "heading": "Metas e prêmios",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    },
+    {
+      "name": "430px goals: header and correct navigation visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "430px goals: no error alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "430px no overflowing card content",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "430px goals-revenue: no document horizontal overflow",
+      "passed": true,
+      "details": {
+        "viewportWidth": 430,
+        "documentWidth": 430,
+        "heading": "Metas e prêmios",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    },
+    {
+      "name": "430px goals-revenue: header and correct navigation visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "430px goals-revenue: no error alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "768px correct columns",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "name": "768px bar thickness and card spacing",
+      "passed": true,
+      "details": [
+        {
+          "text": "AÇAÍ FUTUROPositivação26,67%Em andamento4 de 15 clientesFaixas100%Faltam11 clientespara atingir 100%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 100%R$ 100,00",
+          "margin": "0px",
+          "padding": "20px",
+          "barHeight": 10,
+          "aria": "26.666666666666668"
+        },
+        {
+          "text": "AÇAÍ FUTUROFaturamento22,05%Em andamentoR$ 330,80 de R$ 1.500,00Faixas80%90%100%FaltamR$ 869,20para atingir 80%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 80%R$ 50,00",
+          "margin": "0px",
+          "padding": "20px",
+          "barHeight": 10,
+          "aria": "22.05333333333333"
+        }
+      ]
+    },
+    {
+      "name": "768px reference values unchanged",
+      "passed": true,
+      "details": [
+        {
+          "text": "AÇAÍ FUTUROPositivação26,67%Em andamento4 de 15 clientesFaixas100%Faltam11 clientespara atingir 100%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 100%R$ 100,00",
+          "margin": "0px",
+          "padding": "20px",
+          "barHeight": 10,
+          "aria": "26.666666666666668"
+        },
+        {
+          "text": "AÇAÍ FUTUROFaturamento22,05%Em andamentoR$ 330,80 de R$ 1.500,00Faixas80%90%100%FaltamR$ 869,20para atingir 80%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 80%R$ 50,00",
+          "margin": "0px",
+          "padding": "20px",
+          "barHeight": 10,
+          "aria": "22.05333333333333"
+        }
+      ]
+    },
+    {
+      "name": "768px exact accessible percentages",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "768px subtitle and mobile month layout",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "768px month selector remains functional",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "768px goals: no document horizontal overflow",
+      "passed": true,
+      "details": {
+        "viewportWidth": 768,
+        "documentWidth": 753,
+        "heading": "Metas e prêmios",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    },
+    {
+      "name": "768px goals: header and correct navigation visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "768px goals: no error alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "768px no overflowing card content",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "1366px correct columns",
+      "passed": true,
+      "details": 2
+    },
+    {
+      "name": "1366px bar thickness and card spacing",
+      "passed": true,
+      "details": [
+        {
+          "text": "AÇAÍ FUTUROPositivação26,67%Em andamento4 de 15 clientesFaixas100%Faltam11 clientespara atingir 100%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 100%R$ 100,00",
+          "margin": "0px",
+          "padding": "28px",
+          "barHeight": 10,
+          "aria": "26.666666666666668"
+        },
+        {
+          "text": "AÇAÍ FUTUROFaturamento22,05%Em andamentoR$ 330,80 de R$ 1.500,00Faixas80%90%100%FaltamR$ 869,20para atingir 80%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 80%R$ 50,00",
+          "margin": "0px",
+          "padding": "28px",
+          "barHeight": 10,
+          "aria": "22.05333333333333"
+        }
+      ]
+    },
+    {
+      "name": "1366px reference values unchanged",
+      "passed": true,
+      "details": [
+        {
+          "text": "AÇAÍ FUTUROPositivação26,67%Em andamento4 de 15 clientesFaixas100%Faltam11 clientespara atingir 100%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 100%R$ 100,00",
+          "margin": "0px",
+          "padding": "28px",
+          "barHeight": 10,
+          "aria": "26.666666666666668"
+        },
+        {
+          "text": "AÇAÍ FUTUROFaturamento22,05%Em andamentoR$ 330,80 de R$ 1.500,00Faixas80%90%100%FaltamR$ 869,20para atingir 80%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 80%R$ 50,00",
+          "margin": "0px",
+          "padding": "28px",
+          "barHeight": 10,
+          "aria": "22.05333333333333"
+        }
+      ]
+    },
+    {
+      "name": "1366px exact accessible percentages",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "1366px subtitle and mobile month layout",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "1366px month selector remains functional",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "1366px goals: no document horizontal overflow",
+      "passed": true,
+      "details": {
+        "viewportWidth": 1366,
+        "documentWidth": 1366,
+        "heading": "Metas e prêmios",
+        "headerVisible": true,
+        "bottomNavigationVisible": false,
+        "desktopNavigationVisible": true,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    },
+    {
+      "name": "1366px goals: header and correct navigation visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "1366px goals: no error alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "1366px no overflowing card content",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "1920px correct columns",
+      "passed": true,
+      "details": 2
+    },
+    {
+      "name": "1920px bar thickness and card spacing",
+      "passed": true,
+      "details": [
+        {
+          "text": "AÇAÍ FUTUROPositivação26,67%Em andamento4 de 15 clientesFaixas100%Faltam11 clientespara atingir 100%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 100%R$ 100,00",
+          "margin": "0px",
+          "padding": "28px",
+          "barHeight": 10,
+          "aria": "26.666666666666668"
+        },
+        {
+          "text": "AÇAÍ FUTUROFaturamento22,05%Em andamentoR$ 330,80 de R$ 1.500,00Faixas80%90%100%FaltamR$ 869,20para atingir 80%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 80%R$ 50,00",
+          "margin": "0px",
+          "padding": "28px",
+          "barHeight": 10,
+          "aria": "22.05333333333333"
+        }
+      ]
+    },
+    {
+      "name": "1920px reference values unchanged",
+      "passed": true,
+      "details": [
+        {
+          "text": "AÇAÍ FUTUROPositivação26,67%Em andamento4 de 15 clientesFaixas100%Faltam11 clientespara atingir 100%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 100%R$ 100,00",
+          "margin": "0px",
+          "padding": "28px",
+          "barHeight": 10,
+          "aria": "26.666666666666668"
+        },
+        {
+          "text": "AÇAÍ FUTUROFaturamento22,05%Em andamentoR$ 330,80 de R$ 1.500,00Faixas80%90%100%FaltamR$ 869,20para atingir 80%Prêmio estimadoPrêmio atualR$ 0,00Prêmio ao atingir 80%R$ 50,00",
+          "margin": "0px",
+          "padding": "28px",
+          "barHeight": 10,
+          "aria": "22.05333333333333"
+        }
+      ]
+    },
+    {
+      "name": "1920px exact accessible percentages",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "1920px subtitle and mobile month layout",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "1920px month selector remains functional",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "1920px goals: no document horizontal overflow",
+      "passed": true,
+      "details": {
+        "viewportWidth": 1920,
+        "documentWidth": 1920,
+        "heading": "Metas e prêmios",
+        "headerVisible": true,
+        "bottomNavigationVisible": false,
+        "desktopNavigationVisible": true,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    },
+    {
+      "name": "1920px goals: header and correct navigation visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "1920px goals: no error alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "1920px no overflowing card content",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "Between tiers and frozen official prize",
+      "passed": true,
+      "details": [
+        "AÇAÍ FUTUROFaturamento87,4%Próximo da faixaR$ 1.311,00 de R$ 1.500,00Faixas80%90%100%Faixa atual: 80%FaltamR$ 39,00para atingir 90%Prêmio oficialPrêmio conquistadoR$ 50,00Prêmio ao atingir 90%R$ 75,00",
+        "AÇAÍ FUTUROPositivação100%Meta atingida15 de 15 clientesFaixas100%Você atingiu a meta100% da meta alcançada.Prêmio oficialPrêmio conquistadoR$ 91,23",
+        "ACIMA DA METAFaturamento125,6%Acima da metaR$ 1.884,00 de R$ 1.500,00Faixas80%90%100%Você superou a meta100% da meta alcançada.Prêmio oficialPrêmio conquistadoR$ 100,00",
+        "PRÊMIO RESTRITOPositivação26,67%Em andamento4 de 15 clientesFaixas100%Faltam11 clientespara atingir 100%",
+        "SEM CONFIGURAÇÃOFaturamentoNão disponívelSem percentualR$ 330,80 de R$ 0,00Próxima faixa não disponível."
+      ]
+    },
+    {
+      "name": "Exceeded and restricted and missing values",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "390px goals-edge-cases: no document horizontal overflow",
+      "passed": true,
+      "details": {
+        "viewportWidth": 390,
+        "documentWidth": 390,
+        "heading": "Metas e prêmios",
+        "headerVisible": true,
+        "bottomNavigationVisible": true,
+        "desktopNavigationVisible": false,
+        "alerts": [],
+        "outlyingElements": []
+      }
+    },
+    {
+      "name": "390px goals-edge-cases: header and correct navigation visible",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "390px goals-edge-cases: no error alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "Goal text contrast meets AA thresholds",
+      "passed": true,
+      "details": [
+        {
+          "text": "Faturamento",
+          "ratio": 10.222332650352609,
+          "minimum": 4.5
+        },
+        {
+          "text": "87,4%",
+          "ratio": 10.746572471776993,
+          "minimum": 3
+        },
+        {
+          "text": "Próximo da faixa",
+          "ratio": 8.563986375340082,
+          "minimum": 4.5
+        },
+        {
+          "text": "R$ 1.311,00 de R$ 1.500,00",
+          "ratio": 15.177235106931827,
+          "minimum": 4.5
+        },
+        {
+          "text": "80%",
+          "ratio": 10.958226473817579,
+          "minimum": 4.5
+        },
+        {
+          "text": "90%",
+          "ratio": 10.066596017337886,
+          "minimum": 4.5
+        },
+        {
+          "text": "100%",
+          "ratio": 9.12883977360403,
+          "minimum": 4.5
+        },
+        {
+          "text": "Faixa atual: 80%",
+          "ratio": 9.12883977360403,
+          "minimum": 4.5
+        },
+        {
+          "text": "R$ 39,00",
+          "ratio": 12.237448869666707,
+          "minimum": 3
+        },
+        {
+          "text": "para atingir 90%",
+          "ratio": 9.080120312949438,
+          "minimum": 4.5
+        },
+        {
+          "text": "Prêmio oficial",
+          "ratio": 10.958226473817579,
+          "minimum": 4.5
+        },
+        {
+          "text": "Prêmio conquistado",
+          "ratio": 9.12883977360403,
+          "minimum": 4.5
+        },
+        {
+          "text": "R$ 50,00",
+          "ratio": 12.16382050678534,
+          "minimum": 4.5
+        },
+        {
+          "text": "Prêmio ao atingir 90%",
+          "ratio": 9.12883977360403,
+          "minimum": 4.5
+        },
+        {
+          "text": "R$ 75,00",
+          "ratio": 10.746572471776993,
+          "minimum": 4.5
+        },
+        {
+          "text": "Positivação",
+          "ratio": 10.222332650352609,
+          "minimum": 4.5
+        },
+        {
+          "text": "100%",
+          "ratio": 10.746572471776993,
+          "minimum": 3
+        },
+        {
+          "text": "Meta atingida",
+          "ratio": 8.154533791110309,
+          "minimum": 4.5
+        },
+        {
+          "text": "15 de 15 clientes",
+          "ratio": 15.177235106931827,
+          "minimum": 4.5
+        },
+        {
+          "text": "100%",
+          "ratio": 10.958226473817579,
+          "minimum": 4.5
+        },
+        {
+          "text": "Você atingiu a meta",
+          "ratio": 11.134115759724835,
+          "minimum": 4.5
+        },
+        {
+          "text": "100% da meta alcançada.",
+          "ratio": 8.673780468657403,
+          "minimum": 4.5
+        },
+        {
+          "text": "Prêmio oficial",
+          "ratio": 10.958226473817579,
+          "minimum": 4.5
+        },
+        {
+          "text": "Prêmio conquistado",
+          "ratio": 9.12883977360403,
+          "minimum": 4.5
+        },
+        {
+          "text": "R$ 91,23",
+          "ratio": 12.16382050678534,
+          "minimum": 4.5
+        },
+        {
+          "text": "Faturamento",
+          "ratio": 10.222332650352609,
+          "minimum": 4.5
+        },
+        {
+          "text": "125,6%",
+          "ratio": 10.746572471776993,
+          "minimum": 3
+        },
+        {
+          "text": "Acima da meta",
+          "ratio": 8.154533791110309,
+          "minimum": 4.5
+        },
+        {
+          "text": "R$ 1.884,00 de R$ 1.500,00",
+          "ratio": 15.177235106931827,
+          "minimum": 4.5
+        },
+        {
+          "text": "80%",
+          "ratio": 10.958226473817579,
+          "minimum": 4.5
+        },
+        {
+          "text": "90%",
+          "ratio": 10.958226473817579,
+          "minimum": 4.5
+        },
+        {
+          "text": "100%",
+          "ratio": 10.958226473817579,
+          "minimum": 4.5
+        },
+        {
+          "text": "Você superou a meta",
+          "ratio": 11.134115759724835,
+          "minimum": 4.5
+        },
+        {
+          "text": "100% da meta alcançada.",
+          "ratio": 8.673780468657403,
+          "minimum": 4.5
+        },
+        {
+          "text": "Prêmio oficial",
+          "ratio": 10.958226473817579,
+          "minimum": 4.5
+        },
+        {
+          "text": "Prêmio conquistado",
+          "ratio": 9.12883977360403,
+          "minimum": 4.5
+        },
+        {
+          "text": "R$ 100,00",
+          "ratio": 12.16382050678534,
+          "minimum": 4.5
+        },
+        {
+          "text": "Positivação",
+          "ratio": 10.222332650352609,
+          "minimum": 4.5
+        },
+        {
+          "text": "26,67%",
+          "ratio": 10.746572471776993,
+          "minimum": 3
+        },
+        {
+          "text": "Em andamento",
+          "ratio": 9.210056675705168,
+          "minimum": 4.5
+        },
+        {
+          "text": "4 de 15 clientes",
+          "ratio": 15.177235106931827,
+          "minimum": 4.5
+        },
+        {
+          "text": "100%",
+          "ratio": 10.066596017337886,
+          "minimum": 4.5
+        },
+        {
+          "text": "11 clientes",
+          "ratio": 12.237448869666707,
+          "minimum": 3
+        },
+        {
+          "text": "para atingir 100%",
+          "ratio": 9.080120312949438,
+          "minimum": 4.5
+        },
+        {
+          "text": "Faturamento",
+          "ratio": 10.222332650352609,
+          "minimum": 4.5
+        },
+        {
+          "text": "Não disponível",
+          "ratio": 10.746572471776993,
+          "minimum": 3
+        },
+        {
+          "text": "Sem percentual",
+          "ratio": 7.178446836711366,
+          "minimum": 4.5
+        },
+        {
+          "text": "R$ 330,80 de R$ 0,00",
+          "ratio": 15.177235106931827,
+          "minimum": 4.5
+        },
+        {
+          "text": "Próxima faixa não disponível.",
+          "ratio": 9.277189823398174,
+          "minimum": 4.5
+        }
+      ]
+    },
+    {
+      "name": "Month selector retains visible focus",
+      "passed": true,
+      "details": "rgb(242, 201, 76)"
+    },
+    {
+      "name": "No browser runtime exception or console error",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "No external API or unexpected asset requests",
+      "passed": true,
+      "details": []
+    }
+  ],
+  "apiRequests": [
+    {
+      "method": "GET",
+      "path": "/api/v1/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/dashboard?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/commission?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/ppp?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/trades?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-08"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/dashboard?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/commission?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/ppp?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/trades?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-08"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/dashboard?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/commission?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/ppp?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/trades?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-08"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/dashboard?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/commission?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/ppp?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/trades?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-08"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/dashboard?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/commission?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/ppp?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/trades?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-08"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/dashboard?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/commission?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/ppp?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/trades?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-08"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/dashboard?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/commission?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/ppp?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/trades?startDate=2026-09-01&endDate=2026-09-30"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-09"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/goals?month=2026-08"
+    }
+  ],
+  "passed": true
+}

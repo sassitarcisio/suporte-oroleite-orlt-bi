@@ -1,0 +1,73 @@
+.seller-portal .portal-heading .goal-subtitle {
+  max-width: 580px;
+  margin-top: 12px;
+  color: var(--portal-muted);
+  font-size: 13px;
+  line-height: 1.6;
+  letter-spacing: 0;
+}
+
+.seller-portal .portal-goals.goal-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: stretch; }
+.seller-portal .portal-panel.goal-card { display: flex; flex-direction: column; gap: 0; margin: 0; padding: clamp(20px, 2.2vw, 28px); }
+.seller-portal .goal-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 24px; }
+.seller-portal .goal-card-heading h2 { min-width: 0; margin: 2px 0 0; font-size: 17px; line-height: 1.4; overflow-wrap: anywhere; }
+.seller-portal .goal-type { flex-shrink: 0; border: 1px solid #765a32; border-radius: 6px; padding: 4px 8px; color: #f1d898; background: #352819; font-size: 9px; font-weight: 700; letter-spacing: .65px; text-transform: uppercase; }
+.seller-portal .goal-performance { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
+.seller-portal .goal-percentage { color: var(--portal-gold); font-size: clamp(38px, 3.6vw, 50px); font-weight: 750; line-height: 1.1; letter-spacing: -1.5px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.seller-portal .goal-percentage.is-unavailable { font-size: 24px; letter-spacing: -.4px; }
+.seller-portal .goal-status { display: inline-flex; align-items: center; gap: 6px; border-radius: 100px; background: #342818; color: #e4cd96; padding: 5px 9px; font-size: 10px; font-weight: 650; line-height: 1.4; }
+.seller-portal .goal-status::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.seller-portal .goal-status-near { background: #443418; color: #f6d873; }
+.seller-portal .goal-status-complete { background: #24372a; color: #b1d9b9; }
+.seller-portal .goal-status-unavailable { background: #342e27; color: var(--portal-muted); }
+.seller-portal .goal-realization { margin: 12px 0 21px; color: var(--portal-text); font-size: 14px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.seller-portal .goal-progress { margin-bottom: 20px; }
+.seller-portal .goal-progress-track { position: relative; height: 10px; overflow: hidden; border-radius: 100px; background: #51483e; }
+.seller-portal .goal-progress-fill { display: block; height: 100%; border-radius: inherit; background: var(--portal-gold); transition: width .25s ease-out; }
+.seller-portal .goal-progress-marker { position: absolute; top: 0; bottom: 0; width: 2px; transform: translateX(-2px); background: #b7ab95; opacity: .8; }
+.seller-portal .goal-tier-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; color: var(--portal-muted); font-size: 10px; }
+.seller-portal .goal-tiers { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.seller-portal .goal-tiers li { display: flex; align-items: center; gap: 4px; border: 1px solid transparent; border-radius: 5px; padding: 2px 6px; font-variant-numeric: tabular-nums; }
+.seller-portal .goal-tiers .is-next { border-color: #7d6332; color: #f5d67b; background: #352819; }
+.seller-portal .goal-tiers .is-reached { color: #b1d9b9; }
+.seller-portal .goal-tiers i { font-size: 9px; }
+.seller-portal .goal-current-tier { margin: -8px 0 16px; font-size: 11px; color: var(--portal-muted); }
+.seller-portal .goal-next { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 20px; border: 1px solid #745629; border-left: 3px solid #c79b39; border-radius: 10px; background: #302315; }
+.seller-portal .goal-next>div { min-width: 0; }
+.seller-portal .goal-next>i { flex-shrink: 0; font-size: 20px; color: #cfac55; }
+.seller-portal .goal-eyebrow { display: block; margin-bottom: 3px; color: #e1c893; font-size: 9px; font-weight: 700; letter-spacing: 1.7px; text-transform: uppercase; }
+.seller-portal .goal-needed { display: block; font-size: clamp(24px, 2vw, 29px); font-weight: 700; line-height: 1.25; letter-spacing: -.6px; color: #f8e5b3; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.seller-portal .goal-next p { margin: 5px 0 0; color: #d5c6ac; font-size: 12px; }
+.seller-portal .goal-next-complete { justify-content: flex-start; border-color: #50614a; background: #242b20; }
+.seller-portal .goal-next-complete>i { color: #b1d9b9; }
+.seller-portal .goal-next-complete strong { color: #d5e6cf; font-size: 16px; }
+.seller-portal .goal-next-unavailable { border-color: var(--portal-line); background: #211911; }
+.seller-portal .goal-next-unavailable p { margin: 0; color: var(--portal-muted); }
+.seller-portal .goal-prizes { margin-top: auto; padding-top: 22px; }
+.seller-portal .goal-prize-kind { display: block; margin-bottom: 10px; font-size: 10px; color: var(--portal-muted); }
+.seller-portal .goal-prize-kind.is-official { color: #b1d9b9; }
+.seller-portal .goal-prize-values { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 16px; margin: 0; }
+.seller-portal .goal-prize-values>div { min-width: 0; }
+.seller-portal .goal-prize-values dt { color: var(--portal-muted); font-size: 11px; font-weight: 500; line-height: 1.5; }
+.seller-portal .goal-prize-values dd { margin: 6px 0 0; color: var(--portal-text); font-size: clamp(20px, 1.8vw, 25px); font-weight: 650; line-height: 1.2; letter-spacing: -.4px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.seller-portal .goal-prize-next dd { color: var(--portal-gold); }
+.seller-portal .goal-prize-current.has-prize dd { color: #cae0c5; }
+.seller-portal .portal-help.goal-footnote { display: flex; gap: 8px; align-items: baseline; margin: 18px 0 0; }
+.seller-portal .goal-footnote i { flex-shrink: 0; font-size: 11px; }
+
+@media (min-width: 1100px) {
+  .seller-portal .portal-goals.goal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .seller-portal .portal-heading:has(.goal-subtitle) { align-items: flex-start; flex-wrap: nowrap; }
+  .seller-portal .portal-heading:has(.goal-subtitle)>div { min-width: 0; }
+  .seller-portal .portal-heading:has(.goal-subtitle)>label { flex-shrink: 0; }
+}
+@media (max-width: 767px) {
+  .seller-portal .portal-heading:has(.goal-subtitle) { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .seller-portal .portal-heading:has(.goal-subtitle)>label { width: 100%; }
+  .seller-portal .goal-card-heading { flex-wrap: wrap; margin-bottom: 20px; }
+  .seller-portal .goal-prize-values { gap: 12px; }
+  .seller-portal .goal-next { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .seller-portal .goal-progress-fill { transition: none; }
+}
