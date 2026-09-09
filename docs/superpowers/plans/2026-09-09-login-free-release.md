@@ -10,12 +10,13 @@
 
 ## Tasks
 
-- [ ] Build and test the fixed-upstream managed gateway, including cookies, CSRF boundary, uploads/downloads, errors and path/header attacks.
-- [ ] Integrate the requested LoginScreen with current production App and preserve password-change/session features. Keep remember-device expiration backend-controlled.
-- [ ] Add a Free-only deployment preflight/activation script with mocked operational tests; configure Node22 and API deployment in the web workflow.
-- [ ] Test the integrated release: backend, web, gateway, PowerShell, build and browser.
-- [ ] Publish an immutable API image, activate existing cookie transport on the generated HTTPS API host, publish web plus managed function, and verify the real HTTPS cookie flow.
-- [ ] Record final URLs, revisions, test evidence and any remaining device/import limitations.
+- [x] Build and test the fixed-upstream managed gateway, including cookies, CSRF boundary, uploads/downloads, errors and path/header attacks.
+- [x] Integrate the requested LoginScreen with current production App and preserve password-change/session features. Keep remember-device expiration backend-controlled.
+- [x] Add a Free-only deployment preflight/activation script with mocked operational tests; configure Node22 and API deployment in the web workflow.
+- [x] Test the integrated release: backend, web, gateway, PowerShell, build and browser.
+- [x] Publish an immutable API image, activate existing cookie transport on the generated HTTPS API host, publish web plus managed function, and verify anonymous HTTPS gateway behavior.
+- [ ] Verify the real authenticated HTTPS cookie flow: automatic approval review requires explicit authorization to use the administrator credential; no credential retrieved or login attempted.
+- [x] Record final URLs, revisions, test evidence and any remaining device/import limitations.
 
 ## Decisions
 

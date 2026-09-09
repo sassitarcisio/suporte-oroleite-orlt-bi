@@ -1,0 +1,325 @@
+{
+  "timestampUtc": "2026-09-09T12:47:15.630Z",
+  "origin": "https://lively-sea-0776c9a0f.6.azurestaticapps.net",
+  "scope": "Anonymous read-only production smoke; no login submissions or credentials",
+  "assertions": [
+    {
+      "name": "390x844: new corporate login visible",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "height": 844,
+        "documentWidth": 390,
+        "documentHeight": 844,
+        "title": "Oroleite · Central de resultados",
+        "loginHeading": "Acesse o BI Oroleite",
+        "mobileIdentityVisible": true,
+        "publicRegistration": false,
+        "rememberDefault": false,
+        "emailAutocomplete": "username",
+        "passwordAutocomplete": "current-password",
+        "alerts": []
+      }
+    },
+    {
+      "name": "390x844: no horizontal overflow",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "390x844: public registration absent and remember defaults off",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "390x844: anonymous startup has no alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "1366x768: new corporate login visible",
+      "passed": true,
+      "details": {
+        "width": 1366,
+        "height": 768,
+        "documentWidth": 1366,
+        "documentHeight": 768,
+        "title": "Oroleite · Central de resultados",
+        "loginHeading": "Acesse o BI Oroleite",
+        "mobileIdentityVisible": false,
+        "publicRegistration": false,
+        "rememberDefault": false,
+        "emailAutocomplete": "username",
+        "passwordAutocomplete": "current-password",
+        "alerts": []
+      }
+    },
+    {
+      "name": "1366x768: no horizontal overflow",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "1366x768: public registration absent and remember defaults off",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "1366x768: anonymous startup has no alert",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "Anonymous same-origin /api/me returns 401",
+      "passed": true,
+      "details": {
+        "url": "https://lively-sea-0776c9a0f.6.azurestaticapps.net/api/me",
+        "status": 401,
+        "cacheControl": "no-store",
+        "contentType": null
+      }
+    },
+    {
+      "name": "Anonymous same-origin API is not cacheable",
+      "passed": true,
+      "details": "no-store"
+    },
+    {
+      "name": "Anonymous login stores no legacy credential keys",
+      "passed": true,
+      "details": {
+        "localKeys": [],
+        "sessionKeys": []
+      }
+    },
+    {
+      "name": "No browser runtime exceptions",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "No JavaScript console errors",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "No network loading failures",
+      "passed": true,
+      "details": [
+        {
+          "errorText": "net::ERR_ABORTED",
+          "type": "Fetch",
+          "canceled": true
+        },
+        {
+          "errorText": "net::ERR_ABORTED",
+          "type": "Fetch",
+          "canceled": true
+        },
+        {
+          "errorText": "net::ERR_ABORTED",
+          "type": "Fetch",
+          "canceled": true
+        }
+      ]
+    },
+    {
+      "name": "No unexpected HTTP errors",
+      "passed": true,
+      "details": []
+    }
+  ],
+  "viewports": [
+    {
+      "width": 390,
+      "height": 844,
+      "documentWidth": 390,
+      "documentHeight": 844,
+      "title": "Oroleite · Central de resultados",
+      "loginHeading": "Acesse o BI Oroleite",
+      "mobileIdentityVisible": true,
+      "publicRegistration": false,
+      "rememberDefault": false,
+      "emailAutocomplete": "username",
+      "passwordAutocomplete": "current-password",
+      "alerts": [],
+      "screenshot": "production-login-390x844.png"
+    },
+    {
+      "width": 1366,
+      "height": 768,
+      "documentWidth": 1366,
+      "documentHeight": 768,
+      "title": "Oroleite · Central de resultados",
+      "loginHeading": "Acesse o BI Oroleite",
+      "mobileIdentityVisible": false,
+      "publicRegistration": false,
+      "rememberDefault": false,
+      "emailAutocomplete": "username",
+      "passwordAutocomplete": "current-password",
+      "alerts": [],
+      "screenshot": "production-login-1366x768.png"
+    }
+  ],
+  "runtimeErrors": [],
+  "consoleErrors": [],
+  "networkFailures": [
+    {
+      "errorText": "net::ERR_ABORTED",
+      "type": "Fetch",
+      "canceled": true
+    },
+    {
+      "errorText": "net::ERR_ABORTED",
+      "type": "Fetch",
+      "canceled": true
+    },
+    {
+      "errorText": "net::ERR_ABORTED",
+      "type": "Fetch",
+      "canceled": true
+    }
+  ],
+  "httpResponses": [
+    {
+      "url": "https://lively-sea-0776c9a0f.6.azurestaticapps.net/portal",
+      "status": 200,
+      "type": "Document",
+      "fromServiceWorker": false
+    },
+    {
+      "url": "https://lively-sea-0776c9a0f.6.azurestaticapps.net/assets/index-BuNcttPi.css",
+      "status": 200,
+      "type": "Stylesheet",
+      "fromServiceWorker": false
+    },
+    {
+      "url": "https://lively-sea-0776c9a0f.6.azurestaticapps.net/assets/index-CKW1DDIN.js",
+      "status": 200,
+      "type": "Script",
+      "fromServiceWorker": false
+    },
+    {
+      "url": "https://lively-sea-0776c9a0f.6.azurestaticapps.net/manifest.webmanifest",
+      "status": 200,
+      "type": "Manifest",
+      "fromServiceWorker": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2",
+      "status": 200,
+      "type": "Stylesheet",
+      "fromServiceWorker": false
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2",
+      "status": 200,
+      "type": "Font",
+      "fromServiceWorker": false
+    },
+    {
+      "url": "https://lively-sea-0776c9a0f.6.azurestaticapps.net/favicon.svg",
+      "status": 200,
+      "type": "Other",
+      "fromServiceWorker": false
+    },
+    {
+      "url": "https://lively-sea-0776c9a0f.6.azurestaticapps.net/portal-icon.svg",
+      "status": 200,
+      "type": "Other",
+      "fromServiceWorker": false
+    },
+    {
+      "url": "https://lively-sea-0776c9a0f.6.azurestaticapps.net/api/v1/me",
+      "status": 401,
+      "type": "Fetch",
+      "fromServiceWorker": false
+    },
+    {
+      "url": "https://lively-sea-0776c9a0f.6.azurestaticapps.net/logoOroleite.png",
+      "status": 200,
+      "type": "Image",
+      "fromServiceWorker": false
+    },
+    {
+      "url": "https://lively-sea-0776c9a0f.6.azurestaticapps.net/assets/fa-solid-900-IAB4Droh.woff2",
+      "status": 200,
+      "type": "Font",
+      "fromServiceWorker": false
+    },
+    {
+      "url": "https://lively-sea-0776c9a0f.6.azurestaticapps.net/portal",
+      "status": 200,
+      "type": "Document",
+      "fromServiceWorker": true
+    },
+    {
+      "url": "https://lively-sea-0776c9a0f.6.azurestaticapps.net/manifest.webmanifest",
+      "status": 200,
+      "type": "Manifest",
+      "fromServiceWorker": true
+    },
+    {
+      "url": "https://lively-sea-0776c9a0f.6.azurestaticapps.net/assets/index-BuNcttPi.css",
+      "status": 200,
+      "type": "Stylesheet",
+      "fromServiceWorker": false
+    },
+    {
+      "url": "https://lively-sea-0776c9a0f.6.azurestaticapps.net/assets/index-CKW1DDIN.js",
+      "status": 200,
+      "type": "Script",
+      "fromServiceWorker": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2",
+      "status": 200,
+      "type": "Stylesheet",
+      "fromServiceWorker": false
+    },
+    {
+      "url": "https://lively-sea-0776c9a0f.6.azurestaticapps.net/portal-icon.svg",
+      "status": 200,
+      "type": "Other",
+      "fromServiceWorker": true
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2",
+      "status": 200,
+      "type": "Font",
+      "fromServiceWorker": false
+    },
+    {
+      "url": "https://lively-sea-0776c9a0f.6.azurestaticapps.net/api/v1/me",
+      "status": 401,
+      "type": "Fetch",
+      "fromServiceWorker": false
+    },
+    {
+      "url": "https://lively-sea-0776c9a0f.6.azurestaticapps.net/logoOroleite.png",
+      "status": 200,
+      "type": "Image",
+      "fromServiceWorker": true
+    },
+    {
+      "url": "https://lively-sea-0776c9a0f.6.azurestaticapps.net/assets/fa-solid-900-IAB4Droh.woff2",
+      "status": 200,
+      "type": "Font",
+      "fromServiceWorker": false
+    },
+    {
+      "url": "https://lively-sea-0776c9a0f.6.azurestaticapps.net/api/me",
+      "status": 401,
+      "type": "Fetch",
+      "fromServiceWorker": false
+    }
+  ],
+  "browserVersion": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/153.0.8010.36",
+    "revision": "@507c6ee3e2f3b2ca0e660547e5b9ea4820c67f4c",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "jsVersion": "15.3.76.10"
+  },
+  "passed": true
+}
