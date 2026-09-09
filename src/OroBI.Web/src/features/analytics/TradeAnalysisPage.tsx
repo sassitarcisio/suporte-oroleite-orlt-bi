@@ -1,4 +1,5 @@
 import { TradeDetails, type TradeGroups } from './TradeDetails'
+import { isVisibleBrand } from '../brands/brandVisibility'
 
 export type TradeAnalysis = {
   groups?: TradeGroups
@@ -75,7 +76,7 @@ export function TradeAnalysisPage({ mode, data, state }: Props) {
     {data && state === 'ready' && <>
       <p className="trade-context">Base filtrada: <strong>{numeric(data.filteredMovementCount)} movimentos</strong> <span>•</span> {salesMode ? <>Faturamento liquido: <strong>{money(data.netRevenue)}</strong> <span>•</span> Trocas: <strong>{money(data.totalTradeValue)}</strong></> : <>Trocas consideradas: <strong>{numeric(data.tradeMovementCount)}</strong> <span>•</span> Vendas brutas: <strong>{money(data.grossSales)}</strong></>}</p>
       <section className={`trade-kpis trade-kpis-${cards.length}`}>{cards.map(([label, value, note], index) => <article className={index === 0 ? 'trade-kpi primary' : index < 3 ? 'trade-kpi alert' : 'trade-kpi'} key={label}><p><i className={`card-label-icon fa-solid fa-${cardIcons[index]}`} aria-hidden="true" /> {label}</p><strong className={value.startsWith('R$') ? 'compact-currency-value' : undefined}>{value}</strong><span>{note}</span></article>)}</section>
-      {salesMode ? <section className="trade-ranking-grid"><Ranking title="Clientes com maior troca" items={data.customerRanking} color="var(--gold)" /><Ranking title="Produtos com maior troca" items={data.productRanking} color="var(--gold-dark)" /><Ranking title="Marcas com maior troca" items={data.brandRanking} color="var(--negative)" /></section> : <section className="trade-chart-grid"><article className="trade-trend"><header><h2><i className="card-label-icon fa-solid fa-chart-line" aria-hidden="true" /> Evolucao diaria</h2><span>Evolucao de TROCA + TROCA DEV</span></header><LineChart points={data.dailyTrend} /></article><Ranking title="Perdas por vendedor" items={data.sellerRanking} color="var(--negative)" /></section>}
+      {salesMode ? <section className="trade-ranking-grid"><Ranking title="Clientes com maior troca" items={data.customerRanking} color="var(--gold)" /><Ranking title="Produtos com maior troca" items={data.productRanking} color="var(--gold-dark)" /><Ranking title="Marcas com maior troca" items={data.brandRanking.filter(item => isVisibleBrand(item.name))} color="var(--negative)" /></section> : <section className="trade-chart-grid"><article className="trade-trend"><header><h2><i className="card-label-icon fa-solid fa-chart-line" aria-hidden="true" /> Evolucao diaria</h2><span>Evolucao de TROCA + TROCA DEV</span></header><LineChart points={data.dailyTrend} /></article><Ranking title="Perdas por vendedor" items={data.sellerRanking} color="var(--negative)" /></section>}
     </>}
     {salesMode && <TradeDetails groups={data?.groups} ready={state === 'ready' && data !== null} />}
   </section>

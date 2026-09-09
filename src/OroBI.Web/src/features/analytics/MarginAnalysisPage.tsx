@@ -2,6 +2,7 @@ import { useId, useState, type FormEvent } from 'react'
 import type { DashboardFilterOptions, DashboardFilters } from '../dashboard/DashboardPage'
 import type { MarginDimension, MarginReport, MarginRow, NetMarginDimension, NetMarginReport, NetMarginRow } from './marginTypes'
 import './MarginAnalysis.css'
+import { isVisibleBrand, visibleGroupRows } from '../brands/brandVisibility'
 
 type Props = {
   mode: 'products' | 'net'
@@ -54,7 +55,7 @@ function GrossAnalysis({ data, ready }: { data: MarginReport | null, ready: bool
   const [draft, setDraft] = useState<{ dimension: MarginDimension, order: keyof MarginRow, limit: number }>({ dimension: 'customer', order: 'grossProfit', limit: 20 })
   const [selection, setSelection] = useState(draft)
   if (!ready || !data) return null
-  const allRows = data.groups?.[selection.dimension] ?? []
+  const allRows = visibleGroupRows(data.groups?.[selection.dimension] ?? [], selection.dimension)
   const rows = ranked(allRows, selection.order, selection.limit)
   return <>
     <section className="margin-metrics margin-metrics-gross" data-testid="margin-metrics" aria-label="Indicadores de margem bruta">
@@ -65,7 +66,7 @@ function GrossAnalysis({ data, ready }: { data: MarginReport | null, ready: bool
       <Kpi label="Clientes" icon="users" value={data.customerCount} hint="Clientes distintos no filtro" kind="number" />
       <Kpi label="Produtos" icon="box-open" value={data.productCount} hint="Produtos distintos no filtro" kind="number" />
     </section>
-    <section className="margin-charts" aria-label="Maiores lucros brutos">{(['customer', 'product', 'brand'] as const).map(dimension => <article className="margin-panel" key={dimension}><header><h2><i className="card-label-icon fa-solid fa-chart-line" aria-hidden="true" /> Lucro por {dimensionNames[dimension].toLowerCase()}</h2><span>Top 10 · lucro bruto</span></header><BarChart title={`Lucro bruto por ${dimensionNames[dimension]}`} rows={ranked(data.groups?.[dimension] ?? [], 'grossProfit', 10).map(row => ({ label: row.label, value: row.grossProfit }))} /></article>)}</section>
+    <section className="margin-charts" aria-label="Maiores lucros brutos">{(['customer', 'product', 'brand'] as const).map(dimension => <article className="margin-panel" key={dimension}><header><h2><i className="card-label-icon fa-solid fa-chart-line" aria-hidden="true" /> Lucro por {dimensionNames[dimension].toLowerCase()}</h2><span>Top 10 · lucro bruto</span></header><BarChart title={`Lucro bruto por ${dimensionNames[dimension]}`} rows={ranked(visibleGroupRows(data.groups?.[dimension] ?? [], dimension), 'grossProfit', 10).map(row => ({ label: row.label, value: row.grossProfit }))} /></article>)}</section>
     <section className="margin-detail-grid">
       <article className="margin-panel"><header><h2><i className="card-label-icon fa-solid fa-percent" aria-hidden="true" /> Detalhamento de margem</h2><span>{rows.length} de {allRows.length} resultados</span></header>
         <form className="margin-controls" onSubmit={event => { event.preventDefault(); setSelection(draft) }}>
@@ -91,7 +92,7 @@ function NetAnalysis({ data, ready }: { data: NetMarginReport | null, ready: boo
   if (!ready || !data) return null
   const products = data.groups?.product ?? []
   const productRows = ranked(products, detail.order, detail.limit)
-  const groups = data.groups?.[selection.dimension] ?? []
+  const groups = visibleGroupRows(data.groups?.[selection.dimension] ?? [], selection.dimension)
   const rows = ranked(groups, selection.metric, selection.limit)
   const format = selection.metric === 'quantity' || selection.metric === 'movementCount' ? number : money
   return <>
@@ -126,7 +127,7 @@ export function MarginAnalysisPage({ mode, data, state, filters, options, seller
     <form className="margin-filter margin-panel" onSubmit={submit} aria-label="Filtros de margem">
       <label>Data inicial<input type="date" value={draft.startDate} onChange={event => setDraft({ ...draft, startDate: event.target.value })} /></label><label>Data final<input type="date" value={draft.endDate} min={draft.startDate || undefined} onChange={event => setDraft({ ...draft, endDate: event.target.value })} /></label>
       <label>Vendedor<select value={draft.seller} onChange={event => setDraft({ ...draft, seller: event.target.value })}><option value="">Todos os vendedores</option>{sellers.map(seller => <option key={seller}>{seller}</option>)}</select></label>
-      <label>Marca<select value={draft.brand} onChange={event => setDraft({ ...draft, brand: event.target.value })}><option value="">Todas as marcas</option>{options.brands.map(brand => <option key={brand}>{brand}</option>)}</select></label>
+      <label>Marca<select value={draft.brand} onChange={event => setDraft({ ...draft, brand: event.target.value })}><option value="">Todas as marcas</option>{options.brands.filter(isVisibleBrand).map(brand => <option key={brand}>{brand}</option>)}</select></label>
       <label>Grupo / rede<input list={`${listId}-groups`} value={draft.group} placeholder="Todos os grupos" onChange={event => setDraft({ ...draft, group: event.target.value })} /></label><datalist id={`${listId}-groups`}>{options.groups.map(group => <option key={group} value={group} />)}</datalist>
       <label>Cidade<select value={draft.city} onChange={event => setDraft({ ...draft, city: event.target.value })}><option value="">Todas as cidades</option>{options.cities.map(city => <option key={city}>{city}</option>)}</select></label>
       <label>Cliente contém<input value={draft.customerContains} placeholder="Nome do cliente" onChange={event => setDraft({ ...draft, customerContains: event.target.value })} /></label><label>Produto contém<input value={draft.productContains} placeholder="Nome do produto" onChange={event => setDraft({ ...draft, productContains: event.target.value })} /></label>

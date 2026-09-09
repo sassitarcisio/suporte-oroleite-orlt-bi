@@ -84,6 +84,22 @@ describe('Seller portal', () => {
     expect(screen.getByRole('button', { name: 'Próxima página' })).toBeDisabled()
   })
 
+  it('hides inactive and missing brand cards when opening Marcas from the portal', async () => {
+    const original = vi.mocked(fetch).getMockImplementation()!
+    vi.mocked(fetch).mockImplementation((input, init) => {
+      if (!String(input).includes('/me/brands?')) return original(input, init)
+      return Promise.resolve(reply({ items: ['TIA SONIA', 'ZZZ - INATIVO F', 'SEM INFORMACAO'].map(label => ({ label, netRevenue: -11.98, quantity: 2, customerCount: 1, revenueSharePercent: -0.01 })), totalCount: 3, hasMore: false }))
+    })
+    render(<App />)
+    await screen.findByRole('heading', { name: 'Meu desempenho' })
+    fireEvent.click(screen.getByRole('button', { name: 'Mais' }))
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Mais módulos' })).getByRole('button', { name: 'Marcas' }))
+    expect(await screen.findByText('TIA SONIA')).toBeVisible()
+    expect(screen.queryByText('ZZZ - INATIVO F')).not.toBeInTheDocument()
+    expect(screen.queryByText('SEM INFORMACAO')).not.toBeInTheDocument()
+    expect(screen.getByText(/11,98/)).toBeVisible()
+  })
+
   it('does not expose modules disabled by the personal permissions', async () => {
     const original = vi.mocked(fetch).getMockImplementation()!
     vi.mocked(fetch).mockImplementation((input, init) => String(input).endsWith('/api/v1/me') ? Promise.resolve(reply({ ...identity, permissions: { ...permissions, canViewCommission: false, canViewCustomers: false } })) : original(input, init))
