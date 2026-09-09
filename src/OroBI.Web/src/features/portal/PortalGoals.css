@@ -9,9 +9,9 @@
 
 .seller-portal .portal-goals.goal-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: stretch; }
 .seller-portal .portal-panel.goal-card { display: flex; flex-direction: column; gap: 0; margin: 0; padding: clamp(20px, 2.2vw, 28px); }
-.seller-portal .goal-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 24px; }
-.seller-portal .goal-card-heading h2 { min-width: 0; margin: 2px 0 0; font-size: 17px; line-height: 1.4; overflow-wrap: anywhere; }
-.seller-portal .goal-type { flex-shrink: 0; border: 1px solid #765a32; border-radius: 6px; padding: 4px 8px; color: #f1d898; background: #352819; font-size: 9px; font-weight: 700; letter-spacing: .65px; text-transform: uppercase; }
+.seller-portal .goal-card-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 24px; padding: 16px; border-left: 3px solid var(--portal-gold); border-radius: 8px; background: #332617; }
+.seller-portal .goal-card-heading h2 { min-width: 0; margin: 0; color: #fff0c9; font-size: clamp(20px, 1.7vw, 24px); font-weight: 750; line-height: 1.3; letter-spacing: -.3px; overflow-wrap: anywhere; }
+.seller-portal .goal-type { flex-shrink: 0; border: 1px solid #f2c94c; border-radius: 6px; padding: 7px 10px; color: #21150c; background: var(--portal-gold); font-size: 12px; font-weight: 750; line-height: 1.4; letter-spacing: .5px; text-transform: uppercase; }
 .seller-portal .goal-performance { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
 .seller-portal .goal-percentage { color: var(--portal-gold); font-size: clamp(38px, 3.6vw, 50px); font-weight: 750; line-height: 1.1; letter-spacing: -1.5px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .seller-portal .goal-percentage.is-unavailable { font-size: 24px; letter-spacing: -.4px; }
@@ -64,7 +64,7 @@
 @media (max-width: 767px) {
   .seller-portal .portal-heading:has(.goal-subtitle) { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
   .seller-portal .portal-heading:has(.goal-subtitle)>label { width: 100%; }
-  .seller-portal .goal-card-heading { flex-wrap: wrap; margin-bottom: 20px; }
+  .seller-portal .goal-card-heading { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 20px; padding: 14px; }
   .seller-portal .goal-prize-values { gap: 12px; }
   .seller-portal .goal-next { padding: 16px; }
 }
